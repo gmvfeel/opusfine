@@ -19,8 +19,9 @@
 
   /* 화면의 표 이름 → 실제 표 이름. 표가 생기는 대로 여기에 적습니다 */
   var TABLE = {
-    artists: 'artists'
-    /* artworks: 'artworks', exhibitions: 'exhibitions', … */
+    artists:  'artists',
+    artworks: 'artworks'
+    /* exhibitions: 'exhibitions', venues: 'venues', … */
   };
 
   async function countOf(t) {

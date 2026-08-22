@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작품 — OPUSFINE</title>
+<meta name="description" content="미술관이 저작권 없이 공개한 작품을 도판과 함께 봅니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>/* ── 상세와 함께 쓰는 것들 ──
+   빵부스러기 · 배지 · 견본 알림. 실제로는 공용 CSS 한 곳에 둡니다. */
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.oc-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:800;
+  letter-spacing:.03em;color:#fff;background:#EC7A1C;padding:2px 6px;line-height:1}
+.vf-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
+  font-weight:800;color:var(--accent);background:var(--accent-soft,#E9EFEE);
+  padding:3px 9px;border-radius:99px;line-height:1}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
+
+/* ══════════════════════════════════════════════════════════════════
+   작가 목록 · 2026-08-21
+   ------------------------------------------------------------------
+   ★ 오퍼스클램 인물 목록은 「이름·국적·생몰·악기」가 줄지어 선 <b>표</b>입니다.
+     글자가 주인공이므로 그게 맞습니다.
+     미술은 <b>대표작 한 점</b>이 그 작가를 설명합니다. 표에 그림을 끼워
+     넣으면 둘 다 죽습니다 — 그래서 <b>도판 격자</b>로 갑니다.
+   ★ 그래도 자료성은 버리지 않습니다
+     · 위쪽 <b>추리개</b>로 표만큼 좁혀 갑니다
+     · 카드에 생몰·분야·작품수·전시수를 함께 적습니다
+     · <b>「표로 보기」</b>를 남깁니다 — 훑을 때는 표가 빠릅니다
+       (오퍼스클램 db-list.js 를 그대로 쓰면 됩니다)
+   ★ 도판은 <b>자르지 않습니다.</b> 세로로 긴 것, 가로로 넓은 것이 다르므로
+     가로만 맞추고 세로는 그림이 정합니다 → 벽돌 쌓기.
+   ══════════════════════════════════════════════════════════════════ */
+
+.lt{padding:30px 0 26px}
+.lt h1{font-family:var(--serif);font-weight:200;font-size:clamp(30px,3.8vw,44px);
+  letter-spacing:-.03em;margin:12px 0 0}
+.lt h1 b{font-weight:400}
+.lt p{margin:14px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9}
+.lt .cnt{margin-top:18px;font-size:13px;color:var(--ink-2)}
+.lt .cnt b{font-family:var(--serif);font-size:19px;color:var(--accent);font-weight:500;
+  font-variant-numeric:tabular-nums}
+
+/* ── 추리개 ── */
+.filters{padding:18px 0;border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);position:sticky;top:66px;z-index:40;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px)}
+.frow{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.fgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fgrp .fl{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase;margin-right:2px}
+.chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule-2);
+  background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.fright{margin-left:auto;display:flex;gap:14px;align-items:center}
+.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
+  color:var(--ink);width:160px;outline:none}
+.srch input::placeholder{color:var(--ink-3)}
+.view{display:flex;border:1px solid var(--rule-2)}
+.view button{border:0;background:transparent;font-family:inherit;font-size:12px;
+  padding:6px 13px;cursor:pointer;color:var(--ink-2);transition:.16s}
+.view button.on{background:var(--ink);color:#fff}
+
+/* ── 도판 격자 ── */
+.grid{column-count:4;column-gap:28px;padding:40px 0 30px}
+.card{break-inside:avoid;display:inline-block;width:100%;margin-bottom:40px}
+/* ★★ 2026-08-21 · 세로 캡션이 <b>도판 밖으로 튀어나갔습니다</b> (파트너 지적).
+     .plate 가 span 이라 <b>inline</b> 이었습니다. inline 요소는 크기를
+     갖지 않으므로, position:relative 를 걸어도 안쪽 absolute 가 그것을
+     기준으로 삼지 못하고 더 바깥으로 달아납니다.
+   ★ 카드 안의 span 들도 마찬가지였습니다 — 이름·생몰·분야가 한 줄로
+     이어져 붙어 있었습니다. <b>줄로 세울 것은 block 으로 못박습니다.</b>
+     오늘 리쿠르트에서 같은 일을 겪었습니다. */
+.plate{display:block;position:relative;border:1px solid var(--rule-2);padding:14px;
+  transition:border-color .24s,box-shadow .24s,transform .24s}
+.card:hover .plate{transform:translateY(-3px);border-color:var(--rule);
+  box-shadow:0 18px 36px -24px rgba(23,23,26,.32)}
+.plate img,.plate svg{display:block;width:100%;height:auto}
+/* ══ 도판 캡션 — 이 사이트의 시그니처 ══
+   ★★ 2026-08-21 · <b>세로쓰기</b>를 넣었습니다 (파트너 결정).
+     처음엔 좁은 칸에 글이 밀려 <b>쏟아진 것</b>이었는데, 파트너가 그
+     모양을 보고 「신선하다」고 하셨습니다. 우연히 나온 것이라
+     화면 폭이 바뀌면 무너지므로 <b>제대로 세로로</b> 만들었습니다.
+   ★ 세로쓰기는 실제로 미술 쪽 문법입니다 — 족자와 병풍의 화제(畵題)가
+     세로로 쓰이고, 도록 표지에도 자주 씁니다.
+   ★ 한글은 세워 흐르고 영문·숫자는 눕습니다(text-orientation:mixed).
+     영문까지 세우면 한 글자씩 떨어져 못 읽습니다.
+   ★ 두 벌을 두고 견주실 수 있게 했습니다 — 위 추리개의 「캡션」 단추.
+     실제로는 하나를 골라 씁니다. */
+.onwork{position:absolute;background:rgba(23,23,26,.86);color:#F6F5F2;
+  opacity:0;transition:.24s;pointer-events:none;overflow:hidden}
+.card:hover .onwork{opacity:1}
+.onwork .w{display:block;font-family:var(--serif);line-height:1.55}
+.onwork .m{display:block;color:#B9B8B2}
+
+/* ── 가로 (도판 아래쪽) ── */
+.grid:not(.cap-v) .onwork{left:14px;right:14px;bottom:14px;padding:10px 12px;
+  transform:translateY(6px)}
+.grid:not(.cap-v) .card:hover .onwork{transform:translateY(0)}
+.grid:not(.cap-v) .onwork .w{font-size:12.5px}
+.grid:not(.cap-v) .onwork .m{font-size:10.5px;margin-top:3px}
+
+/* ── 세로 (도판 오른쪽 끝, 족자의 화제 자리) ── */
+.grid.cap-v .onwork{top:14px;bottom:14px;right:14px;left:auto;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  padding:13px 11px;max-width:58%;
+  display:flex;align-items:flex-start;gap:11px;
+  transform:translateX(6px)}
+.grid.cap-v .card:hover .onwork{transform:translateX(0)}
+.grid.cap-v .onwork .w{font-size:13px;letter-spacing:.03em}
+.grid.cap-v .onwork .m{font-size:10.5px;letter-spacing:.05em;margin:0}
+
+.who{display:block;margin-top:15px}
+.who .nm{display:block;font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.4}
+.who .nm i{font-style:normal;font-size:12px;color:var(--ink-3);margin-left:6px;
+  font-family:var(--sans)}
+.who .yr{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.who .fd{display:block;font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.who .st{margin-top:9px;padding-top:9px;border-top:1px solid var(--rule-2);
+  display:flex;gap:13px;font-size:11px;color:var(--ink-3)}
+.who .st b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.who .mk{display:inline-flex;gap:5px;margin-top:8px;align-items:center}
+.card:hover .who .nm{color:var(--accent)}
+
+/* 자료가 아직 얇은 작가 — 감추지 않고 그대로 알립니다 */
+.thin .plate{background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)}
+.thin .no{display:flex;align-items:center;justify-content:center;height:230px;
+  font-size:12px;color:var(--ink-3);text-align:center;line-height:1.8}
+
+.more{display:flex;justify-content:center;padding:6px 0 20px}
+.more button{font-family:inherit;font-size:13.5px;font-weight:600;padding:14px 40px;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.more button:hover{background:var(--ink);color:#fff}
+
+html[data-theme="dark"] .filters{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .thin .plate{background:repeating-linear-gradient(135deg,#1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px)}
+html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--paper)}
+
+@media(max-width:1080px){ .grid{column-count:3} }
+@media(max-width:860px){
+  .grid{column-count:2;column-gap:20px}
+  .filters{position:static}
+  .fright{margin-left:0;width:100%}
+}
+@media(max-width:520px){ .grid{column-count:1} }
+
+/* ── 자료가 들어오면 ──
+   ★ 위키미디어 커먼즈 그림은 세로로 긴 것, 가로로 넓은 것이 제각각입니다.
+     자르지 않고 <b>가로만 맞춥니다</b> — 그래서 벽돌 쌓기입니다.
+   ★ 아주 큰 그림이 오면 카드가 화면을 넘길 수 있어 높이에 상한을 둡니다.
+     넘치는 만큼만 잘리고, 상세로 들어가면 온전히 보입니다. */
+.plate img{max-height:520px;object-fit:cover;object-position:top}
+/* 불러오는 동안 자리를 지킵니다 — 격자가 덜컥거리지 않게 */
+.plate.loading{background:repeating-linear-gradient(135deg,#FBFAF8,#FBFAF8 9px,#F3F2EE 9px,#F3F2EE 18px)}
+.card .who .nm i{font-weight:400}
+
+/* ── 작품 카드 ── */
+.who .wt{display:block;font-family:var(--serif);font-size:14px;margin-top:4px;
+  line-height:1.5;color:var(--ink-2)}
+.who .hd2{display:block;font-size:11px;color:var(--accent);margin-top:5px;font-weight:600}
+/* 저작권이 살아 있는 작품 — 도판을 싣지 않습니다 */
+.no.rights{height:200px;padding:0 18px}
+.no.rights b{display:block;margin-top:6px;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap lt">
+  <div class="bc" style="padding:0"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / 작품</div>
+  <div class="label" style="margin-top:14px">Artworks</div>
+  <h1>작품 <b>아카이브</b></h1>
+  <p>
+    세계 미술관이 <b>저작권 없이 공개한</b> 작품입니다. 도판은 미술관 원본을 그대로
+    잇습니다. 저작권이 살아 있는 작품은 도판을 싣지 않고 소장처로 이어 드립니다.
+  </p>
+  <div class="cnt" id="cnt">불러오는 중…</div>
+</div>
+
+<div class="filters">
+  <div class="wrap frow">
+    <div class="fgrp">
+      <span class="fl">갈래</span>
+      <button class="chip on">전체</button><button class="chip">회화</button>
+      <button class="chip">도자</button><button class="chip">판화</button>
+      <button class="chip">조각</button><button class="chip">서예</button>
+      <button class="chip">공예</button>
+    </div>
+    <div class="fgrp">
+      <span class="fl">시대</span>
+      <button class="chip on">전체</button><button class="chip">~15세기</button>
+      <button class="chip">16–18세기</button><button class="chip">19세기</button>
+      <button class="chip">20세기~</button>
+    </div>
+    <div class="fright">
+      <div class="srch">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
+        </svg>
+        <input type="search" placeholder="작품·작가 이름으로 찾기">
+      </div>
+      <div class="view" id="capSw" aria-label="캡션 방향">
+        <button class="on" data-cap="v">캡션 세로</button><button data-cap="h">가로</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note" style="margin-top:22px">
+    지금은 <b>메트로폴리탄 미술관</b>이 공개한 자료입니다 · 도판은 그쪽 원본을 그대로 잇습니다 ·
+    앞으로 시카고 미술관·국내 공공자료가 더해집니다
+  </p>
+
+  <div class="grid cap-v" id="grid"></div>
+
+  <!-- 광고 -->
+  <div class="adslot">
+    <a class="adwrap adwide" href="#">
+      <span class="am" data-art="ad" data-q="landscape"><svg viewBox="0 0 120 100" role="img" aria-label="견본 그림"><rect width="120" height="100" fill="#F2EFE7"/><path d="M0 64 L20 42 L34 52 L52 30 L70 50 L86 40 L104 56 L120 46 L120 100 L0 100Z" fill="#2E5D57"/><rect y="60" width="120" height="18" fill="#F2EFE7" opacity=".72"/></svg></span>
+      <span><span class="ad-eb">Printing</span>
+      <span class="ad-t" style="display:block">도록 인쇄 · 아트북 제작</span>
+      <span class="ad-s" style="display:block">소량 인쇄부터 전시 도록까지 · 색 교정 무료 상담</span></span>
+      <span class="ad-go">문의하기 →</span>
+    </a>
+  </div>
+
+  <div class="more"><button>더 보기</button></div>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/work-list.js"></script>
+<script src="/assets/_capswitch.js"></script>
+</body>
+</html>
