@@ -1,4 +1,4 @@
-name: 작품 수집 (메트·시카고)
+name: 작품 수집
 
 # ══════════════════════════════════════════════════════════════════
 #  ★ 메트로폴리탄 공개 API 에서 작품과 도판을 받습니다.
@@ -15,7 +15,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: met
-        options: [met, aic, aic-peek]
+        options: [emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -52,6 +52,7 @@ jobs:
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATA_GO_KEY:          ${{ secrets.DATA_GO_KEY }}
           IN_SRC:   ${{ github.event.inputs.src   || 'met' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
           IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
@@ -62,6 +63,17 @@ jobs:
           #   도판도 안 오고 소장처 링크도 차단됩니다. 예약 실행은
           #   메트로 둡니다 — 시카고를 더 받아도 화면에 못 씁니다.
           case "${IN_SRC:-met}" in
+            emuseum-peek)
+              echo "▶ 국내 유물 자료원이 주는 칸 이름을 봅니다"
+              node scripts/collect-works-emuseum.mjs --peek
+              ;;
+            emuseum)
+              ARGS="--limit ${IN_LIMIT:-300}"
+              if [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then ARGS="$ARGS --q \"${IN_Q}\""; fi
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-emuseum.mjs $ARGS"
+              eval node scripts/collect-works-emuseum.mjs $ARGS
+              ;;
             aic-peek)
               echo "▶ 시카고가 주는 칸 이름을 봅니다"
               node scripts/collect-works-aic.mjs --peek
