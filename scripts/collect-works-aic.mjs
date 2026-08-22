@@ -97,6 +97,7 @@ function quality(w) {
   if (w.holder_dept) n += 1;
   if (w.link_source) n += 1;
   if (w.genre)       n += 1;
+  if (w.exhibition_history) n += 2;   /* 전시 이력은 값진 자료입니다 */
   return n;
 }
 
@@ -128,6 +129,11 @@ function build(o, iiif, byName) {
     holder_dept: pick(o, ['department_title', 'department']),
     accession:   pick(o, ['main_reference_number', 'accession_number']),
     link_source: o.id ? 'https://www.artic.edu/artworks/' + o.id : null,
+    /* ★ 전시 이력을 <b>글 그대로</b> 담아 둡니다. 지금 안 받아 두면
+         전시DB 를 만들 때 시카고를 다시 통째로 훑어야 합니다. */
+    exhibition_history: pick(o, ['exhibition_history']),
+    provenance:         pick(o, ['provenance_text', 'provenance']),
+    credit_line:        pick(o, ['credit_line']),
     artist_id:   null,
     link_status: 'none',
     hidden:      false
