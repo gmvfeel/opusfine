@@ -27,7 +27,7 @@ on:
         description: '무엇을 받을까요'
         type: choice
         default: kr
-        options: [kr, kr2, world]
+        options: [kr, kr3, joseon, world, kr2]
       limit:
         description: '몇 명까지'
         default: '400'

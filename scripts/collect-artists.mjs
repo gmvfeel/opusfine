@@ -109,12 +109,28 @@ SELECT DISTINCT ?item WHERE {
   ?item wdt:P27 ${KR} .
 } LIMIT ${lim}`,
 
-  /* 한국어 이름이 붙은 미술가 — 조선시대 인물을 건지려는 것입니다 */
+  /* 한국어 이름이 붙은 미술가
+     ★★ 2026-08-22 · <b>쓰지 않기로 했습니다.</b> 6,751명에서 답이 끊겼고
+       실제로는 1만이 넘습니다. 반 고흐·피카소까지 다 걸려서
+       한국 미술가만 가려낼 수가 없습니다. 자리는 남겨 둡니다. */
   kr2: (lim) => `
 SELECT DISTINCT ?item WHERE {
   VALUES ?job { ${qJobs()} }
   ?item wdt:P106 ?job .
   ?item rdfs:label ?ko . FILTER(LANG(?ko) = "ko")
+} LIMIT ${lim}`,
+
+  /* ★ 한국어 위키백과에 <b>문서가 있는</b> 미술가
+       국적이 안 적힌 조선시대 인물을 건지려는 것입니다.
+       「한국어 이름이 있다」보다 훨씬 좁습니다 — 문서를 쓰려면
+       누군가 그 사람에 대해 쓸 거리가 있어야 하기 때문입니다.
+     ★ 반 고흐도 걸립니다. 받고 나서 가려야 합니다. */
+  kr3: (lim) => `
+SELECT DISTINCT ?item WHERE {
+  VALUES ?job { ${qJobs()} }
+  ?item wdt:P106 ?job .
+  ?sitelink schema:about ?item ;
+            schema:isPartOf <https://ko.wikipedia.org/> .
 } LIMIT ${lim}`,
 
   /* 세계 ─ 작품이 많이 딸린 순 (사람들이 많이 찾는 작가부터) */
@@ -129,6 +145,40 @@ ORDER BY DESC(?n)
 LIMIT ${lim}`
 };
 
+/* ── 조선의 번호를 스스로 찾습니다 ────────────────────────────
+   ★ QID 를 <b>짐작해 박아 넣지 않습니다.</b> 위키데이터에 물어봅니다.
+     「조선」으로 검색해 나온 후보 가운데 <b>미술가가 실제로 국적으로
+     쓰고 있는</b> 번호를 고릅니다 — 그것이 우리가 찾는 번호입니다.
+   ★ 못 찾으면 조용히 빈 손으로 돌아옵니다. 짐작한 번호로 엉뚱한
+     사람을 긁어 오는 것보다 낫습니다. */
+async function findJoseon() {
+  const url = WBAPI + '?action=wbsearchentities&format=json&language=ko&limit=12'
+            + '&search=' + encodeURIComponent('조선');
+  let hits = [];
+  try {
+    const j = await getAPI(url);
+    hits = (j && j.search || []).map((x) => x.id).filter(Boolean);
+  } catch (e) { return []; }
+
+  const good = [];
+  for (const q of hits) {
+    /* 이 번호를 국적으로 쓰는 미술가가 몇이나 되는지 세어 봅니다 */
+    const probe = `
+SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE {
+  VALUES ?job { ${qJobs()} }
+  ?item wdt:P106 ?job .
+  ?item wdt:P27 wd:${q} .
+}`;
+    try {
+      const rows = await askSparql(probe);
+      const n = Number(rows[0]?.n?.value || 0);
+      if (n >= 5) { good.push({ q, n }); console.log(`    · wd:${q} → 미술가 ${n}명`); }
+    } catch (e) { if (isStop(e)) throw e; }
+  }
+  good.sort((a, b) => b.n - a.n);
+  return good.map((x) => x.q);
+}
+
 /* ── 명령줄 ───────────────────────────────────────────────────── */
 const argv = process.argv.slice(2);
 function arg(name, def) {
@@ -139,8 +189,8 @@ const MODE  = arg('mode', 'kr');
 const LIMIT = Number(arg('limit', 400));
 const DRY   = argv.includes('--dry');
 
-if (!QUERY[MODE]) {
-  console.error('★ mode 는 kr · kr2 · world 가운데 하나입니다.');
+if (MODE !== 'joseon' && !QUERY[MODE]) {
+  console.error('★ mode 는 kr · kr2 · kr3 · joseon · world 가운데 하나입니다.');
   process.exit(1);
 }
 
@@ -301,7 +351,27 @@ async function upsert(rows) {
 
   let ids = [];
   try {
-    const rows = await askSparql(QUERY[MODE](LIMIT));
+    let q;
+    if (MODE === 'joseon') {
+      console.log('  「조선」의 번호를 찾는 중…');
+      const qs = await findJoseon();
+      if (!qs.length) {
+        console.log('  ※ 미술가가 국적으로 쓰는 「조선」 번호를 못 찾았습니다.');
+        console.log('    kr3 (한국어 위키백과에 문서가 있는 미술가) 를 써 보십시오.');
+        return;
+      }
+      console.log('  쓸 번호: ' + qs.map((x) => 'wd:' + x).join(' '));
+      q = `
+SELECT DISTINCT ?item WHERE {
+  VALUES ?job { ${qJobs()} }
+  VALUES ?nat { ${qs.map((x) => 'wd:' + x).join(' ')} }
+  ?item wdt:P106 ?job .
+  ?item wdt:P27 ?nat .
+} LIMIT ${LIMIT}`;
+    } else {
+      q = QUERY[MODE](LIMIT);
+    }
+    const rows = await askSparql(q);
     ids = rows.map((b) => (b.item?.value || '').split('/').pop()).filter((x) => /^Q\d+$/.test(x));
   } catch (e) {
     console.error('★ 목록을 못 받았습니다:', isStop(e) ? stopReason(e) : e.message);
