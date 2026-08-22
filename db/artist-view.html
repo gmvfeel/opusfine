@@ -174,6 +174,12 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   .exh-r{grid-template-columns:52px 1fr;gap:12px}
   .exh-k{grid-column:2}
 }
+
+/* ── 자료가 들어오면 ── */
+.pv-plate img{display:block;width:100%;height:auto;max-height:620px;
+  object-fit:contain}
+.more-ar a .f img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+.pv-facts dd a{text-decoration:underline;text-underline-offset:2px}
 </style>
 </head>
 <body>
@@ -187,15 +193,15 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
 </div>
 
 <div class="wrap">
-  <div class="bc"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / <a href="/db/artist.html">작가</a> / 정선</div>
+  <div class="bc" id="bc"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / <a href="/db/artist.html">작가</a> / 정선</div>
 
   <!-- ══ 머리 — 대표작이 먼저 옵니다 ══ -->
   <div class="pv">
     <div>
-      <div class="pv-plate" data-art="hero" data-q="landscape">
+      <div class="pv-plate" id="pv-plate">
         <svg viewBox="0 0 640 460" role="img" aria-label="견본 그림"><rect width="640" height="460" fill="#EFEDE6"/><path d="M0 285 L102 184 L172 230 L268 128 L364 220 L448 174 L544 248 L640 202 L640 460 L0 460Z" fill="#4A4A48"/><rect y="266" width="640" height="92" fill="#F2F0E9" opacity=".8"/></svg>
       </div>
-      <div class="cap">
+      <div class="cap" id="pv-cap">
         <div class="cap-artist">정선</div>
         <div class="cap-work"><em>《인왕제색도》</em>, 1751</div>
         <div class="cap-meta">종이에 수묵</div>
@@ -205,10 +211,10 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
 
     <div>
       <div class="label">Artist</div>
-      <h1 class="pv-name">정선 <span class="han">鄭敾</span></h1>
-      <div class="pv-en">Jeong Seon · 1676 – 1759 · 조선</div>
+      <h1 class="pv-name" id="pv-name">불러오는 중…</h1>
+      <div class="pv-en" id="pv-en"></div>
 
-      <div class="pv-marks">
+      <div class="pv-marks" id="pv-marks">
         <span class="oc-badge">OC</span>
         <span class="vf-badge">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
@@ -217,7 +223,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
         <span class="lk-badge">+ Linked</span>
       </div>
 
-      <dl class="pv-facts">
+      <dl class="pv-facts" id="pv-facts">
         <div><dt>분야</dt><dd><b>회화</b> · 산수 · 진경산수</dd></div>
         <div><dt>활동 시기</dt><dd>조선 후기 · 18세기</dd></div>
         <div><dt>국적</dt><dd>대한민국 (조선)</dd></div>
@@ -237,18 +243,18 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
 </div>
 
 <div class="wrap">
-  <p class="demo-note">
-    화면 결을 보시기 위한 <b>시안</b>입니다 · 도판은 메트로폴리탄 미술관 공개 자료(퍼블릭 도메인)를
-    실제로 불러오므로 <b>작가 이름과 그림이 서로 맞지 않습니다</b> · 전시 이력·학술·소장처 숫자는 견본입니다
+  <p class="demo-note" id="demo-note">
+    작가 정보는 <b>위키데이터</b>에서 받은 것입니다 · 그림은 위키미디어 커먼즈 원본을 링크합니다 ·
+    작품·전시·소장처·학술 자료는 <b>아직 붙지 않았습니다</b>
   </p>
 </div>
 
 <div class="wrap">
 
   <!-- ══ 생애 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-bio">
     <div class="dhd"><span class="dt">생애 · 이력</span><span class="dt-en">Biography</span></div>
-    <div class="bio">
+    <div class="bio" id="bio">
       조선 후기의 화가. 중국 화보를 본떠 그리던 관습에서 벗어나 <b>우리 산천을 직접 보고 그리는
       진경산수(眞景山水)</b>를 열었다. 인왕산과 금강산을 거듭 찾아 그렸고, 젖은 바위는 짙은 먹을
       한 번에 쓸어내리고 안개 낀 산허리는 종이를 그대로 비워 두는 방식으로 우리 땅의 습기와
@@ -260,7 +266,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 작품 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-works">
     <div class="dhd">
       <span class="dt">작품</span><span class="dt-en">Works</span>
       <span class="sec-sub">142점 가운데 도판이 있는 <b style="color:var(--accent)">86</b>점</span>
@@ -287,7 +293,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 광고 ══ -->
-  <div class="adslot">
+  <div class="adslot" id="sec-ad">
     <a class="adwrap adwide" href="#">
       <span class="am" data-art="ad" data-q="mountain"><svg viewBox="0 0 120 100" role="img" aria-label="견본 그림"><rect width="120" height="100" fill="#EFEDE6"/><path d="M0 62 L19 40 L32 50 L50 28 L68 48 L84 38 L102 54 L120 44 L120 100 L0 100Z" fill="#4A4A48"/><rect y="57" width="120" height="20" fill="#F2F0E9" opacity=".8"/></svg></span>
       <span><span class="ad-eb">Museum</span>
@@ -298,7 +304,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </div>
 
   <!-- ══ 전시 이력 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-exh">
     <div class="dhd">
       <span class="dt">전시 이력</span><span class="dt-en">Exhibitions</span>
       <span class="sec-sub">개인전 <b style="color:var(--accent)">6</b> · 단체전 <b style="color:var(--accent)">32</b></span>
@@ -327,7 +333,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 소장처 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-hold">
     <div class="dhd"><span class="dt">소장처</span><span class="dt-en">Collections</span>
       <span class="sec-sub">어느 곳이 몇 점 갖고 있나</span></div>
     <div class="hold">
@@ -339,7 +345,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 관계 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-rel">
     <div class="dhd"><span class="dt">관계</span><span class="dt-en">Network</span>
       <span class="sec-sub">배우고 가르치고 이어진 사람들</span></div>
     <div class="rel">
@@ -368,7 +374,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 학술 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-paper">
     <div class="dhd"><span class="dt">학술</span><span class="dt-en">Scholarship</span>
       <span class="sec-sub">이 작가를 다룬 논문 <b style="color:var(--accent)">96</b>편</span>
       <a class="sec-more" href="#">전체 →</a></div>
@@ -385,10 +391,10 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   </section>
 
   <!-- ══ 같은 자리의 다른 작가 ══ -->
-  <section class="dsec">
+  <section class="dsec" id="sec-more">
     <div class="dhd"><span class="dt">같은 시대 작가</span><span class="dt-en">Contemporaries</span>
       <a class="sec-more" href="/db/artist.html">작가 전체 →</a></div>
-    <div class="more-ar">
+    <div class="more-ar" id="more-ar">
       <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 200" role="img" aria-label="견본"><rect width="160" height="200" fill="#EEEBE1"/><ellipse cx="80" cy="74" rx="32" ry="38" fill="#8C8271"/><path d="M22 200 q8 -62 58 -62 q50 0 58 62Z" fill="#4A4A46"/></svg></span>
         <span class="n">김홍도</span><span class="y">1745–?</span></a>
       <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 235" role="img" aria-label="견본"><rect width="160" height="235" fill="#F1EBDE"/><ellipse cx="80" cy="82" rx="32" ry="38" fill="#9A8C74"/><path d="M22 235 q8 -66 58 -66 q50 0 58 66Z" fill="#6B6250"/></svg></span>
@@ -410,6 +416,7 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
 
 <script src="/assets/include.js"></script>
 <script src="/assets/ui.js"></script>
-<script src="/assets/art-demo.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/artist-view.js"></script>
 </body>
 </html>
