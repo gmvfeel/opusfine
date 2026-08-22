@@ -1,4 +1,4 @@
-name: 작품 수집 (메트로폴리탄)
+name: 작품 수집 (메트·시카고)
 
 # ══════════════════════════════════════════════════════════════════
 #  ★ 메트로폴리탄 공개 API 에서 작품과 도판을 받습니다.
@@ -11,6 +11,11 @@ on:
     - cron: '40 19 * * *'      # 한국 시간 새벽 4시 40분
   workflow_dispatch:
     inputs:
+      src:
+        description: '어디서 받을까요'
+        type: choice
+        default: aic
+        options: [aic, met, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -47,16 +52,31 @@ jobs:
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          IN_SRC:   ${{ github.event.inputs.src   || 'aic' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
           IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
           IN_LIMIT: ${{ github.event.inputs.limit || '300' }}
           IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
         run: |
-          ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
-          if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
-          if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
-          echo "▶ node scripts/collect-works-met.mjs $ARGS"
-          eval node scripts/collect-works-met.mjs $ARGS
+          case "${IN_SRC:-aic}" in
+            aic-peek)
+              echo "▶ 시카고가 주는 칸 이름을 봅니다"
+              node scripts/collect-works-aic.mjs --peek
+              ;;
+            met)
+              ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
+              if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-met.mjs $ARGS"
+              eval node scripts/collect-works-met.mjs $ARGS
+              ;;
+            *)
+              ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-aic.mjs $ARGS"
+              eval node scripts/collect-works-aic.mjs $ARGS
+              ;;
+          esac
 
       - name: 실패하면 알리기
         if: failure()
