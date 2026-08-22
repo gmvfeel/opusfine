@@ -58,7 +58,7 @@
       var a = box.querySelector('.pk');
       if (!a) return;
       a.href = '/db/work-view.html?id=' + w.id;
-      var img = w.image_small || w.image_url;
+      var img = OF.img(w.image_small || w.image_url);
       box.querySelector('.pk-img').innerHTML = img
         ? '<img src="' + esc(img) + '" alt="' + esc(w.title) + '" referrerpolicy="no-referrer" loading="lazy">' : '';
       box.querySelector('.pk-t').textContent = '《' + w.title + '》';

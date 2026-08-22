@@ -87,7 +87,7 @@
      ★ 캡션은 미술계 표기법 그대로입니다 —
          작가 이름 / 《작품명》, 연도 / 재료 / 소장처 */
   function card(w) {
-    var src   = w.image_small || w.image_url;
+    var src   = OF.img(w.image_small || w.image_url);
     var who   = w.artist_name || '작자 미상';
     var when  = w.year_text ? ', ' + esc(w.year_text) : '';
     var mat   = [w.medium, w.dimensions].filter(Boolean).join(' · ');
