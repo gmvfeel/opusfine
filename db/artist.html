@@ -155,6 +155,16 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
   .fright{margin-left:0;width:100%}
 }
 @media(max-width:520px){ .grid{column-count:1} }
+
+/* ── 자료가 들어오면 ──
+   ★ 위키미디어 커먼즈 그림은 세로로 긴 것, 가로로 넓은 것이 제각각입니다.
+     자르지 않고 <b>가로만 맞춥니다</b> — 그래서 벽돌 쌓기입니다.
+   ★ 아주 큰 그림이 오면 카드가 화면을 넘길 수 있어 높이에 상한을 둡니다.
+     넘치는 만큼만 잘리고, 상세로 들어가면 온전히 보입니다. */
+.plate img{max-height:520px;object-fit:cover;object-position:top}
+/* 불러오는 동안 자리를 지킵니다 — 격자가 덜컥거리지 않게 */
+.plate.loading{background:repeating-linear-gradient(135deg,#FBFAF8,#FBFAF8 9px,#F3F2EE 9px,#F3F2EE 18px)}
+.card .who .nm i{font-weight:400}
 </style>
 </head>
 <body>
@@ -170,7 +180,7 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
     작가도 그림을 보면 바로 가늠이 됩니다. 도판에 마우스를 올리면 그 작품의
     캡션이 뜹니다.
   </p>
-  <div class="cnt"><b>31,470</b>명 · 이 가운데 <b>18,204</b>명은 대표작 도판이 있습니다</div>
+  <div class="cnt" id="cnt">불러오는 중…</div>
 </div>
 
 <div class="filters">
@@ -178,9 +188,9 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
     <div class="fgrp">
       <span class="fl">분야</span>
       <button class="chip on">전체</button><button class="chip">회화</button>
-      <button class="chip">조각</button><button class="chip">서예</button>
-      <button class="chip">사진</button><button class="chip">공예</button>
-      <button class="chip">설치·영상</button>
+      <button class="chip">조각</button><button class="chip">사진</button>
+      <button class="chip">삽화</button><button class="chip">판화</button>
+      <button class="chip">공예·도자</button><button class="chip">설치·영상</button>
     </div>
     <div class="fgrp">
       <span class="fl">시대</span>
@@ -204,164 +214,11 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
 
 <div class="wrap">
   <p class="demo-note" style="margin-top:22px">
-    화면 결을 보시기 위한 <b>시안</b>입니다 · 도판은 메트로폴리탄 미술관 공개 자료(퍼블릭 도메인)를
-    실제로 불러오므로 <b>작가 이름과 그림이 서로 맞지 않습니다</b> · 숫자는 견본입니다
+    지금은 <b>위키데이터에서 받은 한국 미술가</b>가 나옵니다. 그림은 위키미디어 커먼즈의
+    원본을 그대로 링크합니다 · 작품·전시 자료는 아직 붙지 않았습니다
   </p>
 
-  <div class="grid cap-v" id="grid">
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 395" role="img" aria-label="견본 그림"><rect width="300" height="395" fill="#EFEDE6"/><path d="M0 252 L51 165 L87 205 L132 118 L177 197 L216 158 L261 221 L300 181 L300 395 L0 395Z" fill="#3C3C3A"/><rect y="237" width="300" height="71" fill="#EFEDE6" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">《인왕제색도》, 1751</span><span class="m">종이에 수묵 · 국립중앙박물관</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">정선 <i>鄭敾</i></span>
-          <span class="yr">1676 – 1759 · 조선</span>
-          <span class="fd">회화 · 산수 · 진경산수</span>
-          <span class="mk"><span class="oc-badge">OC</span><span class="vf-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5 9.5 18 20 6.5"/></svg>공식 인증</span></span>
-          <span class="st"><span>작품 <b>142</b></span><span>전시 <b>38</b></span><span>학술 <b>96</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 250" role="img" aria-label="견본 그림"><rect width="300" height="250" fill="#F1EADA"/><path d="M0 160 L51 105 L87 130 L132 75 L177 125 L216 100 L261 140 L300 115 L300 250 L0 250Z" fill="#7A6A52"/><rect y="150" width="300" height="45" fill="#F1EADA" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">《씨름》, 18세기</span><span class="m">종이에 담채 · 국립중앙박물관</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">김홍도 <i>金弘道</i></span>
-          <span class="yr">1745 – ? · 조선</span>
-          <span class="fd">회화 · 풍속 · 산수</span>
-          
-          <span class="st"><span>작품 <b>208</b></span><span>전시 <b>52</b></span><span>학술 <b>131</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 420" role="img" aria-label="견본 그림"><rect width="300" height="420" fill="#EFE7D6"/><path d="M0 268 L51 176 L87 218 L132 126 L177 210 L216 168 L261 235 L300 193 L300 420 L0 420Z" fill="#3E5A56"/><rect y="252" width="300" height="75" fill="#EFE7D6" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">《미인도》, 18세기 말</span><span class="m">비단에 채색 · 간송미술관</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">신윤복 <i>申潤福</i></span>
-          <span class="yr">18세기 · 조선</span>
-          <span class="fd">회화 · 풍속 · 인물</span>
-          
-          <span class="st"><span>작품 <b>96</b></span><span>전시 <b>31</b></span><span>학술 <b>74</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 300" role="img" aria-label="견본 그림"><rect width="300" height="300" fill="#F0EBDF"/><path d="M0 192 L51 126 L87 156 L132 90 L177 150 L216 120 L261 168 L300 138 L300 300 L0 300Z" fill="#2B2B29"/><rect y="180" width="300" height="54" fill="#F0EBDF" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">추사체 견본</span><span class="m">종이에 수묵</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">김정희 <i>金正喜</i></span>
-          <span class="yr">1786 – 1856 · 조선</span>
-          <span class="fd">서예 · 문인화 · 금석학</span>
-          <span class="mk"><span class="vf-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5 9.5 18 20 6.5"/></svg>공식 인증</span></span>
-          <span class="st"><span>작품 <b>174</b></span><span>전시 <b>44</b></span><span>학술 <b>212</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 340" role="img" aria-label="견본 그림"><rect width="300" height="340" fill="#EDE8DA"/><path d="M0 217 L51 142 L87 176 L132 102 L177 170 L216 136 L261 190 L300 156 L300 340 L0 340Z" fill="#5B7A5E"/><rect y="204" width="300" height="61" fill="#EDE8DA" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">화조도 견본</span><span class="m">종이에 담채</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">장승업 <i>張承業</i></span>
-          <span class="yr">1843 – 1897 · 조선</span>
-          <span class="fd">회화 · 화조 · 인물</span>
-          
-          <span class="st"><span>작품 <b>118</b></span><span>전시 <b>26</b></span><span>학술 <b>58</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 230" role="img" aria-label="견본 그림"><rect width="300" height="230" fill="#E9E6DA"/><path d="M0 147 L51 96 L87 119 L132 69 L177 115 L216 92 L261 128 L300 105 L300 230 L0 230Z" fill="#3E6459"/><rect y="138" width="300" height="41" fill="#E9E6DA" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">《몽유도원도》, 1447</span><span class="m">비단에 수묵담채</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">안견 <i>安堅</i></span>
-          <span class="yr">15세기 · 조선</span>
-          <span class="fd">회화 · 산수</span>
-          
-          <span class="st"><span>작품 <b>34</b></span><span>전시 <b>19</b></span><span>학술 <b>88</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 370" role="img" aria-label="견본 그림"><rect width="300" height="370" fill="#EEEAE0"/><path d="M0 236 L51 155 L87 192 L132 111 L177 185 L216 148 L261 207 L300 170 L300 370 L0 370Z" fill="#4C483F"/><rect y="222" width="300" height="66" fill="#EEEAE0" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">산수화 견본</span><span class="m">종이에 담채</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">강세황 <i>姜世晃</i></span>
-          <span class="yr">1713 – 1791 · 조선</span>
-          <span class="fd">회화 · 문인화 · 평론</span>
-          
-          <span class="st"><span>작품 <b>156</b></span><span>전시 <b>33</b></span><span>학술 <b>104</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 290" role="img" aria-label="견본 그림"><rect width="300" height="290" fill="#F0ECE2"/><path d="M0 185 L51 121 L87 150 L132 87 L177 145 L216 116 L261 162 L300 133 L300 290 L0 290Z" fill="#3F4C48"/><rect y="174" width="300" height="52" fill="#F0ECE2" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">《자화상》, 18세기 초</span><span class="m">종이에 담채 · 국보</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">윤두서 <i>尹斗緖</i></span>
-          <span class="yr">1668 – 1715 · 조선</span>
-          <span class="fd">회화 · 인물 · 자화상</span>
-          <span class="mk"><span class="vf-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5 9.5 18 20 6.5"/></svg>공식 인증</span></span>
-          <span class="st"><span>작품 <b>88</b></span><span>전시 <b>22</b></span><span>학술 <b>67</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 330" role="img" aria-label="견본 그림"><rect width="300" height="330" fill="#F1EDE3"/><path d="M0 211 L51 138 L87 171 L132 99 L177 165 L216 132 L261 184 L300 151 L300 330 L0 330Z" fill="#57534A"/><rect y="198" width="300" height="59" fill="#F1EDE3" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">산수도 견본</span><span class="m">비단에 담채</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">심사정 <i>沈師正</i></span>
-          <span class="yr">1707 – 1769 · 조선</span>
-          <span class="fd">회화 · 산수 · 화조</span>
-          
-          <span class="st"><span>작품 <b>121</b></span><span>전시 <b>25</b></span><span>학술 <b>53</b></span></span>
-        </span>
-      </a>
-      <a class="card thin" href="/db/artist-view.html">
-        <span class="plate"><span class="no">대표작 도판이<br>아직 없습니다</span></span>
-        <span class="who">
-          <span class="nm">이인문 <i>李寅文</i></span>
-          <span class="yr">1745 – 1821 · 조선</span>
-          <span class="fd">회화 · 산수</span>
-          <span class="st"><span>작품 <b>12</b></span><span>전시 <b>4</b></span><span>학술 <b>9</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 260" role="img" aria-label="견본 그림"><rect width="300" height="260" fill="#EDE9DF"/><path d="M0 166 L51 109 L87 135 L132 78 L177 130 L216 104 L261 145 L300 119 L300 260 L0 260Z" fill="#565045"/><rect y="156" width="300" height="46" fill="#EDE9DF" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">달마도 견본</span><span class="m">종이에 수묵</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">김명국 <i>金明國</i></span>
-          <span class="yr">17세기 · 조선</span>
-          <span class="fd">회화 · 인물 · 선종화</span>
-          
-          <span class="st"><span>작품 <b>47</b></span><span>전시 <b>14</b></span><span>학술 <b>31</b></span></span>
-        </span>
-      </a>
-      <a class="card" href="/db/artist-view.html">
-        <span class="plate" data-art="wk" data-q="landscape">
-          <svg viewBox="0 0 300 390" role="img" aria-label="견본 그림"><rect width="300" height="390" fill="#F1EDE3"/><path d="M0 249 L51 163 L87 202 L132 117 L177 195 L216 156 L261 218 L300 179 L300 390 L0 390Z" fill="#4A443A"/><rect y="234" width="300" height="70" fill="#F1EDE3" opacity=".72"/></svg>
-          <span class="onwork"><span class="w">산수도 견본</span><span class="m">종이에 수묵</span></span>
-        </span>
-        <span class="who">
-          <span class="nm">최북 <i>崔北</i></span>
-          <span class="yr">18세기 · 조선</span>
-          <span class="fd">회화 · 산수 · 화조</span>
-          
-          <span class="st"><span>작품 <b>63</b></span><span>전시 <b>11</b></span><span>학술 <b>22</b></span></span>
-        </span>
-      </a>
-  </div>
+  <div class="grid cap-v" id="grid"></div>
 
   <!-- 광고 -->
   <div class="adslot">
@@ -374,14 +231,15 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
     </a>
   </div>
 
-  <div class="more"><button>더 보기 · 31,458명 남음</button></div>
+  <div class="more"><button>더 보기</button></div>
 </div>
 
 <div data-include="/partials/footer.html"></div>
 
 <script src="/assets/include.js"></script>
 <script src="/assets/ui.js"></script>
-<script src="/assets/art-demo.js"></script>
+<script src="/assets/config.js"></script>
 <script src="/assets/artist-list.js"></script>
+<script src="/assets/_capswitch.js"></script>
 </body>
 </html>

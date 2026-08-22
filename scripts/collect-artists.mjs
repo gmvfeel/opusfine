@@ -69,15 +69,27 @@ const getAPI = makeGetJSON({
 });
 
 /* ── 미술가 직업 ──
-   ★ 제가 확실히 아는 것만 적었습니다. 첫 회차 기록을 보고 넓힙니다.
-     하위 갈래까지 훑도록 wdt:P106/wdt:P279* 로 폈습니다 —
-     「수묵화가」처럼 아래로 갈라진 직업도 걸립니다. */
+   ★★ 2026-08-22 · 첫 회차에서 <b>영화판이 통째로 딸려 왔습니다</b>
+     (파트너 확인 — 영화감독 881명, 포르노 영화감독 523명, 각본가 361명).
+     까닭이 둘이었습니다.
+
+     ① wdt:P279* 로 <b>하위 갈래를 폈습니다.</b> 「~의 하위」를 끝까지
+        따라가면 미술에서 출발해도 영상·연예 쪽으로 이어집니다.
+        폭넓게 건지려던 것이 그물을 통째로 찢었습니다.
+     ② Q1925963 을 「graphic artist」로 알고 넣었는데, 그 갈래가
+        영상 쪽과 이어져 있었습니다. <b>확신이 없으면 넣지 말았어야</b>
+        했습니다.
+
+   ▶ 하위 갈래를 펴지 않습니다. 적어 둔 직업 <b>그것만</b> 잡습니다.
+     하위까지 훑지 못해 놓치는 사람이 생기지만, 엉뚱한 사람 1,500명이
+     섞이는 것보다 낫습니다. 부족하면 직업을 하나씩 <b>확인하고</b>
+     보태면 됩니다.
+   ★ 만화가는 넣지 않습니다 — 순수미술 포털입니다 (파트너 결정). */
 const JOBS = [
   'wd:Q1028181',  // painter 화가
   'wd:Q1281618',  // sculptor 조각가
   'wd:Q33231',    // photographer 사진가
   'wd:Q644687',   // illustrator 삽화가
-  'wd:Q1925963',  // graphic artist
   'wd:Q329439'    // engraver 판화가
 ];
 
@@ -93,7 +105,7 @@ const QUERY = {
   kr: (lim) => `
 SELECT DISTINCT ?item WHERE {
   VALUES ?job { ${qJobs()} }
-  ?item wdt:P106/wdt:P279* ?job .
+  ?item wdt:P106 ?job .
   ?item wdt:P27 ${KR} .
 } LIMIT ${lim}`,
 
@@ -101,7 +113,7 @@ SELECT DISTINCT ?item WHERE {
   kr2: (lim) => `
 SELECT DISTINCT ?item WHERE {
   VALUES ?job { ${qJobs()} }
-  ?item wdt:P106/wdt:P279* ?job .
+  ?item wdt:P106 ?job .
   ?item rdfs:label ?ko . FILTER(LANG(?ko) = "ko")
 } LIMIT ${lim}`,
 
@@ -109,7 +121,7 @@ SELECT DISTINCT ?item WHERE {
   world: (lim) => `
 SELECT ?item (COUNT(?w) AS ?n) WHERE {
   VALUES ?job { ${qJobs()} }
-  ?item wdt:P106/wdt:P279* ?job .
+  ?item wdt:P106 ?job .
   ?w wdt:P170 ?item .
 }
 GROUP BY ?item
