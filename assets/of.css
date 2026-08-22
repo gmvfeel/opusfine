@@ -85,19 +85,44 @@ a{color:inherit;text-decoration:none}
   border-right:1px solid var(--ink-3);border-bottom:1px solid var(--ink-3);
   transform:translateY(-70%) rotate(45deg);pointer-events:none}
 
-/* ── 도구 셋 ── */
-.tools{margin-left:auto;display:flex;align-items:center;gap:9px}
-.tbtn{width:34px;height:34px;border:1px solid var(--rule);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;background:transparent;
-  cursor:pointer;padding:0;transition:.16s}
-.tbtn:hover{border-color:var(--ink)}
-.tbtn svg{stroke:var(--ink-2);fill:none;stroke-width:1.7;transition:.16s}
-.tbtn:hover svg{stroke:var(--ink)}
-.tbtn.contrast svg .half{fill:var(--ink-2);stroke:none}
-.tbtn.contrast:hover svg .half{fill:var(--ink)}
-.tbtn.menu{border:0;width:30px;gap:5px;flex-direction:column}
-.tbtn.menu span{display:block;width:19px;height:1.4px;background:var(--ink-2);transition:.16s}
-.tbtn.menu:hover span{background:var(--ink)}
+/* ── 도구 셋 ──
+   ★ 2026-08-22 · 아이콘 대신 <b>글자</b>로 적습니다 (파트너 결정).
+     미술관 웹사이트가 흔히 쓰는 태도입니다 — 무엇인지 헷갈릴 일이 없고
+     화면이 조용해집니다.
+   ★ 좁은 화면에서는 자리를 못 내주므로 <b>아이콘으로 갈아 끼웁니다.</b>
+     글자와 아이콘을 둘 다 적어 두고 여기서 하나만 보입니다 —
+     화면을 두 벌 만들지 않으려는 것입니다. */
+.tools{margin-left:auto;display:flex;align-items:center;gap:20px}
+.tbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;
+  cursor:pointer;padding:6px 0;font-family:inherit;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  color:var(--ink-3);transition:.16s;border-bottom:1px solid transparent}
+.tbtn:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.tbtn .ic{display:none}
+.tbtn svg{stroke:currentColor;fill:none;stroke-width:1.5}
+.tbtn .half{fill:currentColor;stroke:none}
+
+/* 밝기 — 반쪽 채운 동그라미가 글자 앞에 섭니다.
+   지금 밝은지 어두운지를 <b>눈으로도</b> 알 수 있게 하려는 것입니다. */
+.tbtn .dot{width:9px;height:9px;border-radius:50%;border:1px solid currentColor;
+  flex:0 0 auto;background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+
+/* 전체 메뉴 — 좁은 화면에서 나오는 세 획.
+   길이를 달리해 로고의 한 획과 결을 잇습니다. */
+.tbtn .bars{flex-direction:column;gap:4px;align-items:flex-start;width:19px}
+.tbtn .bars i{display:block;height:1.4px;background:currentColor;transition:.18s}
+.tbtn .bars i:nth-child(1){width:19px}
+.tbtn .bars i:nth-child(2){width:12px}
+.tbtn .bars i:nth-child(3){width:16px}
+.tbtn:hover .bars i:nth-child(2){width:19px}
+
+@media(max-width:1080px){
+  .tools{gap:14px}
+  .tbtn .tx,.tbtn .dot{display:none}
+  .tbtn .ic{display:flex}
+  .tbtn{padding:7px;border-bottom:0}
+  .tbtn:hover{color:var(--accent)}
+}
 
 /* ── 전체 메뉴 ── */
 .fm{position:fixed;inset:0;z-index:200;background:rgba(23,23,26,.36);
@@ -602,8 +627,7 @@ html[data-theme="dark"] .adwrap::before{background:var(--paper)}
 html[data-theme="dark"] .btn{background:var(--ink);color:var(--paper)}
 html[data-theme="dark"] .btn:hover{background:var(--accent);color:#101012}
 html[data-theme="dark"] .btn.ghost{background:transparent;color:var(--ink)}
-html[data-theme="dark"] .hd-btn:hover,
-html[data-theme="dark"] .tbtn:hover{background:transparent}
+html[data-theme="dark"] .tbtn:hover{background:transparent;color:var(--ink)}
 html[data-theme="dark"] .qb.done{background:var(--accent);color:#101012}
 html[data-theme="dark"] .exam .btn,
 html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--paper)}

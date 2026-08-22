@@ -41,17 +41,23 @@
       <a href="/index.html#call">공모·지원</a><a href="/index.html#news">커뮤니티</a><a href="/index.html#mk">미술시장</a><a href="/index.html#job">리쿠르트</a>
     </nav>
     <div class="tools">
+      <!-- ★ 2026-08-22 · 아이콘 대신 <b>글자</b>로 적습니다 (파트너 결정).
+             미술관 웹사이트가 흔히 쓰는 태도입니다 — 무엇인지 헷갈릴 일이
+             없고 화면이 아주 조용해집니다.
+           ★ 좁은 화면에서는 자리를 못 내주므로 <b>아이콘으로 바뀝니다.</b>
+             두 벌을 다 적어 두고 CSS 가 갈아 끼웁니다. -->
       <a class="tbtn" href="#" aria-label="통합검색">
-        <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <span class="tx">Search</span>
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
-      <!-- ★ 명암 전환 — 반쪽이 채워진 동그라미 하나입니다.
-             오퍼스클램이 해·달 두 아이콘을 갈아 끼우다 이것 하나로 바꿨습니다.
-             상태와 어긋날 일이 없고 결도 조용합니다. -->
-      <button class="tbtn contrast" id="themeBtn" aria-label="밝게/어둡게 전환">
-        <svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path class="half" d="M12 3.4a8.6 8.6 0 0 0 0 17.2z"/></svg>
+      <button class="tbtn" id="themeBtn" aria-label="밝게/어둡게 전환">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="tx" id="themeTx">Dark</span>
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path class="half" d="M12 3.4a8.6 8.6 0 0 0 0 17.2z"/></svg>
       </button>
-      <button class="tbtn menu" id="fmBtn" aria-label="전체 메뉴 열기" aria-expanded="false">
-        <span></span><span></span><span></span>
+      <button class="tbtn" id="fmBtn" aria-label="전체 메뉴 열기" aria-expanded="false">
+        <span class="tx">Menu</span>
+        <span class="ic bars" aria-hidden="true"><i></i><i></i><i></i></span>
       </button>
     </div>
   </div>

@@ -28,13 +28,25 @@ function ocUiBoot(){
 
   var btn=document.getElementById('themeBtn');
   var KEY='of-theme';
+
+  /* ★ 글자는 <b>누르면 갈 곳</b>을 적습니다.
+       지금 밝으면 「Dark」 — 누르면 어두워진다는 뜻입니다.
+       지금 상태를 적으면 「밝음」인데 누르라는 건지 아닌지 헷갈립니다. */
+  function label(){
+    var tx=document.getElementById('themeTx');
+    if(!tx) return;
+    var dark = document.documentElement.getAttribute('data-theme')==='dark';
+    tx.textContent = dark ? 'Light' : 'Dark';
+    if(btn) btn.setAttribute('aria-label', dark ? '밝게 보기' : '어둡게 보기');
+  }
   function apply(t){
     if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
     else document.documentElement.removeAttribute('data-theme');
+    label();
   }
   var saved=null;
   try{ saved=localStorage.getItem(KEY); }catch(e){}
-  if(saved) apply(saved);
+  apply(saved==='dark' ? 'dark' : '');
   btn.addEventListener('click', function(){
     var now = document.documentElement.getAttribute('data-theme')==='dark' ? '' : 'dark';
     apply(now);
