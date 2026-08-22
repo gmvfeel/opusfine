@@ -37,8 +37,101 @@
       </svg>
     </a>
     <nav>
-      <a href="/db/artist.html">아카이브</a><a href="/index.html#ex">전시</a><a href="/db/artist.html">작가</a>
-      <a href="/index.html#call">공모·지원</a><a href="/index.html#news">커뮤니티</a><a href="/index.html#mk">미술시장</a><a href="/index.html#job">리쿠르트</a>
+      <!-- ★ 2026-08-22 · 대메뉴에 <b>하위 펼침</b>을 넣었습니다 (파트너 결정 · C안)
+             · 아카이브는 <b>큰 판</b> — 갈래마다 쌓인 수와 오늘의 소장품
+             · 나머지는 메뉴 바로 아래 <b>작은 상자</b>
+           ★ 자리를 픽셀로 밀어 맞추지 않습니다. 메뉴 바로 아래 제자리에
+             떨어지므로 메뉴가 늘거나 글자가 바뀌어도 저절로 따라옵니다.
+           ★ 손가락으로 쓰는 기기에서는 마우스를 올릴 수 없으므로
+             하위를 감추고 <b>전체 메뉴</b>로 대신합니다. -->
+      <span class="mi">
+        <a href="/db/artist.html">아카이브</a>
+        <span class="dd dd-wide">
+          <span class="dd-in">
+            <span class="dd-col">
+              <span class="dd-h">사람과 작품</span>
+              <a href="/db/artist.html">작가<b data-nav-count="artists">···</b></a>
+              <a href="/db/work.html">작품<b data-nav-count="artworks">···</b></a>
+              <a class="off">현대미술 <i>준비 중</i></a>
+              <a class="off">용어사전 <i>준비 중</i></a>
+            </span>
+            <span class="dd-col">
+              <span class="dd-h">자리와 기관</span>
+              <a class="off">전시 <i>준비 중</i></a>
+              <a class="off">전시공간 <i>준비 중</i></a>
+              <a class="off">미술학교 <i>준비 중</i></a>
+              <a class="off">미술단체 <i>준비 중</i></a>
+              <a class="off">기관·재단 <i>준비 중</i></a>
+              <a class="off">학술 <i>준비 중</i></a>
+            </span>
+            <span class="dd-pick" id="navPick">
+              <span class="dd-h">오늘의 소장품</span>
+              <a href="/db/work.html" class="pk">
+                <span class="pk-img"></span>
+                <span class="pk-t">불러오는 중…</span>
+                <span class="pk-m"></span>
+              </a>
+            </span>
+          </span>
+        </span>
+      </span>
+
+      <span class="mi">
+        <a href="/index.html#ex">전시</a>
+        <span class="dd">
+          <a class="off">지금 열리는 전시 <i>준비 중</i></a>
+          <a class="off">곧 끝나는 전시 <i>준비 중</i></a>
+          <a class="off">전시 아카이브 <i>준비 중</i></a>
+          <span class="sep"></span>
+          <a class="off">전시공간 찾기 <i>준비 중</i></a>
+        </span>
+      </span>
+
+      <span class="mi"><a href="/db/artist.html">작가</a></span>
+
+      <span class="mi">
+        <a href="/index.html#call">공모·지원</a>
+        <span class="dd">
+          <a class="off">국내 공모전 <i>준비 중</i></a>
+          <a class="off">해외 비엔날레 <i>준비 중</i></a>
+          <a class="off">아트페어 <i>준비 중</i></a>
+          <a class="off">레지던시 <i>준비 중</i></a>
+          <a class="off">창작지원금 <i>준비 중</i></a>
+          <a class="off">수상 아카이브 <i>준비 중</i></a>
+        </span>
+      </span>
+
+      <span class="mi">
+        <a href="/index.html#news">커뮤니티</a>
+        <span class="dd">
+          <a class="off">핫토픽 <i>준비 중</i></a>
+          <a class="off">내 작업 어때요 <i>준비 중</i></a>
+          <a class="off">지식나눔 <i>준비 중</i></a>
+          <a class="off">SELF PR <i>준비 중</i></a>
+          <a class="off">전시 기록 <i>준비 중</i></a>
+          <a class="off">미술 입시 <i>준비 중</i></a>
+          <a class="off">뉴스 <i>준비 중</i></a>
+        </span>
+      </span>
+
+      <span class="mi">
+        <a href="/index.html#mk">미술시장</a>
+        <span class="dd">
+          <a class="off">경매 결과 <i>준비 중</i></a>
+          <a class="off">아트페어 결과 <i>준비 중</i></a>
+          <a class="off">시장 리포트 <i>준비 중</i></a>
+        </span>
+      </span>
+
+      <span class="mi">
+        <a href="/index.html#job">리쿠르트</a>
+        <span class="dd">
+          <a class="off">채용정보 <i>준비 중</i></a>
+          <a class="off">인재정보 <i>준비 중</i></a>
+          <span class="sep"></span>
+          <a class="off">클래스:ON <i>준비 중</i></a>
+        </span>
+      </span>
     </nav>
     <div class="tools">
       <!-- ★ 2026-08-22 · 아이콘 대신 <b>글자</b>로 적습니다 (파트너 결정).

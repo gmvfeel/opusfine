@@ -36,7 +36,9 @@
       if (path.indexOf(MARK[i].pre) === 0) { hit = MARK[i].menu; break; }
     }
     if (!hit) return;
-    var links = root.querySelectorAll('header nav a');
+    /* ★ 하위 메뉴가 생겼습니다. 대메뉴 글자만 골라야 합니다 —
+         `header nav a` 로 하면 하위 항목까지 표시가 붙습니다. */
+    var links = root.querySelectorAll('header nav > .mi > a');
     for (var k = 0; k < links.length; k++) {
       if (String(links[k].textContent).trim() === hit) links[k].classList.add('on');
     }

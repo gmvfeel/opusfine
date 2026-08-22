@@ -164,9 +164,70 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);
 .logo svg{display:block}
 /* ★ 2026-08-21 · 메뉴 사이를 넓혔습니다 (파트너 지시) — 24 → 34px.
      로고와 도구 사이에 자리가 남아 있어 붙어 보였습니다. */
+/* ── 대메뉴와 하위 펼침 ────────────────────────────────────────
+   ★ 2026-08-22 · 하위 메뉴를 넣었습니다 (파트너 결정 · C안).
+     아카이브는 <b>큰 판</b>, 나머지는 메뉴 아래 <b>작은 상자</b>.
+   ★★ 자리를 픽셀로 밀어 맞추지 않습니다. 상자가 <b>메뉴 바로 아래</b>
+     제자리에 떨어지므로, 메뉴가 늘거나 글자가 바뀌어도 저절로
+     따라옵니다. 오퍼스클램은 메뉴마다 보정값을 두는데
+     (--dd-nudge: calc(-191px…)) 그때마다 다시 맞춰야 합니다.
+   ★ 머리에서 넘침을 자르면 안 됩니다 — 상자가 잘립니다. */
 nav{display:flex;gap:34px;font-size:13.5px;font-weight:500;margin-left:8px}
+nav > .mi{position:relative}
 nav a{padding:5px 0;border-bottom:1px solid transparent;transition:.18s}
+nav > .mi > a{display:block;padding:22px 0;border-bottom:2px solid transparent}
+nav > .mi:hover > a,nav > .mi > a.on{border-bottom-color:var(--ink)}
 nav a:hover{border-bottom-color:var(--ink)}
+
+/* 작은 상자 */
+.dd{position:absolute;top:100%;left:-16px;min-width:184px;
+  background:var(--paper);border:1px solid var(--rule);padding:10px 0;
+  opacity:0;visibility:hidden;transform:translateY(-6px);
+  transition:opacity .18s,transform .18s,visibility .18s;z-index:70}
+.mi:hover .dd{opacity:1;visibility:visible;transform:translateY(0)}
+.dd a{display:block;padding:7px 18px;font-size:13px;font-weight:400;
+  color:var(--ink-2);white-space:nowrap;border-bottom:0;transition:.14s}
+.dd a:hover{color:var(--accent);background:#FAFAF8;border-bottom:0}
+/* 아직 없는 것 — 눈에 덜 띄게, 눌리지 않게 */
+.dd a.off{color:var(--ink-3);pointer-events:none}
+.dd a i{font-style:normal;font-size:10.5px;color:var(--rule);margin-left:4px}
+.dd .sep{display:block;height:1px;background:var(--rule-2);margin:8px 0}
+
+/* 큰 판 — 아카이브
+   ★ 화면 폭을 재거나 머리 높이를 셈하지 않습니다. 다른 상자와 똑같이
+     <b>메뉴 아래 제자리</b>에 떨어지되 넓게 펼칩니다. 아카이브가 첫
+     메뉴라 오른쪽으로 자연스럽게 펴집니다.
+   ★ 창이 좁으면 화면 안에 들어오도록 스스로 줄어듭니다. */
+.dd.dd-wide{left:-20px;min-width:0;padding:0;
+  width:min(940px, calc(100vw - 64px))}
+.dd-in{display:grid;grid-template-columns:1.05fr 1.05fr .95fr;gap:0 34px;padding:22px 24px}
+.dd-h{display:block;font-size:10px;letter-spacing:.2em;color:var(--ink-3);
+  margin:0 0 10px;text-transform:uppercase;font-weight:700}
+.dd-col a{display:flex;align-items:baseline;gap:8px;padding:6px 0;font-size:13.5px;
+  color:var(--ink-2);border-bottom:1px solid var(--rule-2);white-space:nowrap}
+.dd-col a:hover{color:var(--accent);background:transparent}
+.dd-col a b{margin-left:auto;font-size:11px;color:var(--accent);font-weight:700;
+  font-variant-numeric:tabular-nums}
+.dd-pick{border-left:1px solid var(--rule-2);padding-left:32px}
+.dd-pick .pk{display:block;padding:0;white-space:normal}
+.dd-pick .pk:hover{background:transparent}
+.dd-pick .pk-img{display:block;border:1px solid var(--rule-2);padding:10px;
+  min-height:120px;background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)}
+.dd-pick .pk-img img{display:block;width:100%;height:auto;max-height:170px;object-fit:contain}
+.dd-pick .pk-t{display:block;font-family:var(--serif);font-size:13px;
+  margin-top:10px;line-height:1.5;color:var(--ink)}
+.dd-pick .pk-m{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
+.dd-pick .pk:hover .pk-t{color:var(--accent)}
+
+html[data-theme="dark"] .dd{background:var(--paper)}
+html[data-theme="dark"] .dd a:hover{background:#1B1B1E}
+html[data-theme="dark"] .dd.dd-wide .dd-in{background:var(--paper)}
+
+/* ★ 손가락으로 쓰는 기기에서는 마우스를 올릴 수 없습니다.
+     하위를 감추고 <b>전체 메뉴</b>로 대신합니다. */
+@media(hover:none),(max-width:900px){
+  .dd{display:none}
+}
 .hd-r{margin-left:auto;display:flex;gap:15px;align-items:center;font-size:13px;color:var(--ink-2)}
 .hd-r a:hover{color:var(--ink)}
 .hd-btn{border:1px solid var(--ink);padding:6px 15px;font-size:12.5px;font-weight:600;
