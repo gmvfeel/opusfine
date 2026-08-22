@@ -86,7 +86,7 @@
     var pl = $('pv-plate'), cap = $('pv-cap');
     var src = w.image_url || w.image_small;
     if (w.rights === 'public' && src && pl) {
-      pl.innerHTML = '<img src="' + esc(src) + '" alt="' + esc(w.title) + '">';
+      pl.innerHTML = '<img src="' + esc(src) + '" alt="' + esc(w.title) + '" referrerpolicy="no-referrer">';
       if (cap) {
         cap.querySelector('.cap-artist').textContent = w.artist_name || '작자 미상';
         cap.querySelector('.cap-work').innerHTML =
@@ -125,7 +125,7 @@
     $('more-ar').innerHTML = rows.map(function (r) {
       var s = r.image_small || r.image_url;
       return '<a href="/db/work-view.html?id=' + r.id + '">' +
-        '<span class="f">' + (s ? '<img src="' + esc(s) + '" alt="' + esc(r.title) + '" loading="lazy">' : '') + '</span>' +
+        '<span class="f">' + (s ? '<img src="' + esc(s) + '" alt="' + esc(r.title) + '" referrerpolicy="no-referrer" loading="lazy">' : '') + '</span>' +
         '<span class="n">《' + esc(r.title) + '》</span>' +
         '<span class="y">' + esc(r.year_text || '') + '</span></a>';
     }).join('');

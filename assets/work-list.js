@@ -98,7 +98,7 @@
     if (w.rights === 'public' && src) {
       plate =
         '<span class="plate">' +
-          '<img src="' + esc(src) + '" alt="' + esc(w.title) + '" loading="lazy">' +
+          '<img src="' + esc(src) + '" alt="' + esc(w.title) + '" referrerpolicy="no-referrer" loading="lazy">' +
           '<span class="onwork">' +
             '<span class="w">《' + esc(w.title) + '》' + when + '</span>' +
             (mat ? '<span class="m">' + esc(mat) + '</span>' : '') +
@@ -123,6 +123,26 @@
       '</span></a>';
   }
 
+  /* ★★ 2026-08-22 · 시카고 도판이 <b>다 깨졌습니다</b> (파트너 확인).
+       시카고는 Cloudflare 뒤에 있어, 다른 사이트에서 그림을 부르면
+       봇 검사 화면이 오고 그림이 오지 않습니다.
+     ▶ 먼저 <b>어디서 부르는지 알리지 않게</b>(referrerpolicy) 해 두었습니다.
+     ▶ 그래도 안 오면 <b>빈 네모를 남기지 않고</b> 소장처로 가는 길을
+       보여 줍니다. 깨진 그림 아이콘이 늘어선 것보다 낫습니다. */
+  function guardImages(root) {
+    root.querySelectorAll('img').forEach(function (im) {
+      im.addEventListener('error', function () {
+        var plate = im.closest('.plate');
+        if (!plate) { im.remove(); return; }
+        var a = im.closest('.card');
+        var href = a ? a.getAttribute('href') : '#';
+        plate.classList.add('noimg');
+        plate.innerHTML = '<span class="no">도판을 불러오지 못했습니다<br>' +
+                          '<b>눌러서 자세히 보기</b></span>';
+      }, { once: true });
+    });
+  }
+
   function skeleton(n) {
     var out = '';
     for (var i = 0; i < n; i++)
@@ -141,6 +161,7 @@
       var rows = await fetchPage(page);
       if (page === 0) grid.innerHTML = '';
       grid.insertAdjacentHTML('beforeend', rows.map(card).join(''));
+      guardImages(grid);
 
       var shown = Math.min((page + 1) * PER, total);
       var left  = Math.max(0, total - shown);

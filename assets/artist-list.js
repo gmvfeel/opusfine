@@ -101,7 +101,7 @@
 
     var plate = a.image_url
       ? '<span class="plate">' +
-          '<img src="' + esc(a.image_url) + '" alt="' + esc(a.name_ko) + '" loading="lazy">' +
+          '<img src="' + esc(a.image_url) + '" alt="' + esc(a.name_ko) + '" referrerpolicy="no-referrer" loading="lazy">' +
           (a.rep_work
             ? '<span class="onwork"><span class="w">' +
               esc(String(a.rep_work).split(',')[0].trim()) +

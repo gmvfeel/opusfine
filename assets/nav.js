@@ -60,7 +60,7 @@
       a.href = '/db/work-view.html?id=' + w.id;
       var img = w.image_small || w.image_url;
       box.querySelector('.pk-img').innerHTML = img
-        ? '<img src="' + esc(img) + '" alt="' + esc(w.title) + '" loading="lazy">' : '';
+        ? '<img src="' + esc(img) + '" alt="' + esc(w.title) + '" referrerpolicy="no-referrer" loading="lazy">' : '';
       box.querySelector('.pk-t').textContent = '《' + w.title + '》';
       box.querySelector('.pk-m').textContent =
         [w.year_text, w.holder].filter(Boolean).join(' · ');

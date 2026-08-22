@@ -108,7 +108,7 @@
     var pl = $('pv-plate');
     var cap = $('pv-cap');
     if (a.image_url && pl) {
-      pl.innerHTML = '<img src="' + esc(a.image_url) + '" alt="' + esc(a.name_ko) + '">';
+      pl.innerHTML = '<img src="' + esc(a.image_url) + '" alt="' + esc(a.name_ko) + '" referrerpolicy="no-referrer">';
       if (cap) {
         cap.querySelector('.cap-artist').textContent = a.name_ko;
         cap.querySelector('.cap-work').innerHTML = '<em>초상</em>';
@@ -157,7 +157,7 @@
     var box = $('more-ar');
     box.innerHTML = rows.map(function (r) {
       var pic = r.image_url
-        ? '<img src="' + esc(r.image_url) + '" alt="' + esc(r.name_ko) + '" loading="lazy">'
+        ? '<img src="' + esc(r.image_url) + '" alt="' + esc(r.name_ko) + '" referrerpolicy="no-referrer" loading="lazy">'
         : '<span style="display:block;height:150px;background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)"></span>';
       var yr = r.life || (r.birth_year ? r.birth_year + '–' : '');
       return '<a href="/db/artist-view.html?id=' + r.id + '">' +
