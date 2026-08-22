@@ -41,8 +41,33 @@ assets/artist-list.js   목록 캡션 방향
 - **service_role 키는 저장소에 두지 않습니다.** GitHub Secrets에만.
 - 도판은 우리 저장소에 담지 않고 **미술관 원본 주소를 링크**합니다.
 
+## 자료 쌓기
+
+```
+sql/artists-01-B-apply.sql        artists 표 만들기 (한 번만)
+scripts/collect-artists.mjs       위키데이터에서 미술가 받아 쌓기
+.github/workflows/collect-artists.yml   날마다 새벽 3시 20분
+```
+
+손으로 돌릴 때는 Actions → **작가 수집** → Run workflow.
+
+| 무엇 | 받는 것 |
+|---|---|
+| `kr` | 국적이 한국인 미술가 |
+| `kr2` | 한국어 이름이 붙은 미술가 (조선시대 인물을 건지려는 것) |
+| `world` | 세계 — 작품이 많이 딸린 순 |
+
+처음에는 **`dry` 를 켜고** 몇 명이 걸리는지 먼저 보십시오.
+
+### 필요한 Secrets
+
+| 이름 | 무엇 |
+|---|---|
+| `SUPABASE_URL` | 프로젝트 주소 |
+| `SUPABASE_SERVICE_KEY` | service_role 키 — **저장소 파일에 두지 않습니다** |
+
 ## 다음 단계
 
-2. 작가DB 표 + 위키데이터 첫 수집
-3. 작품DB + 도판 (메트·시카고)
-4. 전시 아카이브
+3. 목록·상세를 DB에 붙이기
+4. 작품DB + 도판 (메트·시카고)
+5. 전시 아카이브

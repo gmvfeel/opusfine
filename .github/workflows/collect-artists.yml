@@ -1,0 +1,126 @@
+name: 작가 수집 (위키데이터)
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 작가 수집
+#  ------------------------------------------------------------------
+#  ★ 날마다 한 번 돌면서 위키데이터에서 미술가를 받아 쌓습니다.
+#
+#  ★★ 오퍼스클램에서 값을 치르고 배운 것
+#    ① 예약 실행(schedule)일 때 무엇을 할지 <b>따로 적어야 합니다.</b>
+#       손으로 돌릴 때만 값을 넣게 해 두면 예약 실행 때는 빈 값이 들어가
+#       아무것도 안 합니다. 그래서 ${{ ... || '기본값' }} 로 못박습니다.
+#    ② 워크플로는 <b>Run 을 누른 시점의 코드</b>로 돕니다.
+#       고친 것을 올린 뒤에 눌러야 합니다.
+#    ③ 실패하면 이슈를 열어 알립니다. 조용히 실패하면 몇 주가 지나도
+#       모릅니다.
+#
+#  ★ 무료 프로젝트는 <b>1주일 활동이 없으면 멈춥니다.</b>
+#     이 워크플로가 날마다 돌면 그 일이 없습니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  schedule:
+    - cron: '20 18 * * *'      # 한국 시간 새벽 3시 20분
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '무엇을 받을까요'
+        type: choice
+        default: kr
+        options: [kr, kr2, world]
+      limit:
+        description: '몇 명까지'
+        default: '400'
+      dry:
+        description: '담지 않고 세어만 보기'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: collect-artists
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 받아서 쌓기
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # ★ 예약 실행 때는 inputs 가 비어 옵니다 — 기본값을 못박습니다
+          IN_MODE:  ${{ github.event.inputs.mode  || 'kr' }}
+          IN_LIMIT: ${{ github.event.inputs.limit || '400' }}
+          IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
+        run: |
+          ARGS="--mode ${IN_MODE:-kr} --limit ${IN_LIMIT:-400}"
+          if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+          echo "▶ node scripts/collect-artists.mjs $ARGS"
+          node scripts/collect-artists.mjs $ARGS
+
+      - name: 실패하면 알리기
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '작가 수집이 실패했습니다';
+            const body  = [
+              '워크플로: `' + context.workflow + '`',
+              '실행: ' + context.serverUrl + '/' + context.repo.owner + '/' +
+                        context.repo.repo + '/actions/runs/' + context.runId,
+              '',
+              '기록을 열어 어디서 멈췄는지 보십시오.',
+              '위키데이터가 429 를 내는 것이라면 다음 회차에 이어 받으므로 그냥 두어도 됩니다.'
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'collect-fail'
+            });
+            const same = open.find(i => i.title === title);
+            if (same) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: same.number, body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['collect-fail']
+              });
+            }
+
+      # ★ 잘 돌면 열려 있던 알림을 닫습니다.
+      #   안 닫으면 고쳐진 뒤에도 빨간 표가 남아 무엇이 진짜 문제인지 흐려집니다.
+      - name: 잘 돌면 알림 닫기
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'collect-fail'
+            });
+            for (const i of open) {
+              if (i.title !== '작가 수집이 실패했습니다') continue;
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: i.number,
+                body: '다시 잘 돌았습니다. 닫습니다.'
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: i.number, state: 'closed'
+              });
+            }
