@@ -133,6 +133,25 @@ SELECT DISTINCT ?item WHERE {
             schema:isPartOf <https://ko.wikipedia.org/> .
 } LIMIT ${lim}`,
 
+  /* ★★ 한국어 위키백과에 문서가 있으면서 <b>국적이 아예 안 적힌</b> 미술가
+       ─────────────────────────────────────────────────────────────
+     kr3 는 3,275명이 걸리는데 반 고흐·모네 같은 서양 거장이 대부분입니다.
+     그들은 국적이 또박또박 적혀 있습니다.
+     ▶ <b>국적이 비어 있는 사람만</b> 남기면
+       · 이미 kr·joseon 으로 받은 사람은 걸러지고
+       · 서양 거장도 대부분 빠지고
+       · 신윤복처럼 <b>기록이 성긴 옛 인물</b>이 남습니다.
+     ★ 그래도 국적 안 적힌 외국 작가가 섞입니다. 받은 뒤에 눈으로
+       가려야 합니다 — 기계로 끝낼 수 있는 일이 아닙니다. */
+  kr4: (lim) => `
+SELECT DISTINCT ?item WHERE {
+  VALUES ?job { ${qJobs()} }
+  ?item wdt:P106 ?job .
+  ?sitelink schema:about ?item ;
+            schema:isPartOf <https://ko.wikipedia.org/> .
+  FILTER NOT EXISTS { ?item wdt:P27 ?nat . }
+} LIMIT ${lim}`,
+
   /* 세계 ─ 작품이 많이 딸린 순 (사람들이 많이 찾는 작가부터) */
   world: (lim) => `
 SELECT ?item (COUNT(?w) AS ?n) WHERE {
@@ -190,7 +209,7 @@ const LIMIT = Number(arg('limit', 400));
 const DRY   = argv.includes('--dry');
 
 if (MODE !== 'joseon' && !QUERY[MODE]) {
-  console.error('★ mode 는 kr · kr2 · kr3 · joseon · world 가운데 하나입니다.');
+  console.error('★ mode 는 kr · kr3 · kr4 · joseon · world · kr2 가운데 하나입니다.');
   process.exit(1);
 }
 
