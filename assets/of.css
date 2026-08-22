@@ -1,0 +1,641 @@
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE 공용 꾸밈 · assets/of.css
+   ------------------------------------------------------------------
+   ★ 모든 화면이 이 파일 하나를 부릅니다. 화면마다 따로 적으면
+     언젠가 갈라집니다 — 오퍼스클램에서 여러 번 겪은 일입니다.
+   ★ 화면에만 있는 것(작가 목록의 격자 등)은 그 화면 파일 안에
+     둡니다. 다만 그럴 때도 <b>여기 있는 변수와 규칙 위에</b> 얹습니다.
+   ══════════════════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE 대문 시안 · 3차 · 2026-08-21
+   ------------------------------------------------------------------
+   ★ 3차에서 고친 것 — <b>「포털인데 컨텐츠가 빈약하다」</b> (파트너 지적)
+
+     ① 히어로는 <b>더 여유롭게</b> (위아래 108/120px)
+     ② 아래는 <b>조밀하게</b> — 구역 사이 여백을 64 → 38px 로 줄이고
+        한 화면에 담기는 자료를 크게 늘렸습니다
+     ③ 메뉴 구성에 있던 것을 <b>대문으로 끌어올렸습니다</b> —
+        정보SPOT · 공모/레지던시 · 미술시장 · 입시 · 클래스:ON · 쇼핑
+
+   ★ 조밀해지면 뒤죽박죽이 되기 쉽습니다. 그래서
+     · 구역마다 <b>같은 리듬</b>(작은 라벨 → 명조 제목 → 오른쪽 더보기)
+     · 두세 단을 섞어 눈이 쉴 자리를 만들고
+     · <b>가로줄</b>을 두 곳에만 그어 마디를 만듭니다 (색은 쓰지 않습니다)
+
+   ★ 밀도를 올리되 미술의 결은 지킵니다
+     · 숫자와 목록이 늘어도 <b>도판이 늘 함께</b> 있습니다
+     · 시그니처인 <b>작품 캡션</b>은 그대로입니다
+   ══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --paper:#FFFFFF;
+  --ink:#17171A; --ink-2:#66666A; --ink-3:#9B9B9E;
+  --rule:#E8E7E2; --rule-2:#F1F0EC;
+  --accent:#1F4B47;      /* 뇌록 */
+  --accent-2:#8C3A2E;    /* 인주 */
+  --gold:#A8863C;
+  --serif:'Noto Serif KR',serif;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
+  --wrap:1280px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px}
+.label{font-size:10px;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ink-3)}
+
+/* ══ 머리 · 위 줄(유틸) ══════════════════════════════════════════
+   ★ 2026-08-21 · 오퍼스클램 헤더 짜임을 옮겼습니다 (파트너 지시).
+     위 줄 = 관계사 링크 · 로그인 · 다국어
+     아래 줄 = 로고 · 대메뉴 · 도구(검색·명암·전체메뉴)
+   ★ 로그인을 <b>위 줄</b>에 두는 까닭 — 아래 줄 오른쪽이 로그인 여부에
+     따라 넓어지면 <b>대메뉴가 통째로 밀립니다.</b> 위로 올리면 아래 줄
+     오른쪽은 도구 셋으로 폭이 고정되어 대메뉴가 늘 같은 자리에 섭니다.
+     오퍼스클램이 8월 13일에 같은 이유로 옮겼습니다.
+   ★ 구분은 <b>색 없이 얇은 줄</b>로만 합니다 (파트너 지시).
+   ★ 실제로는 partials/header.html 하나로 빼서 모든 화면이 부르게 합니다. */
+.util{border-bottom:1px solid var(--rule-2)}
+.util .wrap{display:flex;align-items:center;height:34px;gap:18px}
+/* ★ 2026-08-21 · 오퍼스클램 위 줄과 <b>같은 값</b>으로 맞췄습니다 (파트너 지시).
+     거기는 8px · 굵기 600 · 자간을 벌린 것입니다. 왼쪽 관계사 링크는
+     명조로 자간을 더 벌리고, 오른쪽은 산세리프입니다.
+   ★ 8px 은 작지만 굵기 600 에 자간을 벌려 놓아 또렷하게 읽힙니다.
+     이 줄은 조용히 있어야 하는 것이라 원래 작습니다.
+   ★ 다만 작은 화면에서는 손가락으로 눌러야 하므로 아래 미디어쿼리에서
+     키웁니다 — 오퍼스클램이 같은 이유로 그렇게 두었습니다. */
+.util a{font-size:8px;font-weight:600;color:var(--ink-3);transition:.16s;
+  white-space:nowrap;letter-spacing:.04em;
+  display:inline-flex;align-items:center;min-height:30px}
+.util .u-l a{font-family:var(--serif);letter-spacing:.05em}
+.util a:hover{color:var(--ink)}
+.util .u-r{margin-left:auto;display:flex;align-items:center;gap:14px}
+/* 로그인·회원가입은 <b>누를 것</b>이므로 조금 키웁니다 (오퍼스클램과 같게) */
+.util .u-r a.act{font-size:10px;letter-spacing:.02em}
+.util .u-sep{width:1px;height:9px;background:var(--rule)}
+.lang{position:relative;display:inline-flex;align-items:center}
+.lang select{appearance:none;border:0;background:transparent;font-family:inherit;
+  font-size:9px;font-weight:700;color:var(--ink-2);padding:0 13px 0 0;cursor:pointer;
+  letter-spacing:.06em}
+.lang::after{content:'';position:absolute;right:2px;top:50%;width:5px;height:5px;
+  border-right:1px solid var(--ink-3);border-bottom:1px solid var(--ink-3);
+  transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* ── 도구 셋 ── */
+.tools{margin-left:auto;display:flex;align-items:center;gap:9px}
+.tbtn{width:34px;height:34px;border:1px solid var(--rule);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;background:transparent;
+  cursor:pointer;padding:0;transition:.16s}
+.tbtn:hover{border-color:var(--ink)}
+.tbtn svg{stroke:var(--ink-2);fill:none;stroke-width:1.7;transition:.16s}
+.tbtn:hover svg{stroke:var(--ink)}
+.tbtn.contrast svg .half{fill:var(--ink-2);stroke:none}
+.tbtn.contrast:hover svg .half{fill:var(--ink)}
+.tbtn.menu{border:0;width:30px;gap:5px;flex-direction:column}
+.tbtn.menu span{display:block;width:19px;height:1.4px;background:var(--ink-2);transition:.16s}
+.tbtn.menu:hover span{background:var(--ink)}
+
+/* ── 전체 메뉴 ── */
+.fm{position:fixed;inset:0;z-index:200;background:rgba(23,23,26,.36);
+  opacity:0;visibility:hidden;transition:.24s}
+.fm.on{opacity:1;visibility:visible}
+.fm-panel{position:absolute;inset:0 0 auto 0;background:#fff;
+  padding:0 0 44px;transform:translateY(-14px);transition:.28s;
+  max-height:100vh;overflow:auto}
+.fm.on .fm-panel{transform:translateY(0)}
+.fm-head{display:flex;align-items:center;height:66px;border-bottom:1px solid var(--rule-2)}
+.fm-close{margin-left:auto;width:34px;height:34px;border:1px solid var(--rule);
+  border-radius:50%;background:transparent;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;transition:.16s}
+.fm-close:hover{border-color:var(--ink)}
+.fm-close svg{stroke:var(--ink-2);fill:none;stroke-width:1.7}
+.fm-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0 26px;padding-top:34px}
+.fm-col h4{font-family:var(--serif);font-size:15px;font-weight:500;margin:0 0 12px;
+  padding-bottom:10px;border-bottom:1px solid var(--ink)}
+.fm-col a{display:block;font-size:12.5px;color:var(--ink-2);padding:5px 0;transition:.16s}
+.fm-col a:hover{color:var(--accent)}
+@media(max-width:900px){
+  .util .wrap{gap:12px}
+  .util a{font-size:10.5px}
+  .util .u-r a.act{font-size:11px}
+  .util .u-l a:nth-child(n+3){display:none}
+  .fm-grid{grid-template-columns:repeat(2,1fr);gap:0 20px}
+  .fm-col{margin-bottom:22px}
+}
+
+/* ── 머리(아래 줄) ── */
+header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--rule-2)}
+.hd{display:flex;align-items:center;gap:40px;height:66px}
+/* ★ 2026-08-21 · 로고를 <b>D안(한 획)</b>으로 넣었습니다 (파트너 결정).
+     붓이 종이를 지나간 자국 하나 — 넷 가운데 가장 조용하고 가장 미술 쪽입니다.
+   ★ 글자가 아니라 그림(SVG)입니다. 어느 화면에서나 같은 모양이고,
+     확대해도 흐려지지 않습니다. */
+.logo{display:flex;align-items:center;flex:0 0 auto}
+.logo svg{display:block}
+/* ★ 2026-08-21 · 메뉴 사이를 넓혔습니다 (파트너 지시) — 24 → 34px.
+     로고와 도구 사이에 자리가 남아 있어 붙어 보였습니다. */
+nav{display:flex;gap:34px;font-size:13.5px;font-weight:500;margin-left:8px}
+nav a{padding:5px 0;border-bottom:1px solid transparent;transition:.18s}
+nav a:hover{border-bottom-color:var(--ink)}
+.hd-r{margin-left:auto;display:flex;gap:15px;align-items:center;font-size:13px;color:var(--ink-2)}
+.hd-r a:hover{color:var(--ink)}
+.hd-btn{border:1px solid var(--ink);padding:6px 15px;font-size:12.5px;font-weight:600;
+  color:var(--ink);transition:.18s}
+.hd-btn:hover{background:var(--ink);color:#fff}
+
+/* ══ 히어로 — 넉넉하게 ══ */
+/* ══ 히어로 — 글자만 ══
+   ★★ 2026-08-21 · 패턴을 <b>뺐습니다</b> (파트너 결정).
+     선으로만 그려도 패턴은 결국 <b>스스로 눈에 띕니다.</b> 아래에서
+     작품 도판이 색을 가지므로, 맨 위는 아무것도 없는 편이 낫습니다.
+   ▶ 대신 <b>글자를 크게</b> 씁니다. 여백과 큰 활자 — 미술관이 벽에
+     전시 제목을 붙이는 방식 그대로입니다.
+   ★ 글자 크기는 창 너비를 따릅니다(clamp). 작은 화면에서 큰 활자를
+     고정하면 두세 글자마다 줄이 바뀌어 읽히지 않습니다.
+   ★ 제목 자리에 <b>최소 높이</b>를 둡니다. 전시가 넘어갈 때 제목 길이가
+     달라지는데, 높이를 안 잡아 두면 아래 것들이 덜컥거립니다. */
+.hero{position:relative;padding:128px 0 132px}
+.hero-in{max-width:1000px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.26em;
+  color:var(--accent);text-transform:uppercase}
+/* ★ 2026-08-21 · 제목을 <b>얇게</b> 갑니다 (파트너 결정).
+     큰 활자는 굵을수록 무겁고, 얇을수록 우아합니다. 전시 제목을 벽에
+     붙일 때도 굵은 획을 쓰지 않습니다.
+   ★ 강조도 700 → 400 으로 낮춥니다. 굵기 차이를 <b>크게 벌리지 않아야</b>
+     한 덩이로 읽힙니다.
+   ★ 다만 작은 화면에서는 조금 올립니다 — 얇은 명조는 작아지면 흐려져
+     읽히지 않습니다. */
+/* ★ 2026-08-21 · 한 번 더 얇게 (파트너 결정).
+     200/400 → <b>100/300</b>. 굵기 차이(200)는 그대로 두고 둘 다 낮췄습니다 —
+     차이를 지키니 두 줄의 관계는 그대로이고 전체만 가벼워집니다.
+   ★ 100 은 Noto Serif KR 의 가장 얇은 굵기입니다. 큰 활자에서만 살아
+     있으므로, 작은 화면에서는 아래 미디어쿼리로 올립니다. */
+.hero h1{font-family:var(--serif);font-weight:100;
+  font-size:clamp(38px,6.4vw,86px);line-height:1.16;
+  letter-spacing:-.035em;margin:22px 0 0;min-height:2.32em}
+.hero h1 b{font-weight:300}
+.hero .sub{font-size:16px;color:var(--ink-2);line-height:1.9;margin-top:26px;max-width:36em}
+.hmeta{display:flex;gap:22px;flex-wrap:wrap;margin-top:26px;font-size:13px;color:var(--ink-2)}
+.hmeta b{font-weight:600;color:var(--ink)}
+.hmeta i{font-style:normal;color:var(--rule)}
+.hero-cta{display:flex;gap:11px;margin-top:38px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;
+  font-size:13.5px;font-weight:600;background:var(--ink);color:#fff;transition:.18s}
+.btn:hover{background:var(--accent)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.sm{padding:10px 20px;font-size:12.5px}
+.dots{display:flex;gap:7px;margin-top:44px}
+.dots i{width:22px;height:2px;background:var(--rule);cursor:pointer;transition:.3s}
+.dots i.on{background:var(--ink);width:40px}
+
+/* ══ 아래 — 조밀하게 ══ */
+.sec{padding:38px 0}
+.sec.band{padding:42px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.sec-hd{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.sec-t{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em}
+.sec-sub{font-size:12.5px;color:var(--ink-3);margin-left:2px}
+.sec-more{margin-left:auto;font-size:12.5px;color:var(--ink-2);transition:.18s;white-space:nowrap}
+.sec-more:hover{color:var(--accent)}
+
+/* 빠른 이동 띠 */
+.quick{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:var(--rule-2);
+  border-top:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2)}
+.qi{background:#fff;padding:16px 10px;text-align:center;transition:.18s}
+.qi:hover{background:#FCFCFB}
+.qi svg{display:block;margin:0 auto 8px;stroke:var(--ink-2);fill:none;stroke-width:1.4;
+  transition:.18s}
+.qi:hover svg{stroke:var(--accent)}
+.qi .qn{font-size:12.5px;font-weight:600}
+.qi .qc{font-size:10.5px;color:var(--ink-3);margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* 아카이브 갈래 */
+.grid-db{display:grid;grid-template-columns:repeat(5,1fr);gap:0 26px}
+.dbcard{padding:15px 0 13px;border-bottom:1px solid var(--rule-2);transition:.2s;
+  display:flex;align-items:baseline;gap:8px}
+.dbcard:hover{border-bottom-color:var(--ink)}
+.dbcard .n{font-family:var(--serif);font-size:15.5px;font-weight:500}
+.dbcard .c{margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:700;
+  font-variant-numeric:tabular-nums}
+.dbcard .c i{font-style:normal;font-weight:500;color:var(--ink-3);font-size:10.5px;margin-left:2px}
+.dbcard:hover .n{color:var(--accent)}
+
+/* 오늘의 소장품 + 최근 작품 */
+.pickrow{display:grid;grid-template-columns:1.15fr 1fr;gap:40px;align-items:start}
+.plate{border:1px solid var(--rule-2);padding:20px}
+.plate svg{display:block;width:100%;height:auto}
+.cap{border-top:1px solid var(--ink);padding-top:14px;margin-top:18px}
+.cap-artist{font-family:var(--serif);font-size:17px;font-weight:500;line-height:1.5}
+.cap-artist span{color:var(--ink-3);font-size:13px;font-family:var(--sans)}
+.cap-work{font-size:13.5px;margin-top:4px}
+.cap-work em{font-style:normal;font-family:var(--serif)}
+.cap-meta{font-size:12px;color:var(--ink-3);margin-top:2px}
+.cap-hold{font-size:12px;color:var(--accent);margin-top:4px;font-weight:600}
+.why{font-size:13.5px;color:var(--ink-2);line-height:1.85;margin:14px 0 0}
+.mini{column-count:2;column-gap:18px}
+.mw{break-inside:avoid;display:inline-block;width:100%;margin-bottom:20px}
+.mw .th{border:1px solid var(--rule-2);padding:9px;transition:.2s}
+.mw:hover .th{border-color:var(--rule)}
+.mw .th svg{display:block;width:100%;height:auto}
+.mw .a{font-size:12.5px;font-weight:600;margin-top:8px}
+.mw .w{font-family:var(--serif);font-size:12.5px;color:var(--ink-2);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mw:hover .a{color:var(--accent)}
+
+/* 전시 + 곧 끝나는 전시 */
+.exrow{display:grid;grid-template-columns:2.1fr 1fr;gap:40px;align-items:start}
+/* 벽돌 쌓기 — 높이가 다른 그림이 빈틈 없이 쌓입니다 */
+.grid-ex{column-count:3;column-gap:22px}
+.ex{break-inside:avoid;display:inline-block;width:100%;margin-bottom:26px}
+.ex .th{border:1px solid var(--rule-2);padding:10px;transition:.22s}
+.ex:hover .th{border-color:var(--rule);box-shadow:0 12px 28px -22px rgba(23,23,26,.3)}
+.ex .th svg{display:block;width:100%;height:auto}
+.ex .when{font-size:11px;color:var(--ink-3);margin-top:11px;font-variant-numeric:tabular-nums}
+.ex .t{font-family:var(--serif);font-size:15px;font-weight:500;margin-top:3px;line-height:1.45}
+.ex .v{font-size:12px;color:var(--ink-2);margin-top:2px}
+.ex:hover .t{color:var(--accent)}
+
+/* 목록 공통 — 조밀한 줄 */
+.lst ul{margin:0;padding:0;border-top:1px solid var(--ink)}
+.lst li{list-style:none;border-bottom:1px solid var(--rule-2);padding:10px 0;
+  display:flex;gap:12px;align-items:baseline}
+.lst .k{flex:0 0 auto;font-size:10px;letter-spacing:.12em;color:var(--accent);
+  font-weight:700;text-transform:uppercase;width:62px}
+.lst .t{flex:1 1 auto;min-width:0;font-size:13.5px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.lst li:hover .t{color:var(--accent)}
+.lst .d{flex:0 0 auto;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.lst .dday{flex:0 0 auto;font-size:11px;font-weight:800;color:var(--accent-2);
+  font-variant-numeric:tabular-nums}
+
+/* 공모·지원 */
+.callrow{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:start}
+.resi{display:grid;gap:10px}
+.rc{border:1px solid var(--rule-2);padding:13px 15px;transition:.2s}
+.rc:hover{border-color:var(--rule)}
+.rc .rt{font-family:var(--serif);font-size:14.5px;font-weight:500}
+.rc .rm{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.rc .rd{font-size:11.5px;color:var(--accent-2);font-weight:700;margin-top:5px}
+
+/* 작가 */
+/* ★ 2026-08-21 · 8열에 8명이라 <b>뒤쪽 열이 비었습니다</b> (파트너 지적).
+     벽돌 쌓기는 높이를 맞추려 앞 열에 몰아 쌓습니다 — 항목이 열 수보다
+     넉넉해야 꽉 찹니다.
+   ▶ 열을 6으로 줄이고 작가를 <b>12명</b>으로 늘렸습니다.
+     초상은 세로로 길어 8열에서는 너무 작기도 했습니다. */
+.grid-ar{column-count:6;column-gap:18px}
+.ar{break-inside:avoid;display:inline-block;width:100%;margin-bottom:20px}
+.ar .po{border:1px solid var(--rule-2);padding:7px;transition:.22s}
+.ar:hover .po{border-color:var(--rule)}
+.ar .po svg{display:block;width:100%;height:auto}
+.ar .nm{font-family:var(--serif);font-size:13.5px;font-weight:500;margin-top:8px}
+.ar .yr{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ar:hover .nm{color:var(--accent)}
+
+/* 커뮤니티 3단 */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+
+/* 미술시장 */
+.mkrow{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.mk{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule-2);
+  border:1px solid var(--rule-2)}
+.mkc{background:#fff;padding:15px 14px}
+.mkc .mn{font-size:11.5px;color:var(--ink-3)}
+.mkc .mv{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--ink);
+  margin-top:3px;font-variant-numeric:tabular-nums}
+.mkc .mu{font-size:11px;color:var(--accent);font-weight:700;margin-top:2px}
+.mkc .mu.dn{color:var(--accent-2)}
+
+/* 학교 카드 */
+.schl{display:grid;grid-template-columns:auto 1fr;gap:16px;
+  border:1px solid var(--rule-2);padding:16px;align-items:center}
+.schl .em{width:64px;height:64px;border:1px solid var(--rule-2);display:flex;
+  align-items:center;justify-content:center;font-family:var(--serif);
+  font-size:22px;color:var(--accent)}
+.schl .sn{font-family:var(--serif);font-size:16px;font-weight:500}
+.schl .sm{font-size:12px;color:var(--ink-2);margin-top:3px}
+.schl .ss{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+
+/* 입시 띠 */
+.exam{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;
+  border:1px solid var(--ink);padding:24px 28px}
+.exam .et{font-family:var(--serif);font-size:20px;font-weight:500}
+.exam .es{font-size:13px;color:var(--ink-2);margin-top:5px}
+.exam .en{display:flex;gap:26px;margin-top:12px;font-size:12px;color:var(--ink-3)}
+.exam .en b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* 아래 배너 둘 */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.bn{border:1px solid var(--rule-2);padding:26px;display:flex;gap:20px;
+  align-items:center;transition:.2s}
+.bn:hover{border-color:var(--rule)}
+.bn .bi{flex:0 0 auto;width:52px;height:52px;border:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:center}
+.bn .bt{font-family:var(--serif);font-size:17px;font-weight:500}
+.bn .bs{font-size:12.5px;color:var(--ink-2);margin-top:3px;line-height:1.65}
+
+/* ── 꼬리 ────────────────────────────────────────────────────
+   ★ 2026-08-21 · 오퍼스클램 푸터를 그대로 옮겼습니다 (파트너 화면 기준).
+     로고 → 메뉴 줄 → 주소·연락처 → 사업자 정보 → 저작권 → 패밀리사이트·SNS
+   ★ 사업자 정보는 꾸밈이 아니라 <b>법으로 표시해야 하는 것</b>입니다 —
+     전자상거래법 제10조(상호·대표·주소·전화·등록번호·통신판매업신고),
+     개인정보보호법 제31조(개인정보 보호책임자).
+     값은 (주)윅슨어소시에이츠의 실제 정보입니다.
+   ★ 왼쪽 정렬입니다 — 가운데로 모으면 읽을 것이 많은 줄이 흐트러집니다.
+   ★ 실제로는 partials/footer.html 하나로 빼서 모든 화면이 부르게 합니다. */
+/* ★ 2026-08-21 · 꼬리 글자를 <b>한 단계 줄였습니다</b> (파트너 지시).
+     꼬리는 찾을 때만 보면 되는 자리라 본문보다 작아야 합니다. */
+footer{padding:44px 0 56px;margin-top:30px;border-top:1px solid var(--rule-2);
+  font-size:11.5px;color:var(--ink-2);line-height:1.8}
+.ft-logo{display:inline-flex}
+.ft-logo svg{display:block}
+.ft-nav{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:20px;
+  font-size:11.5px;font-weight:600}
+.ft-nav a{transition:.16s}
+.ft-nav a:hover{color:var(--accent)}
+.ft-nav a.em{color:var(--accent-2)}
+.ft-info{margin-top:18px;font-size:10.5px;color:var(--ink-3);line-height:1.95}
+.ft-info .sep{color:var(--rule);margin:0 8px}
+.ft-info .en{color:#B4B3AE}
+.ft-copy{margin-top:11px;font-size:10.5px;color:var(--ink-3);line-height:1.8}
+.ft-copy .sep{color:var(--rule);margin:0 8px}
+.ft-bottom{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:26px;
+  padding-top:22px;border-top:1px solid var(--rule-2)}
+.ft-family{position:relative;display:inline-block}
+.ft-family select{appearance:none;font-family:inherit;font-size:11px;color:var(--ink-2);
+  border:1px solid var(--rule);background:#fff;padding:9px 36px 9px 14px;cursor:pointer}
+.ft-family::after{content:'';position:absolute;right:15px;top:50%;
+  width:6px;height:6px;border-right:1px solid var(--ink-3);border-bottom:1px solid var(--ink-3);
+  transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.ft-sns{margin-left:auto;display:flex;gap:8px}
+.ft-sns a{width:32px;height:32px;border:1px solid var(--rule);display:flex;
+  align-items:center;justify-content:center;transition:.16s}
+.ft-sns a:hover{border-color:var(--ink);background:var(--ink)}
+.ft-sns svg{stroke:var(--ink-3);fill:none;stroke-width:1.5;transition:.16s}
+.ft-sns a:hover svg{stroke:#fff}
+@media(max-width:700px){
+  .ft-nav{gap:5px 13px;font-size:11px}
+  .ft-sns{margin-left:0}
+}
+
+/* ── 실제 도판이 들어오면 ──
+   ★ 견본 SVG 는 자리를 지키고 있다가, 메트로폴리탄에서 도판이 닿으면
+     그 자리에서 <b>갈립니다.</b> 못 받으면 견본이 그대로 남습니다 —
+     빈 네모가 남는 것보다 낫습니다. */
+/* ★★ 2026-08-21 · 작가 초상이 <b>원본 크기로 튀어나와</b> 격자를 밀어냈습니다
+     (파트너 지적). 아래 첫 줄에 .po 를 빠뜨려 <b>width:100% 가 안 걸린</b> 탓입니다.
+     새 자리를 만들 때는 이 줄에 함께 적어야 합니다. */
+/* ★★ 2026-08-21 · 도판을 <b>정해진 비율로 자르지 않습니다</b> (파트너 지적)
+     그림은 세로로 긴 것, 가로로 넓은 것, 네모난 것이 다 다릅니다.
+     4:3 으로 잘라 맞추면 <b>작품이 잘려</b> 다른 그림이 됩니다 —
+     족자를 가로로 자르는 셈입니다.
+   ▶ <b>가로만 맞추고 세로는 그림이 정합니다.</b>
+     높이가 제각각이 되므로 아래 격자들을 <b>벽돌 쌓기</b>로 바꿉니다.
+   ★ 광고 그림만 예외입니다 — 그쪽은 작품이 아니라 자리가 정해진 배너라
+     칸에 맞춰 채웁니다. */
+.plate img,.th img,.po img,.wt img,.pf img{display:block;width:100%;height:auto;max-width:100%}
+.am img,.am svg{display:block;width:100%;height:100%;object-fit:cover}
+.loading{position:relative}
+.loading::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(23,23,26,.05),transparent);
+  animation:sweep 1.4s infinite}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+/* ★ 도판이 견본임을 밝히는 줄입니다.
+   ★ 2026-08-21 · 자리마다 붙으니 <b>어수선했습니다</b> (파트너 지적).
+     작가DB 격자에만 남깁니다 — 거기 한 번 나오면 「초상은 견본」임을
+     알 수 있고, 리쿠르트·작가소개까지 되풀이할 까닭이 없습니다. */
+.artcap{font-size:11px;color:var(--ink-3);margin-top:6px;line-height:1.5}
+.jperson .artcap,.pr .artcap{display:none}
+
+/* ── 커뮤니티 ────────────────────────────────────────────────
+   ★ 셋을 나란히 세우지 않습니다. 「내 작업」은 도판이 주인공이므로
+     크게, 질문과 글은 옆에 좁게. 사람은 아래 한 줄로. */
+.cmrow{display:grid;grid-template-columns:1.55fr 1fr;gap:40px;align-items:start}
+.cm-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;
+  border-bottom:1px solid var(--ink);padding-bottom:9px}
+.cm-t{font-family:var(--serif);font-size:17px;font-weight:500}
+.cm-s{font-size:11.5px;color:var(--ink-3)}
+.cm-hd .sec-more{margin-left:auto;font-size:12px}
+/* ★ 2026-08-21 · 핫토픽에 <b>줄이 두 개</b> 그어졌습니다 (파트너 지적).
+     제목 아래 선(.cm-hd)과 목록 위 선(.lst ul)이 맞닿아 겹친 것입니다.
+     제목이 이미 선을 갖고 있으므로 목록 쪽 선을 뺍니다. */
+.cmrow .lst ul{border-top:0}
+
+/* 내 작업 — 도판 + 조언 수 */
+.wkgrid{column-count:3;column-gap:20px}
+.wk{break-inside:avoid;display:inline-block;width:100%;margin-bottom:22px}
+.wk .wt{display:block;position:relative;border:1px solid var(--rule-2);padding:9px;
+  transition:.22s}
+.wk:hover .wt{border-color:var(--rule);box-shadow:0 12px 28px -22px rgba(23,23,26,.3)}
+.wk .wt svg,.wk .wt img{display:block;width:100%;height:auto}
+/* 조언 수 — 미술에서는 「댓글」이 아니라 크리틱입니다 */
+.adv{position:absolute;left:9px;bottom:9px;background:rgba(23,23,26,.84);
+  color:#fff;font-size:10.5px;padding:4px 9px;letter-spacing:.02em}
+.adv b{font-weight:800;font-variant-numeric:tabular-nums;margin-left:2px}
+.wk .wn{display:block;font-size:13.5px;font-weight:500;margin-top:10px;line-height:1.5}
+.wk .wm{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.wk:hover .wn{color:var(--accent)}
+
+/* 지식나눔 — 답변 수와 풀림 여부 */
+.qa{display:grid;gap:2px}
+.qq{display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:center;
+  padding:11px 0;border-bottom:1px solid var(--rule-2)}
+.qb{flex:0 0 auto;width:42px;height:42px;border:1px solid var(--rule);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1;transition:.2s}
+.qb b{font-family:var(--serif);font-size:15px;font-weight:500;
+  font-variant-numeric:tabular-nums}
+.qb i{font-style:normal;font-size:9px;color:var(--ink-3);margin-top:2px}
+.qb.done{border-color:var(--accent);background:var(--accent);color:#fff}
+.qb.done i{color:rgba(255,255,255,.72)}
+.qb.none{border-style:dashed;color:var(--ink-3)}
+.qt{display:block;font-size:13.5px;line-height:1.5}
+.qm{display:block;font-size:11px;color:var(--ink-3);margin-top:3px}
+.qm em{font-style:normal;color:var(--accent);font-weight:700}
+.qm em.wait{color:var(--accent-2)}
+.qq:hover .qt{color:var(--accent)}
+
+/* 작가 소개 — 얼굴이 보이는 줄 */
+.prrow{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.pr{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;
+  border:1px solid var(--rule-2);padding:14px;transition:.2s}
+.pr:hover{border-color:var(--rule)}
+.pf{flex:0 0 auto;width:66px}
+.pf svg,.pf img{display:block;width:100%;height:auto}
+.pn{display:block;font-family:var(--serif);font-size:15px;font-weight:500}
+.pm{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
+.pw{display:block;font-size:12px;color:var(--ink-2);margin-top:6px;line-height:1.55;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr:hover .pn{color:var(--accent)}
+
+@media(max-width:900px){
+  .cmrow{grid-template-columns:1fr;gap:30px}
+  .wkgrid{column-count:2}
+  .prrow{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .wkgrid{column-count:1}
+  .prrow{grid-template-columns:1fr}
+}
+
+/* ── 리쿠르트 ────────────────────────────────────────────────
+   ★ 2026-08-21 · 메뉴에만 있고 대문에 없었습니다 (파트너 지적).
+   ★ 미술 쪽 일자리는 음악과 갈래가 다릅니다 — 큐레이터·에듀케이터·
+     레지스트라(소장품 관리)·아트핸들러·갤러리 어시스턴트처럼
+     <b>미술관과 갤러리의 직무</b>가 중심입니다. 그래서 갈래를 그대로
+     보여 주는 것이 목록보다 빠릅니다.
+   ★ 구인과 구직을 나란히 둡니다 — 오퍼스클램 리쿠르트와 같은 짜임입니다. */
+.jobrow{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.jkind{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.jkind a{font-size:11.5px;color:var(--ink-2);border:1px solid var(--rule-2);
+  padding:5px 11px;transition:.16s}
+.jkind a:hover{border-color:var(--ink);color:var(--ink)}
+.jkind a b{color:var(--accent);font-weight:700;margin-left:4px;
+  font-variant-numeric:tabular-nums}
+.job{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:baseline;
+  padding:11px 0;border-bottom:1px solid var(--rule-2)}
+.job .jt{display:block;font-size:13.5px;line-height:1.5}
+.job .jm{display:block;font-size:11px;color:var(--ink-3);margin-top:3px}
+.job .jd{font-size:11px;color:var(--ink-3);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.job .jd.hot{color:var(--accent-2);font-weight:700}
+.job:hover .jt{color:var(--accent)}
+.jperson{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;
+  padding:11px 0;border-bottom:1px solid var(--rule-2)}
+.jperson .jf{width:38px;height:38px;border:1px solid var(--rule-2);overflow:hidden}
+.jperson .jf svg,.jperson .jf img{display:block;width:100%;height:100%;object-fit:cover}
+/* ★ 2026-08-21 · 「한지우큐레이터」처럼 <b>이름과 직무가 붙어</b> 보였습니다
+     (파트너 지적). span 은 기본이 inline 이라 줄이 안 나뉩니다. */
+.jperson .jn{display:block;font-family:var(--serif);font-size:14px;font-weight:500}
+.jperson .jc{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
+.jperson .jw{font-size:11px;color:var(--ink-2);white-space:nowrap}
+.jperson:hover .jn{color:var(--accent)}
+@media(max-width:900px){ .jobrow{grid-template-columns:1fr;gap:30px} }
+
+/* ── 광고 자리 ────────────────────────────────────────────────
+   ★ 2026-08-21 · 대문에 <b>배너 광고 자리</b>를 두었습니다 (파트너 요청).
+     오퍼스클램의 Concert PR·히어로 슬라이드와 같은 몫입니다.
+   ★ 미술 화면이라 광고도 <b>조용해야</b> 합니다. 색을 쓰지 않고
+     가는 테두리와 작은 「AD」 표시만 둡니다. 요란한 배너는 작품
+     도판과 싸웁니다.
+   ★ 자리는 셋 — 히어로 아래(넓게) · 가운데(둘로) · 아래쪽(넓게).
+     실제로는 ad-rotate.js 처럼 표에서 받아 <b>돌려 가며</b> 보여 줍니다. */
+.adwrap{position:relative;border:1px solid var(--rule-2);transition:.2s;display:block}
+.adwrap:hover{border-color:var(--rule)}
+.adwrap::before{content:'AD';position:absolute;top:8px;right:10px;
+  font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  background:#fff;padding:2px 5px;z-index:2}
+.adwide{display:grid;grid-template-columns:auto 1fr auto;gap:26px;
+  align-items:center;padding:24px 28px;min-height:132px}
+.adwide .am{width:96px;height:84px;border:1px solid var(--rule-2);overflow:hidden;
+  display:flex;align-items:center;justify-content:center}
+.adwide .am svg,.adwide .am img{display:block;width:100%;height:100%;object-fit:cover}
+.ad-eb{font-size:10px;font-weight:700;letter-spacing:.2em;
+  color:var(--ink-3);text-transform:uppercase}
+.ad-t{font-family:var(--serif);font-size:19px;font-weight:500;margin-top:5px;line-height:1.45}
+.ad-s{font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.7}
+.ad-go{flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--ink);
+  border-bottom:1px solid var(--ink);padding-bottom:2px;white-space:nowrap}
+.adwrap:hover .ad-t{color:var(--accent)}
+.adhalf{padding:22px 24px;min-height:112px}
+.adrow{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.adslot{padding:26px 0}
+@media(max-width:900px){
+  .adwide{grid-template-columns:1fr;gap:14px;min-height:0}
+  .adwide .am{width:100%;height:120px}
+  .adrow{grid-template-columns:1fr}
+}
+
+/* ── 광고 · 다른 크기 둘 (2026-08-21 파트너 요청) ──
+   ★ 크기를 달리해야 화면이 지루하지 않고, 파는 쪽도 고를 수 있습니다.
+     · 세로형  전시 옆 기둥 자리 — 갤러리·미술관 기획전에 맞습니다
+     · 띠형    글자만 있는 얇은 줄 — 공모·강좌 알림처럼 짧은 말에 맞습니다 */
+.adtall{padding:0;display:block}
+.adtall .am{width:100%;height:230px;border:0;border-bottom:1px solid var(--rule-2);
+  overflow:hidden;display:block}
+.adtall .am svg,.adtall .am img{display:block;width:100%;height:100%;object-fit:cover}
+.adtall .ab{padding:16px 18px 20px}
+.adtall .ad-t{font-size:16px}
+.adtall .ad-go{display:inline-block;margin-top:12px;font-size:12px}
+
+.adstrip{display:flex;align-items:center;gap:18px;padding:14px 24px;flex-wrap:wrap}
+.adstrip .ad-eb{flex:0 0 auto}
+.adstrip .st{font-size:13.5px;font-weight:500}
+.adstrip .st b{font-family:var(--serif);font-weight:500;color:var(--accent)}
+.adstrip .ad-go{margin-left:auto}
+.adstrip::before{top:50%;transform:translateY(-50%);right:14px}
+@media(max-width:900px){ .adstrip{padding:14px 18px} .adstrip .ad-go{margin-left:0} }
+
+/* ── 어둡게 보기 ──────────────────────────────────────────────
+   ★ 색을 <b>변수 한 벌만</b> 갈아 끼웁니다. 화면 곳곳에 색을 직접 적지
+     않고 변수로 써 두었기 때문에 이것만으로 전체가 바뀝니다.
+   ★ 도판은 건드리지 않습니다 — 작품 색을 어둡게 하면 안 됩니다.
+     대신 도판을 담는 <b>테두리와 바탕</b>만 어두워집니다.
+   ★ 뇌록도 어두운 바탕에서는 잘 안 보여 한 단계 밝게 바꿉니다. */
+html[data-theme="dark"]{
+  --paper:#141416;
+  --ink:#EDECE8; --ink-2:#A3A2A0; --ink-3:#76757A;
+  --rule:#33333A; --rule-2:#25252B;
+  --accent:#6FA79E; --accent-2:#C97F6E;
+}
+html[data-theme="dark"] body{background:var(--paper)}
+html[data-theme="dark"] header,
+html[data-theme="dark"] .fm-panel{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .lang select,
+html[data-theme="dark"] .ft-family select,
+html[data-theme="dark"] .qb.done{color:inherit}
+html[data-theme="dark"] .ft-family select,
+html[data-theme="dark"] .lang select{background:transparent;color:var(--ink-2)}
+html[data-theme="dark"] .adwrap::before{background:var(--paper)}
+html[data-theme="dark"] .btn{background:var(--ink);color:var(--paper)}
+html[data-theme="dark"] .btn:hover{background:var(--accent);color:#101012}
+html[data-theme="dark"] .btn.ghost{background:transparent;color:var(--ink)}
+html[data-theme="dark"] .hd-btn:hover,
+html[data-theme="dark"] .tbtn:hover{background:transparent}
+html[data-theme="dark"] .qb.done{background:var(--accent);color:#101012}
+html[data-theme="dark"] .exam .btn,
+html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--paper)}
+html[data-theme="dark"] .adv{background:rgba(0,0,0,.78)}
+/* 로고와 아이콘은 그림이라 색이 박혀 있습니다 — 밝게 뒤집어 줍니다 */
+html[data-theme="dark"] .logo svg text,
+html[data-theme="dark"] .ft-logo svg text{fill:#EDECE8}
+html[data-theme="dark"] .logo svg text:last-of-type,
+html[data-theme="dark"] .ft-logo svg text:last-of-type,
+html[data-theme="dark"] .fm-head svg text:last-of-type{fill:#76757A}
+html[data-theme="dark"] .logo svg path,
+html[data-theme="dark"] .ft-logo svg path,
+html[data-theme="dark"] .fm-head svg path{stroke:#EDECE8}
+html[data-theme="dark"] .logo svg circle,
+html[data-theme="dark"] .ft-logo svg circle,
+html[data-theme="dark"] .fm-head svg circle{fill:#6FA79E}
+html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
+
+
+@media(max-width:1180px){
+  .quick{grid-template-columns:repeat(4,1fr)}
+  .grid-ar{column-count:4}
+  .grid-db{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:900px){
+  .wrap{padding:0 20px}
+  .hero{padding:66px 0 72px}
+  .hero h1{min-height:0;letter-spacing:-.025em;font-weight:200}
+  .hero h1 b{font-weight:400}
+  .exrow,.callrow,.pickrow,.mkrow{grid-template-columns:1fr;gap:28px}
+  .grid-ex{column-count:2}
+  .three,.duo{grid-template-columns:1fr;gap:26px}
+  .exam{grid-template-columns:1fr}
+  nav,.hd-r a:not(.hd-btn){display:none}
+}
+@media(max-width:560px){
+  .quick{grid-template-columns:repeat(2,1fr)}
+  .grid-db{grid-template-columns:repeat(2,1fr)}
+  .grid-ar{column-count:3}
+  .grid-ex,.mini{column-count:1}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

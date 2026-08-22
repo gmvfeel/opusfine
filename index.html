@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OPUSFINE — 미술 아카이브</title>
+<meta name="description" content="작가와 작품, 전시와 공간 — 흩어져 있던 미술 자료를 한자리에 모읍니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<!-- ════ 히어로 — 넉넉하게 ════ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-in" id="hslide">
+      <div class="eyebrow" id="h-eb">국립현대미술관 서울</div>
+      <h1 id="h-t">색면과 여백<br><b>한국 추상 60년</b></h1>
+      <div class="sub" id="h-s">전후 세대부터 오늘까지, 한국 추상회화가 지나온 길을 한자리에서 봅니다. 소장품 140여 점과 미공개 자료를 함께 냅니다.</div>
+      <div class="hmeta" id="h-m">
+        <span><b>2026.08.02 — 11.16</b></span><i>·</i><span>서울관 3·4전시실</span><i>·</i><span>참여작가 <b>38명</b></span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn" href="#ex">전시 자세히</a>
+        <a class="btn ghost" href="#db">아카이브 둘러보기</a>
+      </div>
+    </div>
+    <div class="dots" id="dots" role="tablist" aria-label="전시 넘기기">
+      <i class="on" tabindex="0" role="tab" aria-label="1번"></i><i tabindex="0" role="tab" aria-label="2번"></i>
+      <i tabindex="0" role="tab" aria-label="3번"></i><i tabindex="0" role="tab" aria-label="4번"></i>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 빠른 이동 — 정보SPOT 을 대문 앞으로 ════ -->
+<div class="wrap">
+  <div class="quick">
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14"/><path d="M3 18l6-6 4 4 3-3 5 5"/></svg><div class="qn">전시정보</div><div class="qc">1,204건</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6L21 9.4l-4.5 4.3 1.1 6.3L12 17l-5.6 3 1.1-6.3L3 9.4l6.4-.8z"/></svg><div class="qn">공모전</div><div class="qc">86건</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/></svg><div class="qn">레지던시</div><div class="qc">34곳</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M6 20V9m4 11V5m4 15v-8m4 8V7"/></svg><div class="qn">지원금</div><div class="qc">51건</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18 15 15 0 010-18"/></svg><div class="qn">비엔날레</div><div class="qc">28건</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M8 7V4h8v3M4 12h16"/></svg><div class="qn">아트페어</div><div class="qc">19건</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 4v16M4 8h16M6 20h12"/></svg><div class="qn">미술시장</div><div class="qc">주간</div></a>
+    <a class="qi" href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg><div class="qn">자료실</div><div class="qc">742건</div></a>
+  </div>
+</div>
+
+<!-- ════ 광고 · 히어로 아래 ════ -->
+<div class="wrap adslot">
+  <a class="adwrap adwide" href="#"><span class="am" data-art="ad" data-q="gallery landscape"><svg viewBox="0 0 120 100" role="img" aria-label="광고 견본"><rect width="120" height="100" fill="#F4F2EC"/><rect x="18" y="20" width="40" height="60" fill="#2E5D57" opacity=".55"/><rect x="66" y="20" width="36" height="28" fill="#C9BFA6"/><rect x="66" y="56" width="36" height="24" fill="#8FA39B"/></svg></span><span><span class="ad-eb">Gallery</span><span class="ad-t" style="display:block">가을 기획전 《여백의 자리》</span><span class="ad-s" style="display:block">9월 4일부터 10월 26일까지 · 삼청동 본관 · 관람 무료</span></span><span class="ad-go">전시 보기 →</span></a>
+</div>
+
+<!-- ════ 아카이브 ════ -->
+<section class="sec" id="db">
+  <div class="wrap">
+    <div class="sec-hd">
+      <div><div class="label">Archive</div><div class="sec-t">무엇이 쌓여 있나</div></div>
+      <span class="sec-sub">날마다 자동으로 채워집니다</span>
+      <a class="sec-more" href="#">전체 보기 →</a>
+    </div>
+    <div class="grid-db">
+      <a class="dbcard" href="/db/artist.html"><span class="n">작가</span><span class="c">31,470<i>명</i></span></a>
+      <a class="dbcard" href="#"><span class="n">작품</span><span class="c">184,206<i>점</i></span></a>
+      <a class="dbcard" href="#"><span class="n">전시</span><span class="c">12,885<i>건</i></span></a>
+      <a class="dbcard" href="#"><span class="n">전시공간</span><span class="c">2,140<i>곳</i></span></a>
+      <a class="dbcard" href="#"><span class="n">미술학교</span><span class="c">1,306<i>곳</i></span></a>
+      <a class="dbcard" href="#"><span class="n">미술단체</span><span class="c">874<i>곳</i></span></a>
+      <a class="dbcard" href="#"><span class="n">기관·재단</span><span class="c">412<i>곳</i></span></a>
+      <a class="dbcard" href="#"><span class="n">학술</span><span class="c">9,733<i>편</i></span></a>
+      <a class="dbcard" href="#"><span class="n">현대미술</span><span class="c">1,058<i>명</i></span></a>
+      <a class="dbcard" href="#"><span class="n">용어사전</span><span class="c">1,204<i>항</i></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 전시 ════ -->
+<section class="sec" id="ex">
+  <div class="wrap exrow">
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Now Showing</div><div class="sec-t">지금 열리는 전시</div></div>
+        <a class="sec-more" href="#">전시 전체 →</a>
+      </div>
+      <div class="grid-ex">
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="Korea landscape"><svg viewBox="0 0 340 430" role="img" aria-label="견본"><rect width="340" height="240" fill="#F2EFE7"/><rect x="26" y="24" width="132" height="192" fill="#2E5D57"/><rect x="172" y="24" width="140" height="90" fill="#CCC2A9"/><rect x="172" y="126" width="140" height="90" fill="#8FA39B"/><circle cx="242" cy="69" r="22" fill="#F2EFE7"/></svg></div>
+          <div class="when">08.02 — 11.16</div><div class="t">색면과 여백</div><div class="v">국립현대미술관 서울</div>
+        </a>
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="Korea figure painting"><svg viewBox="0 0 340 250" role="img" aria-label="견본"><rect width="340" height="240" fill="#F4EEE0"/><g fill="#B4643F" opacity=".85"><ellipse cx="120" cy="94" rx="30" ry="35"/><ellipse cx="220" cy="104" rx="27" ry="32"/></g><path d="M76 240 q44 -84 90 -78 q46 6 78 78Z" fill="#5C6E7E" opacity=".8"/><path d="M188 240 q37 -69 78 -63 q40 6 66 63Z" fill="#8C7A5C" opacity=".78"/></svg></div>
+          <div class="when">07.19 — 10.05</div><div class="t">풍속, 사람을 그리다</div><div class="v">간송미술관</div>
+        </a>
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="night landscape"><svg viewBox="0 0 340 300" role="img" aria-label="견본"><rect width="340" height="240" fill="#1B2A4A"/><g fill="#E4C55E" opacity=".9"><circle cx="268" cy="58" r="21"/><circle cx="78" cy="48" r="6"/><circle cx="142" cy="84" r="5"/></g><path d="M0 160 q56 -36 113 -5 q57 31 113 -11 q57 -42 114 6 L340 240 L0 240Z" fill="#25406B"/><path d="M0 197 q70 -24 139 2 q70 26 139 -10 L340 240 L0 240Z" fill="#14213A"/></svg></div>
+          <div class="when">06.28 — 09.28</div><div class="t">밤의 화가들</div><div class="v">서울시립미술관</div>
+        </a>
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="mountain landscape"><svg viewBox="0 0 340 380" role="img" aria-label="견본"><rect width="340" height="240" fill="#E9E6DA"/><path d="M0 172 L58 122 L100 146 L152 90 L204 140 L250 116 L294 146 L340 126 L340 240 L0 240Z" fill="#3E6459"/><path d="M42 184 L106 130 L146 154 L200 108 L246 144 L292 124 L340 156 L340 240 L42 240Z" fill="#5E8A78" opacity=".85"/><rect y="164" width="340" height="40" fill="#EFEDE4" opacity=".78"/></svg></div>
+          <div class="when">08.14 — 12.07</div><div class="t">청록, 산을 그리는 법</div><div class="v">리움미술관</div>
+        </a>
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="Korea album"><svg viewBox="0 0 340 240" role="img" aria-label="견본"><rect width="340" height="240" fill="#F1EFE9"/><g fill="none" stroke="#17171A" stroke-width="2" opacity=".5"><rect x="40" y="40" width="110" height="160"/><rect x="180" y="70" width="120" height="100"/></g><g fill="#8C3A2E" opacity=".7"><circle cx="95" cy="120" r="26"/><circle cx="240" cy="120" r="18"/></g></svg></div>
+          <div class="when">09.02 — 11.30</div><div class="t">사진, 기록과 예술 사이</div><div class="v">대림미술관</div>
+        </a>
+        <a class="ex" href="#">
+          <div class="th" data-art="ex" data-q="Korea porcelain"><svg viewBox="0 0 340 330" role="img" aria-label="견본"><rect width="340" height="240" fill="#EEEAE0"/><g fill="none" stroke="#17171A" stroke-width="2.4" opacity=".55"><path d="M110 200 q-46 -40 -36 -92 q10 -48 60 -52 q50 4 60 52 q10 52 -36 92 Z"/><path d="M230 196 q-34 -46 -20 -94 q12 -40 44 -40"/></g><ellipse cx="134" cy="130" rx="42" ry="48" fill="#1F4B47" opacity=".12"/></svg></div>
+          <div class="when">07.05 — 10.19</div><div class="t">흙과 불, 도자 천년</div><div class="v">국립중앙박물관</div>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Closing Soon</div><div class="sec-t">곧 끝나는 전시</div></div>
+      </div>
+      <div class="lst"><ul>
+        <li><span class="t">겸재의 눈, 진경의 탄생</span><span class="dday">D-4</span></li>
+        <li><span class="t">한국 근대조각 100년</span><span class="dday">D-9</span></li>
+        <li><span class="t">종이 위의 실험: 판화</span><span class="dday">D-12</span></li>
+        <li><span class="t">여성 작가, 다시 쓰는 미술사</span><span class="dday">D-18</span></li>
+        <li><span class="t">단색화 이후</span><span class="dday">D-23</span></li>
+      </ul></div>
+
+      <div class="sec-hd" style="margin-top:30px">
+        <div><div class="label">This Month</div><div class="sec-t">이달의 미술학교</div></div>
+      </div>
+      <a class="schl" href="#">
+        <div class="em">弘</div>
+        <div>
+          <div class="sn">홍익대학교 미술대학</div>
+          <div class="sm">회화 · 판화 · 조소 · 예술학</div>
+          <div class="ss">동문 작가 <b style="color:var(--accent)">1,842</b>명 · 소장 자료 <b style="color:var(--accent)">96</b>건</div>
+        </div>
+      </a>
+
+      <a class="adwrap adtall" href="#" style="margin-top:20px">
+        <span class="am" data-art="ad" data-q="flowers">
+          <svg viewBox="0 0 300 230" role="img" aria-label="광고 견본"><rect width="300" height="230" fill="#F2EFE7"/><rect x="30" y="26" width="110" height="178" fill="#2E5D57" opacity=".55"/><rect x="158" y="26" width="112" height="82" fill="#C9BFA6"/><rect x="158" y="122" width="112" height="82" fill="#8FA39B"/></svg>
+        </span>
+        <span class="ab">
+          <span class="ad-eb">Museum</span>
+          <span class="ad-t" style="display:block">가을 특별전 《흙과 손》</span>
+          <span class="ad-s" style="display:block">전국 도예가 40인의 신작 · 9월 12일 개막 · 사전 예약 관람</span>
+          <span class="ad-go">예약하기 →</span>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 오늘의 소장품 + 새로 들어온 작품 ════ -->
+<section class="sec band">
+  <div class="wrap pickrow">
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Today's Pick</div><div class="sec-t">오늘의 소장품</div></div>
+      </div>
+      <div class="plate" data-art="hero" data-q="Korea landscape painting">
+        <svg viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="수묵 산수 견본">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3F1EB"/><stop offset="1" stop-color="#E7E4DA"/></linearGradient>
+            <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A4A48"/><stop offset="1" stop-color="#2A2A29"/></linearGradient>
+            <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5F3ED" stop-opacity="0"/><stop offset=".55" stop-color="#F5F3ED" stop-opacity=".92"/><stop offset="1" stop-color="#F5F3ED"/></linearGradient>
+          </defs>
+          <rect width="640" height="400" fill="url(#sky)"/>
+          <path d="M0 272 L86 172 L142 214 L214 108 L286 208 L330 168 L392 232 L446 190 L520 258 L586 210 L640 264 L640 400 L0 400Z" fill="url(#rock)"/>
+          <path d="M120 278 L188 190 L232 232 L300 152 L356 218 L404 184 L470 250 L536 208 L640 292 L640 400 L120 400Z" fill="#5E5C56" opacity=".8"/>
+          <path d="M214 108 L246 154 L214 166 L186 150Z" fill="#1C1C1B" opacity=".5"/>
+          <rect y="256" width="640" height="102" fill="url(#mist)"/>
+          <g stroke="#2E2D2B" stroke-width="1.1" fill="none" opacity=".5">
+            <path d="M40 340 q40 -14 78 0 q40 14 82 -2"/><path d="M300 352 q46 -12 92 2 q44 12 92 -4"/>
+          </g>
+          <rect x="556" y="30" width="32" height="32" fill="#8C3A2E" opacity=".88"/>
+        </svg>
+      </div>
+      <div class="cap">
+        <div class="cap-artist">정선 <span>鄭敾</span></div>
+        <div class="cap-work"><em>《인왕제색도》</em>, 1751</div>
+        <div class="cap-meta">종이에 수묵</div>
+        <div class="cap-hold">국립중앙박물관 · 국보</div>
+      </div>
+      <p class="why">비 갠 뒤 인왕산을 그린 그림입니다. 젖은 바위를 짙은 먹으로 한 번에 쓸어내리고, 산허리의 안개는 종이를 그대로 비워 두었습니다.</p>
+    </div>
+
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">New Works</div><div class="sec-t">새로 들어온 작품</div></div>
+        <a class="sec-more" href="#">작품 전체 →</a>
+      </div>
+      <div class="mini">
+        <a class="mw" href="#"><div class="th" data-art="mini" data-q="Korea painting"><svg viewBox="0 0 300 380" role="img" aria-label="견본"><rect width="300" height="220" fill="#F2EFE7"/><rect x="24" y="22" width="118" height="176" fill="#2E5D57"/><rect x="156" y="22" width="120" height="82" fill="#CCC2A9"/><rect x="156" y="116" width="120" height="82" fill="#8FA39B"/></svg></div><div class="a">김환기 <span style="color:var(--ink-3);font-weight:400">추정</span></div><div class="w">《색면 습작》</div></a>
+        <a class="mw" href="#"><div class="th" data-art="mini" data-q="Korea ceramics"><svg viewBox="0 0 300 300" role="img" aria-label="견본"><rect width="300" height="220" fill="#EFEDE6"/><ellipse cx="150" cy="118" rx="86" ry="90" fill="#F8F6F0"/><ellipse cx="150" cy="118" rx="86" ry="90" fill="none" stroke="#D6D2C6" stroke-width="2"/><ellipse cx="124" cy="88" rx="30" ry="36" fill="#FCFBF6" opacity=".8"/></svg></div><div class="a">작자 미상</div><div class="w">백자 달항아리</div></a>
+        <a class="mw" href="#"><div class="th" data-art="mini" data-q="Korea calligraphy"><svg viewBox="0 0 300 300" role="img" aria-label="견본"><rect width="300" height="220" fill="#F0EBDF"/><g stroke="#1E1E1C" fill="none" stroke-linecap="round"><path d="M56 56 q46 -10 74 26" stroke-width="10"/><path d="M98 48 L98 152" stroke-width="9"/><path d="M46 108 q64 18 132 -8" stroke-width="10"/><path d="M74 168 q52 32 118 6" stroke-width="11"/></g><rect x="230" y="150" width="28" height="28" fill="#8C3A2E" opacity=".85"/></svg></div><div class="a">김정희</div><div class="w">《서첩 습작》</div></a>
+        <a class="mw" href="#"><div class="th" data-art="mini" data-q="Korea screen"><svg viewBox="0 0 300 340" role="img" aria-label="견본"><rect width="300" height="220" fill="#EDE8DA"/><path d="M48 210 q22 -140 72 -186" stroke="#4A4238" stroke-width="7" fill="none"/><g fill="#5B7A5E" opacity=".9"><ellipse cx="96" cy="132" rx="28" ry="14" transform="rotate(-24 96 132)"/><ellipse cx="150" cy="82" rx="24" ry="12" transform="rotate(18 150 82)"/></g><g fill="#B85C4C"><circle cx="182" cy="72" r="12"/><circle cx="210" cy="86" r="9"/></g></svg></div><div class="a">장승업</div><div class="w">《화조도》</div></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 공모·지원 ════ -->
+<section class="sec" id="call">
+  <div class="wrap callrow">
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Open Calls</div><div class="sec-t">공모 · 지원</div></div>
+        <span class="sec-sub">마감 가까운 순</span>
+        <a class="sec-more" href="#">공모 전체 →</a>
+      </div>
+      <div class="lst"><ul>
+        <li><span class="k">공모전</span><span class="t">제45회 대한민국미술대전 회화 부문 접수</span><span class="dday">D-3</span></li>
+        <li><span class="k">지원금</span><span class="t">청년예술가 창작지원 2차 공고</span><span class="dday">D-6</span></li>
+        <li><span class="k">레지던시</span><span class="t">2027 국제 입주작가 프로그램 모집</span><span class="dday">D-11</span></li>
+        <li><span class="k">비엔날레</span><span class="t">국제 비엔날레 참여작가 공모</span><span class="dday">D-14</span></li>
+        <li><span class="k">아트페어</span><span class="t">가을 아트페어 참가 갤러리 접수</span><span class="dday">D-17</span></li>
+        <li><span class="k">공모전</span><span class="t">신진 조각가 발굴 프로젝트</span><span class="dday">D-22</span></li>
+      </ul></div>
+    </div>
+
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Residency</div><div class="sec-t">지금 모집 중인 레지던시</div></div>
+      </div>
+      <div class="resi">
+        <a class="rc" href="#"><div class="rt">고양 창작스튜디오</div><div class="rm">입주 12개월 · 작업실 · 창작지원금</div><div class="rd">접수 마감 D-11</div></a>
+        <a class="rc" href="#"><div class="rt">난지미술창작스튜디오</div><div class="rm">입주 10개월 · 국내외 작가</div><div class="rd">접수 마감 D-19</div></a>
+        <a class="rc" href="#"><div class="rt">청주 창작스튜디오</div><div class="rm">입주 6개월 · 공예·도자 중심</div><div class="rd">접수 마감 D-28</div></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 광고 · 가운데 둘 ════ -->
+<div class="wrap adslot">
+  <div class="adrow">
+    <a class="adwrap adwide" href="#"><span class="am" data-art="ad" data-q="still life"><svg viewBox="0 0 120 100" role="img" aria-label="광고 견본"><rect width="120" height="100" fill="#F4F2EC"/><rect x="18" y="20" width="40" height="60" fill="#2E5D57" opacity=".55"/><rect x="66" y="20" width="36" height="28" fill="#C9BFA6"/><rect x="66" y="56" width="36" height="24" fill="#8FA39B"/></svg></span><span><span class="ad-eb">Art Supply</span><span class="ad-t" style="display:block">호경당 화방 · 가을 재료전</span><span class="ad-s" style="display:block">유화·수채 물감과 캔버스 최대 30% · 회원 추가 할인</span></span><span class="ad-go">보러 가기 →</span></a>
+    <a class="adwrap adwide" href="#"><span class="am" data-art="ad" data-q="flowers"><svg viewBox="0 0 120 100" role="img" aria-label="광고 견본"><rect width="120" height="100" fill="#F4F2EC"/><rect x="18" y="20" width="40" height="60" fill="#2E5D57" opacity=".55"/><rect x="66" y="20" width="36" height="28" fill="#C9BFA6"/><rect x="66" y="56" width="36" height="24" fill="#8FA39B"/></svg></span><span><span class="ad-eb">Art Fair</span><span class="ad-t" style="display:block">제12회 서울 아트페어</span><span class="ad-s" style="display:block">10월 17일 — 20일 · 참여 갤러리 128곳 · 사전등록 중</span></span><span class="ad-go">사전등록 →</span></a>
+  </div>
+</div>
+
+<!-- ════ 작가 ════ -->
+<section class="sec band" id="ar">
+  <div class="wrap">
+    <div class="sec-hd">
+      <div><div class="label">Artists</div><div class="sec-t">오늘 새로 쌓인 작가</div></div>
+      <span class="sec-sub">어제보다 <b style="color:var(--accent)">+128명</b></span>
+      <a class="sec-more" href="/db/artist.html">작가 전체 →</a>
+    </div>
+    <div class="grid-ar">
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 190" role="img" aria-label="견본"><rect width="160" height="190" fill="#EEEBE1"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#8C8271"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#4A4A46"/></svg></div><div class="nm">정선</div><div class="yr">1676–1759</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 230" role="img" aria-label="견본"><rect width="160" height="190" fill="#F1EBDE"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#9A8C74"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#6B6250"/></svg></div><div class="nm">김홍도</div><div class="yr">1745–?</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 170" role="img" aria-label="견본"><rect width="160" height="190" fill="#F3ECE0"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#A08C78"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#3E5A56"/></svg></div><div class="nm">신윤복</div><div class="yr">18세기</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 210" role="img" aria-label="견본"><rect width="160" height="190" fill="#ECE9DE"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#8E8574"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#524C40"/></svg></div><div class="nm">김정희</div><div class="yr">1786–1856</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 190" role="img" aria-label="견본"><rect width="160" height="190" fill="#EFEADE"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#94897A"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#5E5648"/></svg></div><div class="nm">장승업</div><div class="yr">1843–1897</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 250" role="img" aria-label="견본"><rect width="160" height="190" fill="#F0ECE0"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#9B8F7C"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#45524E"/></svg></div><div class="nm">안견</div><div class="yr">15세기</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 180" role="img" aria-label="견본"><rect width="160" height="190" fill="#EDEAE0"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#8F8778"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#4E4A42"/></svg></div><div class="nm">이인문</div><div class="yr">1745–1821</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 215" role="img" aria-label="견본"><rect width="160" height="190" fill="#F1EDE3"/><ellipse cx="80" cy="72" rx="32" ry="38" fill="#998E7C"/><path d="M22 190 q8 -60 58 -60 q50 0 58 60Z" fill="#57534A"/></svg></div><div class="nm">심사정</div><div class="yr">1707–1769</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 205" role="img" aria-label="견본"><rect width="160" height="205" fill="#EEEAE0"/><ellipse cx="80" cy="76" rx="32" ry="38" fill="#8D8474"/><path d="M22 205 q8 -60 58 -60 q50 0 58 60Z" fill="#4C483F"/></svg></div><div class="nm">강세황</div><div class="yr">1713–1791</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 240" role="img" aria-label="견본"><rect width="160" height="240" fill="#F0ECE2"/><ellipse cx="80" cy="84" rx="32" ry="38" fill="#968B79"/><path d="M22 240 q8 -66 58 -66 q50 0 58 66Z" fill="#3F4C48"/></svg></div><div class="nm">윤두서</div><div class="yr">1668–1715</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 180" role="img" aria-label="견본"><rect width="160" height="180" fill="#EDE9DF"/><ellipse cx="80" cy="68" rx="30" ry="36" fill="#8F8676"/><path d="M24 180 q8 -54 56 -54 q48 0 56 54Z" fill="#565045"/></svg></div><div class="nm">김명국</div><div class="yr">17세기</div></a>
+      <a class="ar" href="/db/artist-view.html"><div class="po" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 220" role="img" aria-label="견본"><rect width="160" height="220" fill="#F1EDE3"/><ellipse cx="80" cy="78" rx="32" ry="38" fill="#9C9080"/><path d="M22 220 q8 -62 58 -62 q50 0 58 62Z" fill="#4A443A"/></svg></div><div class="nm">최북</div><div class="yr">18세기</div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 커뮤니티 ════
+     ★★ 2026-08-21 · <b>「너무 형식적이고 틀에 박혔다」</b> (파트너 지적)
+       제목과 날짜만 줄지어 선 목록 셋은 <b>어느 포털에나 있는 모양</b>입니다.
+       미술 커뮤니티에서 실제로 오가는 것은 글이 아니라 <b>작업 사진</b>입니다.
+     ▶ 성격을 나눠 다르게 그렸습니다
+       · 「내 작업 어때요」 — <b>도판이 주인공</b>. 크게, 조언 수와 함께
+       · 「지식나눔」 — 질문이므로 <b>답변 수와 풀림 여부</b>를 보여 줍니다
+       · 「작가 소개」 — 사람이므로 <b>얼굴이 보여야</b> 합니다
+       · 「핫토픽」 — 글이 맞으므로 목록으로, 대신 짧게
+       셋을 나란히 세우지 않고 크기를 달리해 눈이 머물 곳을 만듭니다. -->
+<section class="sec" id="news">
+  <div class="wrap">
+    <div class="sec-hd">
+      <div><div class="label">Community</div><div class="sec-t">미술하는 사람들</div></div>
+      <span class="sec-sub">오늘 <b style="color:var(--accent)">214</b>개의 글과 조언</span>
+      <a class="sec-more" href="#">커뮤니티 전체 →</a>
+    </div>
+
+    <div class="cmrow">
+      <!-- 왼쪽 — 작업 사진이 주인공 -->
+      <div>
+        <div class="cm-hd">
+          <span class="cm-t">내 작업 어때요</span>
+          <span class="cm-s">작업을 올리면 다른 작가들이 조언을 답니다</span>
+          <a class="sec-more" href="#">더 보기 →</a>
+        </div>
+        <div class="wkgrid">
+          <a class="wk" href="#">
+            <span class="wt" data-art="wk" data-q="landscape">
+              <svg viewBox="0 0 300 380" role="img" aria-label="견본"><rect width="300" height="240" fill="#F2EFE7"/><path d="M0 168 L54 116 L94 142 L146 88 L196 138 L240 112 L300 148 L300 240 L0 240Z" fill="#3E6459" opacity=".8"/></svg>
+              <span class="adv">조언 <b>12</b></span>
+            </span>
+            <span class="wn">졸업전시 출품작인데 배치가 고민입니다</span>
+            <span class="wm">이수현 · 회화 · 08.21</span>
+          </a>
+          <a class="wk" href="#">
+            <span class="wt" data-art="wk" data-q="still life">
+              <svg viewBox="0 0 300 230" role="img" aria-label="견본"><rect width="300" height="240" fill="#EFEDE6"/><ellipse cx="150" cy="128" rx="86" ry="90" fill="#F8F6F0"/><ellipse cx="150" cy="128" rx="86" ry="90" fill="none" stroke="#D6D2C6" stroke-width="2"/></svg>
+              <span class="adv">조언 <b>8</b></span>
+            </span>
+            <span class="wn">물레 성형 뒤 굽 깎기, 두께가 안 잡힙니다</span>
+            <span class="wm">박도연 · 도자 · 08.21</span>
+          </a>
+          <a class="wk" href="#">
+            <span class="wt" data-art="wk" data-q="figure">
+              <svg viewBox="0 0 300 300" role="img" aria-label="견본"><rect width="300" height="240" fill="#F4EEE0"/><g fill="#B4643F" opacity=".85"><ellipse cx="112" cy="96" rx="30" ry="35"/><ellipse cx="196" cy="106" rx="26" ry="31"/></g><path d="M64 240 q44 -84 90 -78 q46 6 78 78Z" fill="#5C6E7E" opacity=".8"/></svg>
+              <span class="adv">조언 <b>5</b></span>
+            </span>
+            <span class="wn">인물 손 표현이 자꾸 굳어 보입니다</span>
+            <span class="wm">정하람 · 드로잉 · 08.20</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 오른쪽 — 질문과 사람 -->
+      <div>
+        <div class="cm-hd">
+          <span class="cm-t">지식나눔</span>
+          <a class="sec-more" href="#">더 보기 →</a>
+        </div>
+        <div class="qa">
+          <a class="qq" href="#">
+            <span class="qb done"><b>4</b><i>답</i></span>
+            <span><span class="qt">유화 건조 시간을 줄이는 매재</span>
+            <span class="qm">회화 · 08.21 · <em>풀림</em></span></span>
+          </a>
+          <a class="qq" href="#">
+            <span class="qb"><b>1</b><i>답</i></span>
+            <span><span class="qt">한지에 아크릴 올려도 될까요</span>
+            <span class="qm">재료 · 08.21</span></span>
+          </a>
+          <a class="qq" href="#">
+            <span class="qb none"><b>0</b><i>답</i></span>
+            <span><span class="qt">동판 부식 시간 기준이 궁금합니다</span>
+            <span class="qm">판화 · 08.20 · <em class="wait">답변 기다림</em></span></span>
+          </a>
+          <a class="qq" href="#">
+            <span class="qb"><b>2</b><i>답</i></span>
+            <span><span class="qt">석고 원형에서 브론즈까지 비용</span>
+            <span class="qm">조각 · 08.19</span></span>
+          </a>
+        </div>
+
+        <div class="cm-hd" style="margin-top:26px">
+          <span class="cm-t">핫토픽</span>
+          <a class="sec-more" href="#">더 보기 →</a>
+        </div>
+        <div class="lst"><ul>
+          <li><span class="t">첫 개인전 대관료, 현실적인 범위</span><span class="d">147</span></li>
+          <li><span class="t">작업실 습도 관리 어떻게 하세요</span><span class="d">92</span></li>
+          <li><span class="t">작품 운송 보험, 꼭 드시나요</span><span class="d">68</span></li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 아래 — 사람이 보이는 줄 -->
+    <div class="cm-hd" style="margin-top:34px">
+      <span class="cm-t">작가 소개</span>
+      <span class="cm-s">이번 주에 인사를 건넨 작가들</span>
+      <a class="sec-more" href="#">SELF PR 전체 →</a>
+    </div>
+    <div class="prrow">
+      <a class="pr" href="#">
+        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#EEEBE1"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#8C8271"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#4A4A46"/></svg></span>
+        <span><span class="pn">이수현</span><span class="pm">회화 · 서울</span>
+        <span class="pw">“첫 개인전을 앞두고 인사드립니다”</span></span>
+      </a>
+      <a class="pr" href="#">
+        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#F1EBDE"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#9A8C74"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#6B6250"/></svg></span>
+        <span><span class="pn">박도연</span><span class="pm">도자 · 여주</span>
+        <span class="pw">“도자 작업 10년, 이번에 신작을”</span></span>
+      </a>
+      <a class="pr" href="#">
+        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#F3ECE0"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#A08C78"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#3E5A56"/></svg></span>
+        <span><span class="pn">정하람</span><span class="pm">판화 · 부산</span>
+        <span class="pw">“판화 공방을 열었습니다”</span></span>
+      </a>
+      <a class="pr" href="#">
+        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#ECE9DE"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#8E8574"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#524C40"/></svg></span>
+        <span><span class="pn">윤가온</span><span class="pm">영상 설치 · 대구</span>
+        <span class="pw">“영상 설치 작업을 합니다”</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 광고 · 띠형 ════ -->
+<div class="wrap" style="padding-top:26px;padding-bottom:4px">
+  <a class="adwrap adstrip" href="#">
+    <span class="ad-eb">Class</span>
+    <span class="st">겨울학기 <b>동판화 기초반</b> 수강생을 모집합니다 · 주 1회 8주 · 재료비 포함</span>
+    <span class="ad-go">신청하기 →</span>
+  </a>
+</div>
+
+<!-- ════ 미술시장 + 뉴스 ════ -->
+<section class="sec" id="mk">
+  <div class="wrap mkrow">
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">Art Market</div><div class="sec-t">미술시장</div></div>
+        <span class="sec-sub">이번 주</span>
+        <a class="sec-more" href="#">자세히 →</a>
+      </div>
+      <div class="mk">
+        <div class="mkc"><div class="mn">국내 경매 낙찰총액</div><div class="mv">184.2<span style="font-size:13px;color:var(--ink-3)">억</span></div><div class="mu">▲ 6.4%</div></div>
+        <div class="mkc"><div class="mn">낙찰률</div><div class="mv">72.8<span style="font-size:13px;color:var(--ink-3)">%</span></div><div class="mu dn">▼ 2.1%p</div></div>
+        <div class="mkc"><div class="mn">출품 작품</div><div class="mv">1,206<span style="font-size:13px;color:var(--ink-3)">점</span></div><div class="mu">▲ 88점</div></div>
+      </div>
+      <div class="lst" style="margin-top:18px"><ul>
+        <li><span class="k">경매</span><span class="t">근현대 미술 메이저 경매 결과 정리</span><span class="d">08.20</span></li>
+        <li><span class="k">아트페어</span><span class="t">가을 아트페어 참가 갤러리 발표</span><span class="d">08.18</span></li>
+        <li><span class="k">리포트</span><span class="t">상반기 국내 미술시장 규모 분석</span><span class="d">08.15</span></li>
+      </ul></div>
+    </div>
+
+    <div>
+      <div class="sec-hd">
+        <div><div class="label">News</div><div class="sec-t">뉴스</div></div>
+        <a class="sec-more" href="#">더 보기 →</a>
+      </div>
+      <div class="lst"><ul>
+        <li><span class="k">기관</span><span class="t">국립현대미술관 내년 전시 계획 발표</span><span class="d">08.21</span></li>
+        <li><span class="k">정책</span><span class="t">작가 창작준비금 지원 대상 확대</span><span class="d">08.20</span></li>
+        <li><span class="k">해외</span><span class="t">한국 작가 3인, 베네치아 본전시 초청</span><span class="d">08.19</span></li>
+        <li><span class="k">아카이브</span><span class="t">미공개 근대 도판 1,200점 공개</span><span class="d">08.18</span></li>
+        <li><span class="k">학술</span><span class="t">미술사학회 가을 정기 학술대회</span><span class="d">08.17</span></li>
+        <li><span class="k">공간</span><span class="t">폐교를 고친 미술관, 다음 달 개관</span><span class="d">08.16</span></li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 리쿠르트 ════ -->
+<section class="sec band" id="job">
+  <div class="wrap">
+    <div class="sec-hd">
+      <div><div class="label">Recruit</div><div class="sec-t">일자리와 사람</div></div>
+      <span class="sec-sub">미술관 · 갤러리 · 재단 · 학교</span>
+      <a class="sec-more" href="#">리쿠르트 전체 →</a>
+    </div>
+
+    <div class="jkind">
+      <a href="#">큐레이터<b>18</b></a>
+      <a href="#">에듀케이터<b>11</b></a>
+      <a href="#">레지스트라<b>6</b></a>
+      <a href="#">아트핸들러<b>9</b></a>
+      <a href="#">갤러리 어시스턴트<b>23</b></a>
+      <a href="#">보존·복원<b>4</b></a>
+      <a href="#">전시 디자인<b>7</b></a>
+      <a href="#">아카이브·자료<b>5</b></a>
+      <a href="#">교육 강사<b>31</b></a>
+      <a href="#">사무·행정<b>14</b></a>
+    </div>
+
+    <div class="jobrow">
+      <div>
+        <div class="cm-hd">
+          <span class="cm-t">채용</span>
+          <span class="cm-s">기관이 사람을 찾습니다</span>
+          <a class="sec-more" href="#">더 보기 →</a>
+        </div>
+        <a class="job" href="#">
+          <span><span class="jt">2027 학예연구사(큐레이터) 채용</span>
+          <span class="jm">국립현대미술관 · 정규직 · 학예 3년 이상</span></span>
+          <span class="jd hot">D-5</span>
+        </a>
+        <a class="job" href="#">
+          <span><span class="jt">소장품 관리 담당(레지스트라)</span>
+          <span class="jm">리움미술관 · 계약직 2년 · 경력 무관</span></span>
+          <span class="jd hot">D-9</span>
+        </a>
+        <a class="job" href="#">
+          <span><span class="jt">전시 교육 프로그램 기획·운영</span>
+          <span class="jm">서울시립미술관 · 공무직 · 미술교육 전공</span></span>
+          <span class="jd">D-14</span>
+        </a>
+        <a class="job" href="#">
+          <span><span class="jt">갤러리 어시스턴트 (전시·응대)</span>
+          <span class="jm">삼청동 소재 갤러리 · 정규직 · 신입 가능</span></span>
+          <span class="jd">D-18</span>
+        </a>
+        <a class="job" href="#">
+          <span><span class="jt">지류 보존처리 연구원</span>
+          <span class="jm">국립문화유산연구원 · 계약직 · 보존과학 석사</span></span>
+          <span class="jd">D-23</span>
+        </a>
+      </div>
+
+      <div>
+        <div class="cm-hd">
+          <span class="cm-t">인재</span>
+          <span class="cm-s">사람이 자리를 찾습니다</span>
+          <a class="sec-more" href="#">더 보기 →</a>
+        </div>
+        <a class="jperson" href="#">
+          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#EEEBE1"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#8C8271"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#4A4A46"/></svg></span>
+          <span><span class="jn">한지우</span><span class="jc">큐레이터 · 경력 6년 · 근현대 회화</span></span>
+          <span class="jw">서울 · 정규직</span>
+        </a>
+        <a class="jperson" href="#">
+          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#F1EBDE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#9A8C74"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#6B6250"/></svg></span>
+          <span><span class="jn">서민재</span><span class="jc">보존·복원 · 경력 3년 · 지류</span></span>
+          <span class="jw">경기 · 계약직 가능</span>
+        </a>
+        <a class="jperson" href="#">
+          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#F3ECE0"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#A08C78"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#3E5A56"/></svg></span>
+          <span><span class="jn">노아린</span><span class="jc">전시 디자인 · 경력 8년</span></span>
+          <span class="jw">서울 · 프리랜스</span>
+        </a>
+        <a class="jperson" href="#">
+          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#ECE9DE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#8E8574"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#524C40"/></svg></span>
+          <span><span class="jn">임세훈</span><span class="jc">에듀케이터 · 경력 2년 · 아동 교육</span></span>
+          <span class="jw">부산 · 정규직</span>
+        </a>
+        <a class="jperson" href="#">
+          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#EFEADE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#94897A"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#5E5648"/></svg></span>
+          <span><span class="jn">배결</span><span class="jc">아트핸들러 · 경력 5년 · 운송·설치</span></span>
+          <span class="jw">전국 · 프로젝트</span>
+        </a>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 광고 · 아래쪽 ════ -->
+<div class="wrap adslot">
+  <a class="adwrap adwide" href="#"><span class="am" data-art="ad" data-q="mountain"><svg viewBox="0 0 120 100" role="img" aria-label="광고 견본"><rect width="120" height="100" fill="#F4F2EC"/><rect x="18" y="20" width="40" height="60" fill="#2E5D57" opacity=".55"/><rect x="66" y="20" width="36" height="28" fill="#C9BFA6"/><rect x="66" y="56" width="36" height="24" fill="#8FA39B"/></svg></span><span><span class="ad-eb">Framing</span><span class="ad-t" style="display:block">인사동 표구사 · 액자 제작</span><span class="ad-s" style="display:block">작품 크기에 맞춘 맞춤 액자 · 전시 납품 상담</span></span><span class="ad-go">문의하기 →</span></a>
+</div>
+
+<!-- ════ 입시 띠 ════ -->
+<section class="sec">
+  <div class="wrap">
+    <a class="exam" href="#">
+      <div>
+        <div class="label">Admission</div>
+        <div class="et" style="margin-top:6px">2027학년도 미술대학 입시</div>
+        <div class="es">전국 미술대학 실기 요강과 전형 일정을 학교별로 정리해 두었습니다. 포트폴리오 전형만 보는 곳도 함께 표시합니다.</div>
+        <div class="en">
+          <span>정리된 학교 <b>1,306</b>곳</span>
+          <span>요강 갱신 <b>08.19</b></span>
+          <span>실기 없는 전형 <b>214</b>곳</span>
+        </div>
+      </div>
+      <span class="btn sm">입시 요강 보기</span>
+    </a>
+  </div>
+</section>
+
+<!-- ════ 클래스:ON · 쇼핑 ════ -->
+<section class="sec">
+  <div class="wrap duo">
+    <a class="bn" href="#">
+      <div class="bi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F4B47" stroke-width="1.5"><path d="M4 5h16v11H4z"/><path d="M10 9l5 2.5L10 14z"/><path d="M8 20h8"/></svg></div>
+      <div>
+        <div class="bt">클래스:ON</div>
+        <div class="bs">드로잉부터 판화·도자까지, 작가에게 직접 배웁니다. 영상 강의와 실시간 수업을 함께 엽니다.</div>
+      </div>
+    </a>
+    <a class="bn" href="#">
+      <div class="bi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8C3A2E" stroke-width="1.5"><path d="M4 8h16l-1.4 11H5.4z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg></div>
+      <div>
+        <div class="bt">SHOPPING</div>
+        <div class="bs">원화와 판화, 도록과 화방 재료. 작가와 공방이 직접 여는 자리입니다.</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/hero.js"></script>
+<script src="/assets/art-demo.js"></script>
+</body>
+</html>

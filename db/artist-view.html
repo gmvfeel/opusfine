@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>정선 — 작가 · OPUSFINE</title>
+<meta name="description" content="작가의 작품·전시 이력·소장처·학술 자료를 한자리에서 봅니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>/* ── 작품 캡션 — 이 사이트의 시그니처 ──
+   ★ 대문·목록·상세에서 <b>같은 표기법</b>을 씁니다.
+       작가 이름 / 《작품명》, 연도 / 재료 / 소장처
+     미술계가 실제로 쓰는 방식입니다. */
+.cap{border-top:1px solid var(--ink);padding-top:14px;margin-top:16px}
+.cap-artist{font-family:var(--serif);font-size:15px;font-weight:500;line-height:1.5}
+.cap-work{font-size:13.5px;margin-top:4px}
+.cap-work em{font-style:normal;font-family:var(--serif)}
+.cap-meta{font-size:12px;color:var(--ink-3);margin-top:2px}
+.cap-hold{font-size:12px;color:var(--accent);margin-top:4px;font-weight:600}
+
+/* ── 옆 세로 탭 ──
+   ★ position:fixed 세로 자리는 고정 px 을 쓰지 않습니다.
+     창 높이마다 달라 보입니다 — 창 아래에서 재야 어디서나 같습니다. */
+/* ★ 2026-08-21 · 본문에 <b>너무 붙어</b> 있었습니다 (파트너 지적).
+     본문은 (창폭-1280)/2 <b>+ 좌우 여백 32px</b> 에서 시작합니다.
+     그 값만 빼면 탭이 본문에 닿습니다 — 탭 너비와 사이 여백까지
+     함께 빼야 떨어집니다. */
+.sidetab{position:fixed;left:calc((100vw - 1280px)/2 - 56px);top:calc(100vh - 340px);
+  z-index:40;display:flex;flex-direction:column;gap:6px}
+.sidetab a{writing-mode:vertical-rl;text-orientation:upright;
+  padding:20px 9px;border:1px solid var(--rule);background:var(--paper);
+  font-size:11.5px;letter-spacing:.22em;color:var(--ink-2);transition:.18s}
+.sidetab a:hover{border-color:var(--ink);color:var(--ink)}
+@media(max-width:1400px){ .sidetab{display:none} }
+
+/* ── 머리 부분 ── */
+.bc{font-size:11.5px;color:var(--ink-3);padding:26px 0 0}
+.bc a:hover{color:var(--ink)}
+.pv{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;
+  padding:26px 0 44px;align-items:start}
+.pv-plate{border:1px solid var(--rule-2);padding:22px}
+.pv-plate img,.pv-plate svg{display:block;width:100%;height:auto}
+.pv-name{font-family:var(--serif);font-weight:200;
+  font-size:clamp(34px,4.6vw,58px);line-height:1.18;letter-spacing:-.03em;
+  margin:14px 0 0;display:flex;align-items:center;flex-wrap:wrap;gap:0 14px}
+.pv-name .han{font-size:.44em;font-weight:300;color:var(--ink-3);letter-spacing:0}
+.pv-en{display:block;font-size:14px;color:var(--ink-3);margin-top:8px;letter-spacing:.02em}
+.pv-marks{display:flex;align-items:center;gap:7px;margin-top:14px;flex-wrap:wrap}
+.oc-badge{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;
+  letter-spacing:.03em;color:#fff;background:#EC7A1C;padding:3px 7px;line-height:1}
+.vf-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;
+  font-weight:800;color:var(--accent);background:var(--accent-soft,#E9EFEE);
+  padding:4px 10px;border-radius:99px;line-height:1}
+.lk-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;
+  font-weight:800;color:#fff;background:#5B4B9E;padding:5px 12px;
+  border-radius:99px;line-height:1}
+.pv-facts{margin-top:26px;border-top:1px solid var(--ink);padding-top:18px;
+  display:grid;grid-template-columns:1fr 1fr;gap:11px 26px}
+.pv-facts dt{font-size:11px;color:var(--ink-3);letter-spacing:.06em}
+.pv-facts dd{margin:2px 0 0;font-size:13.5px}
+.pv-facts dd b{font-weight:600}
+.pv-acts{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap}
+.abtn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;
+  border:1px solid var(--rule);font-size:12.5px;color:var(--ink-2);transition:.16s}
+.abtn:hover{border-color:var(--ink);color:var(--ink)}
+.abtn svg{stroke:currentColor;fill:none;stroke-width:1.6}
+
+/* ── 본문 구역 ── */
+.dsec{padding:34px 0}
+.dsec + .dsec{border-top:1px solid var(--rule-2)}
+.dhd{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.dt{font-family:var(--serif);font-size:21px;font-weight:500}
+.dt-en{font-size:11px;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase}
+.dhd .sec-more{margin-left:auto}
+.bio{font-size:15px;line-height:2;color:var(--ink-2);max-width:52em}
+.bio b{color:var(--ink);font-weight:600}
+.bio .src{display:block;margin-top:14px;font-size:11.5px;color:var(--ink-3)}
+
+/* 작품 격자 */
+.wks{column-count:4;column-gap:24px}
+.wkc{break-inside:avoid;display:inline-block;width:100%;margin-bottom:26px}
+/* ★★ 2026-08-21 · span 은 기본이 <b>inline</b> 입니다 — 크기도 줄바꿈도
+     먹지 않습니다. 목록 화면에서 세로 캡션이 도판 밖으로 튀어나가고
+     이름·생몰이 한 줄로 붙어 버린 것이 이 탓이었습니다 (파트너 지적).
+     줄로 세울 것은 <b>block 으로 못박습니다.</b> */
+.wkc .p{display:block;border:1px solid var(--rule-2);padding:12px;transition:.22s}
+.wkc:hover .p{border-color:var(--rule);box-shadow:0 14px 30px -22px rgba(23,23,26,.3)}
+.wkc .p img,.wkc .p svg{display:block;width:100%;height:auto}
+.wkc .t{display:block;font-family:var(--serif);font-size:14px;margin-top:11px;line-height:1.5}
+.wkc .m{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.6}
+.wkc .h{display:block;font-size:11.5px;color:var(--accent);margin-top:3px;font-weight:600}
+.wkc:hover .t{color:var(--accent)}
+
+/* 전시 이력 — 미술에서는 이것이 곧 이력입니다 */
+.exh{border-top:1px solid var(--ink)}
+.exh-r{display:grid;grid-template-columns:64px 1fr auto;gap:18px;
+  padding:13px 0;border-bottom:1px solid var(--rule-2);align-items:baseline}
+.exh-y{font-family:var(--serif);font-size:15px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.exh-t{display:block;font-size:13.5px;line-height:1.55}
+.exh-t em{font-style:normal;font-family:var(--serif)}
+.exh-v{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.exh-k{font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;
+  white-space:nowrap;line-height:1}
+.exh-k.solo{color:var(--accent);background:var(--accent-soft,#E9EFEE)}
+.exh-k.group{color:var(--ink-3);border:1px solid var(--rule-2)}
+.exh-r:hover .exh-t{color:var(--accent)}
+
+/* 소장처 — 그 작가의 자리를 말해 줍니다 */
+.hold{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--rule-2);border:1px solid var(--rule-2)}
+.hold a{background:var(--paper);padding:16px 15px;transition:.18s}
+.hold a:hover{background:#FCFCFB}
+.hold .hn{font-family:var(--serif);font-size:14px;font-weight:500;line-height:1.45}
+.hold .hc{font-size:12.5px;color:var(--accent);font-weight:700;margin-top:7px;
+  font-variant-numeric:tabular-nums}
+.hold .hc i{font-style:normal;font-weight:500;color:var(--ink-3);font-size:11px}
+
+/* 관계 — 스승·제자·영향 */
+.rel{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.rel h5{font-size:11px;letter-spacing:.16em;color:var(--ink-3);margin:0 0 10px;
+  text-transform:uppercase;font-weight:700}
+.rel a{display:flex;align-items:center;gap:11px;padding:8px 0;
+  border-bottom:1px solid var(--rule-2)}
+.rel .f{width:34px;flex:0 0 auto;border:1px solid var(--rule-2);overflow:hidden}
+.rel .f img,.rel .f svg{display:block;width:100%;height:auto}
+.rel .n{display:block;font-family:var(--serif);font-size:13.5px}
+.rel .y{display:block;font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rel a:hover .n{color:var(--accent)}
+
+/* 학술 */
+.paper{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;
+  padding:11px 0;border-bottom:1px solid var(--rule-2)}
+.paper .pt{display:block;font-size:13.5px;line-height:1.55}
+.paper .pm{display:block;font-size:11px;color:var(--ink-3);margin-top:3px}
+.paper .py{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.paper:hover .pt{color:var(--accent)}
+
+/* 같은 자리의 다른 작가 */
+.more-ar{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.more-ar a .f{display:block;border:1px solid var(--rule-2);padding:8px;transition:.2s}
+.more-ar a:hover .f{border-color:var(--rule)}
+.more-ar a .f img,.more-ar a .f svg{display:block;width:100%;height:auto}
+.more-ar a .n{display:block;font-family:var(--serif);font-size:13.5px;margin-top:9px}
+.more-ar a .y{display:block;font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.more-ar a:hover .n{color:var(--accent)}
+
+/* 견본임을 밝히는 줄 */
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;margin:0 0 4px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+html[data-theme="dark"] .hold a:hover{background:#1B1B1E}
+html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
+
+@media(max-width:1080px){
+  .wks{column-count:3}
+  .hold{grid-template-columns:repeat(2,1fr)}
+  .more-ar{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:900px){
+  .pv{grid-template-columns:1fr;gap:28px;padding-bottom:30px}
+  .wks{column-count:2}
+  .rel{grid-template-columns:1fr;gap:22px}
+  .pv-facts{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .wks{column-count:1}
+  .more-ar{grid-template-columns:repeat(2,1fr)}
+  .exh-r{grid-template-columns:52px 1fr;gap:12px}
+  .exh-k{grid-column:2}
+}
+</style>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<!-- ── 옆 세로 탭 ── -->
+<div class="sidetab">
+  <a href="/db/artist.html" aria-label="목록으로">‹ 목록</a>
+  <a href="#" aria-label="다음 작가">다음 ›</a>
+</div>
+
+<div class="wrap">
+  <div class="bc"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / <a href="/db/artist.html">작가</a> / 정선</div>
+
+  <!-- ══ 머리 — 대표작이 먼저 옵니다 ══ -->
+  <div class="pv">
+    <div>
+      <div class="pv-plate" data-art="hero" data-q="landscape">
+        <svg viewBox="0 0 640 460" role="img" aria-label="견본 그림"><rect width="640" height="460" fill="#EFEDE6"/><path d="M0 285 L102 184 L172 230 L268 128 L364 220 L448 174 L544 248 L640 202 L640 460 L0 460Z" fill="#4A4A48"/><rect y="266" width="640" height="92" fill="#F2F0E9" opacity=".8"/></svg>
+      </div>
+      <div class="cap">
+        <div class="cap-artist">정선</div>
+        <div class="cap-work"><em>《인왕제색도》</em>, 1751</div>
+        <div class="cap-meta">종이에 수묵</div>
+        <div class="cap-hold">국립중앙박물관 · 국보</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label">Artist</div>
+      <h1 class="pv-name">정선 <span class="han">鄭敾</span></h1>
+      <div class="pv-en">Jeong Seon · 1676 – 1759 · 조선</div>
+
+      <div class="pv-marks">
+        <span class="oc-badge">OC</span>
+        <span class="vf-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+          공식 인증
+        </span>
+        <span class="lk-badge">+ Linked</span>
+      </div>
+
+      <dl class="pv-facts">
+        <div><dt>분야</dt><dd><b>회화</b> · 산수 · 진경산수</dd></div>
+        <div><dt>활동 시기</dt><dd>조선 후기 · 18세기</dd></div>
+        <div><dt>국적</dt><dd>대한민국 (조선)</dd></div>
+        <div><dt>호</dt><dd>겸재(謙齋)</dd></div>
+        <div><dt>쌓인 작품</dt><dd><b style="color:var(--accent)">142</b>점</dd></div>
+        <div><dt>전시 기록</dt><dd><b style="color:var(--accent)">38</b>건</dd></div>
+      </dl>
+
+      <div class="pv-acts">
+        <a class="abtn" href="#"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-10.4A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 3.6C20 15.8 12 21 12 21z"/></svg>즐겨찾기</a>
+        <a class="abtn" href="#"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg>킵</a>
+        <a class="abtn" href="#"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8 15.7 6.4M8.3 13.2l7.4 4.4"/></svg>공유</a>
+        <a class="abtn" href="#"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>자료 보태기</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note">
+    화면 결을 보시기 위한 <b>시안</b>입니다 · 도판은 메트로폴리탄 미술관 공개 자료(퍼블릭 도메인)를
+    실제로 불러오므로 <b>작가 이름과 그림이 서로 맞지 않습니다</b> · 전시 이력·학술·소장처 숫자는 견본입니다
+  </p>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ 생애 ══ -->
+  <section class="dsec">
+    <div class="dhd"><span class="dt">생애 · 이력</span><span class="dt-en">Biography</span></div>
+    <div class="bio">
+      조선 후기의 화가. 중국 화보를 본떠 그리던 관습에서 벗어나 <b>우리 산천을 직접 보고 그리는
+      진경산수(眞景山水)</b>를 열었다. 인왕산과 금강산을 거듭 찾아 그렸고, 젖은 바위는 짙은 먹을
+      한 번에 쓸어내리고 안개 낀 산허리는 종이를 그대로 비워 두는 방식으로 우리 땅의 습기와
+      빛을 담아냈다.<br><br>
+      벼슬은 현감에 이르렀으나 평생 붓을 놓지 않았고, 여든이 넘어서까지 그렸다. 그가 연 진경의
+      길은 김홍도와 신윤복에게로 이어져 조선 후기 회화의 큰 줄기가 되었다.
+      <span class="src">글 출처 · 위키백과 · <a href="#" style="color:var(--accent)">원문 보기</a></span>
+    </div>
+  </section>
+
+  <!-- ══ 작품 ══ -->
+  <section class="dsec">
+    <div class="dhd">
+      <span class="dt">작품</span><span class="dt-en">Works</span>
+      <span class="sec-sub">142점 가운데 도판이 있는 <b style="color:var(--accent)">86</b>점</span>
+      <a class="sec-more" href="#">작품 전체 →</a>
+    </div>
+    <div class="wks">
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="landscape"><svg viewBox="0 0 300 390" role="img" aria-label="견본 그림"><rect width="300" height="390" fill="#EFEDE6"/><path d="M0 241 L48 156 L81 195 L126 109 L170 187 L210 148 L255 210 L300 171 L300 390 L0 390Z" fill="#4A4A48"/><rect y="226" width="300" height="78" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《인왕제색도》</span><span class="m">1751 · 종이에 수묵</span><span class="h">국립중앙박물관</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="mountain"><svg viewBox="0 0 300 250" role="img" aria-label="견본 그림"><rect width="300" height="250" fill="#EFEDE6"/><path d="M0 155 L48 100 L81 125 L126 70 L170 120 L210 95 L255 135 L300 110 L300 250 L0 250Z" fill="#4A4A48"/><rect y="145" width="300" height="50" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《금강전도》</span><span class="m">1734 · 종이에 수묵담채</span><span class="h">삼성미술관 리움</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="river"><svg viewBox="0 0 300 330" role="img" aria-label="견본 그림"><rect width="300" height="330" fill="#EFEDE6"/><path d="M0 204 L48 132 L81 165 L126 92 L170 158 L210 125 L255 178 L300 145 L300 330 L0 330Z" fill="#4A4A48"/><rect y="191" width="300" height="66" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《박연폭포》</span><span class="m">18세기 · 종이에 수묵</span><span class="h">개인 소장</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="valley"><svg viewBox="0 0 300 290" role="img" aria-label="견본 그림"><rect width="300" height="290" fill="#EFEDE6"/><path d="M0 179 L48 116 L81 145 L126 81 L170 139 L210 110 L255 156 L300 127 L300 290 L0 290Z" fill="#4A4A48"/><rect y="168" width="300" height="58" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《청풍계》</span><span class="m">1739 · 비단에 채색</span><span class="h">간송미술관</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="pine"><svg viewBox="0 0 300 360" role="img" aria-label="견본 그림"><rect width="300" height="360" fill="#EFEDE6"/><path d="M0 223 L48 144 L81 180 L126 100 L170 172 L210 136 L255 194 L300 158 L300 360 L0 360Z" fill="#4A4A48"/><rect y="208" width="300" height="72" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《여산초당도》</span><span class="m">18세기 · 종이에 담채</span><span class="h">국립중앙박물관</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="waterfall"><svg viewBox="0 0 300 270" role="img" aria-label="견본 그림"><rect width="300" height="270" fill="#EFEDE6"/><path d="M0 167 L48 108 L81 135 L126 75 L170 129 L210 102 L255 145 L300 118 L300 270 L0 270Z" fill="#4A4A48"/><rect y="156" width="300" height="54" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《만폭동》</span><span class="m">1740년대 · 종이에 수묵</span><span class="h">서울대박물관</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="autumn"><svg viewBox="0 0 300 320" role="img" aria-label="견본 그림"><rect width="300" height="320" fill="#EFEDE6"/><path d="M0 198 L48 128 L81 160 L126 89 L170 153 L210 121 L255 172 L300 140 L300 320 L0 320Z" fill="#4A4A48"/><rect y="185" width="300" height="64" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《계상정거도》</span><span class="m">1746 · 종이에 수묵</span><span class="h">개인 소장</span></a>
+      <a class="wkc" href="#"><span class="p" data-art="wk" data-q="rocks"><svg viewBox="0 0 300 240" role="img" aria-label="견본 그림"><rect width="300" height="240" fill="#EFEDE6"/><path d="M0 148 L48 96 L81 120 L126 67 L170 115 L210 91 L255 129 L300 105 L300 240 L0 240Z" fill="#4A4A48"/><rect y="139" width="300" height="48" fill="#F2F0E9" opacity=".8"/></svg></span>
+        <span class="t">《장안사》</span><span class="m">18세기 · 비단에 담채</span><span class="h">국립중앙박물관</span></a>
+    </div>
+  </section>
+
+  <!-- ══ 광고 ══ -->
+  <div class="adslot">
+    <a class="adwrap adwide" href="#">
+      <span class="am" data-art="ad" data-q="mountain"><svg viewBox="0 0 120 100" role="img" aria-label="견본 그림"><rect width="120" height="100" fill="#EFEDE6"/><path d="M0 62 L19 40 L32 50 L50 28 L68 48 L84 38 L102 54 L120 44 L120 100 L0 100Z" fill="#4A4A48"/><rect y="57" width="120" height="20" fill="#F2F0E9" opacity=".8"/></svg></span>
+      <span><span class="ad-eb">Museum</span>
+      <span class="ad-t" style="display:block">겸재 특별전 《진경, 우리 산천》</span>
+      <span class="ad-s" style="display:block">10월 4일 — 12월 21일 · 국립중앙박물관 · 미공개 화첩 12점 첫 공개</span></span>
+      <span class="ad-go">전시 보기 →</span>
+    </a>
+  </div>
+
+  <!-- ══ 전시 이력 ══ -->
+  <section class="dsec">
+    <div class="dhd">
+      <span class="dt">전시 이력</span><span class="dt-en">Exhibitions</span>
+      <span class="sec-sub">개인전 <b style="color:var(--accent)">6</b> · 단체전 <b style="color:var(--accent)">32</b></span>
+      <a class="sec-more" href="#">전체 →</a>
+    </div>
+    <div class="exh">
+      <a class="exh-r" href="#"><span class="exh-y">2026</span>
+        <span><span class="exh-t"><em>《진경, 우리 산천》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
+        <span class="exh-k solo">개인전</span></a>
+      <a class="exh-r" href="#"><span class="exh-y">2024</span>
+        <span><span class="exh-t"><em>《조선의 산수》</em></span><span class="exh-v">간송미술관, 서울</span></span>
+        <span class="exh-k group">단체전</span></a>
+      <a class="exh-r" href="#"><span class="exh-y">2023</span>
+        <span><span class="exh-t"><em>《겸재와 그 시대》</em></span><span class="exh-v">삼성미술관 리움, 서울</span></span>
+        <span class="exh-k solo">개인전</span></a>
+      <a class="exh-r" href="#"><span class="exh-y">2021</span>
+        <span><span class="exh-t"><em>《한국 회화 600년》</em></span><span class="exh-v">국립현대미술관 덕수궁, 서울</span></span>
+        <span class="exh-k group">단체전</span></a>
+      <a class="exh-r" href="#"><span class="exh-y">2019</span>
+        <span><span class="exh-t"><em>《Korean Landscape Painting》</em></span><span class="exh-v">The Metropolitan Museum of Art, New York</span></span>
+        <span class="exh-k group">단체전</span></a>
+      <a class="exh-r" href="#"><span class="exh-y">2016</span>
+        <span><span class="exh-t"><em>《금강산, 그리다》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
+        <span class="exh-k group">단체전</span></a>
+    </div>
+  </section>
+
+  <!-- ══ 소장처 ══ -->
+  <section class="dsec">
+    <div class="dhd"><span class="dt">소장처</span><span class="dt-en">Collections</span>
+      <span class="sec-sub">어느 곳이 몇 점 갖고 있나</span></div>
+    <div class="hold">
+      <a href="#"><div class="hn">국립중앙박물관</div><div class="hc">38<i>점</i></div></a>
+      <a href="#"><div class="hn">간송미술관</div><div class="hc">24<i>점</i></div></a>
+      <a href="#"><div class="hn">삼성미술관 리움</div><div class="hc">17<i>점</i></div></a>
+      <a href="#"><div class="hn">서울대학교박물관</div><div class="hc">11<i>점</i></div></a>
+    </div>
+  </section>
+
+  <!-- ══ 관계 ══ -->
+  <section class="dsec">
+    <div class="dhd"><span class="dt">관계</span><span class="dt-en">Network</span>
+      <span class="sec-sub">배우고 가르치고 이어진 사람들</span></div>
+    <div class="rel">
+      <div>
+        <h5>배운 곳</h5>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#EEEBE1"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#8C8271"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#4A4A46"/></svg></span>
+          <span><span class="n">김창흡</span><span class="y">1653 – 1722</span></span></a>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#F1EBDE"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#9A8C74"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#6B6250"/></svg></span>
+          <span><span class="n">조영석</span><span class="y">1686 – 1761</span></span></a>
+      </div>
+      <div>
+        <h5>가르친 사람</h5>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#F3ECE0"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#A08C78"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#3E5A56"/></svg></span>
+          <span><span class="n">심사정</span><span class="y">1707 – 1769</span></span></a>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#ECE9DE"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#8E8574"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#524C40"/></svg></span>
+          <span><span class="n">강희언</span><span class="y">1738 – 1784</span></span></a>
+      </div>
+      <div>
+        <h5>영향을 준 사람</h5>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#EFEADE"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#94897A"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#5E5648"/></svg></span>
+          <span><span class="n">김홍도</span><span class="y">1745 – ?</span></span></a>
+        <a href="#"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 46" role="img" aria-label="견본"><rect width="40" height="46" fill="#F0ECE0"/><ellipse cx="20" cy="17" rx="9" ry="10" fill="#9B8F7C"/><path d="M4 46 q3 -16 16 -16 q13 0 16 16Z" fill="#45524E"/></svg></span>
+          <span><span class="n">이인문</span><span class="y">1745 – 1821</span></span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 학술 ══ -->
+  <section class="dsec">
+    <div class="dhd"><span class="dt">학술</span><span class="dt-en">Scholarship</span>
+      <span class="sec-sub">이 작가를 다룬 논문 <b style="color:var(--accent)">96</b>편</span>
+      <a class="sec-more" href="#">전체 →</a></div>
+    <div>
+      <a class="paper" href="#"><span><span class="pt">겸재 정선의 진경산수 형성 과정 재고</span>
+        <span class="pm">미술사학연구 · 한국미술사학회</span></span><span class="py">2024</span></a>
+      <a class="paper" href="#"><span><span class="pt">《인왕제색도》의 제작 시기와 화법에 관하여</span>
+        <span class="pm">미술자료 · 국립중앙박물관</span></span><span class="py">2022</span></a>
+      <a class="paper" href="#"><span><span class="pt">조선 후기 금강산도의 도상 전개</span>
+        <span class="pm">한국문화 · 서울대학교 규장각</span></span><span class="py">2021</span></a>
+      <a class="paper" href="#"><span><span class="pt">Jeong Seon and the Invention of True-View Landscape</span>
+        <span class="pm">Archives of Asian Art</span></span><span class="py">2019</span></a>
+    </div>
+  </section>
+
+  <!-- ══ 같은 자리의 다른 작가 ══ -->
+  <section class="dsec">
+    <div class="dhd"><span class="dt">같은 시대 작가</span><span class="dt-en">Contemporaries</span>
+      <a class="sec-more" href="/db/artist.html">작가 전체 →</a></div>
+    <div class="more-ar">
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 200" role="img" aria-label="견본"><rect width="160" height="200" fill="#EEEBE1"/><ellipse cx="80" cy="74" rx="32" ry="38" fill="#8C8271"/><path d="M22 200 q8 -62 58 -62 q50 0 58 62Z" fill="#4A4A46"/></svg></span>
+        <span class="n">김홍도</span><span class="y">1745–?</span></a>
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 235" role="img" aria-label="견본"><rect width="160" height="235" fill="#F1EBDE"/><ellipse cx="80" cy="82" rx="32" ry="38" fill="#9A8C74"/><path d="M22 235 q8 -66 58 -66 q50 0 58 66Z" fill="#6B6250"/></svg></span>
+        <span class="n">신윤복</span><span class="y">18세기</span></a>
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 185" role="img" aria-label="견본"><rect width="160" height="185" fill="#F3ECE0"/><ellipse cx="80" cy="70" rx="32" ry="38" fill="#A08C78"/><path d="M22 185 q8 -58 58 -58 q50 0 58 58Z" fill="#3E5A56"/></svg></span>
+        <span class="n">심사정</span><span class="y">1707–1769</span></a>
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 215" role="img" aria-label="견본"><rect width="160" height="215" fill="#ECE9DE"/><ellipse cx="80" cy="78" rx="32" ry="38" fill="#8E8574"/><path d="M22 215 q8 -62 58 -62 q50 0 58 62Z" fill="#524C40"/></svg></span>
+        <span class="n">강세황</span><span class="y">1713–1791</span></a>
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 195" role="img" aria-label="견본"><rect width="160" height="195" fill="#EFEADE"/><ellipse cx="80" cy="74" rx="32" ry="38" fill="#94897A"/><path d="M22 195 q8 -60 58 -60 q50 0 58 60Z" fill="#5E5648"/></svg></span>
+        <span class="n">이인문</span><span class="y">1745–1821</span></a>
+      <a href="/db/artist-view.html"><span class="f" data-art="ar" data-q="portrait"><svg viewBox="0 0 160 225" role="img" aria-label="견본"><rect width="160" height="225" fill="#F0ECE0"/><ellipse cx="80" cy="80" rx="32" ry="38" fill="#9B8F7C"/><path d="M22 225 q8 -64 58 -64 q50 0 58 64Z" fill="#45524E"/></svg></span>
+        <span class="n">윤두서</span><span class="y">1668–1715</span></a>
+    </div>
+  </section>
+
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/art-demo.js"></script>
+</body>
+</html>
