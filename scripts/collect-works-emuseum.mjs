@@ -38,9 +38,33 @@ if (!GO_KEY) {
   process.exit(1);
 }
 
-/* ★ 공공데이터포털은 서비스마다 주소가 다릅니다.
-     「전국 박물관 유물정보」의 주소입니다. */
-const API = 'https://apis.data.go.kr/B551027/nationalMuseumRelic';
+/* ★★ 2026-08-22 · <b>주소를 짐작했다가 틀렸습니다.</b>
+     apis.data.go.kr/B551027/… 로 적었는데 「해당 오픈API 가 없거나
+     폐기됨」이 왔습니다. 파트너가 신청하신 곳은 공공데이터포털이
+     아니라 <b>문화공공데이터광장</b>(한국문화정보원)이었습니다.
+     주소 규칙이 다릅니다.
+
+   ▶ 이번에는 짐작하지 않고 <b>스스로 찾게</b> 합니다.
+     문화공공데이터광장 주소는 이런 모양입니다 —
+       https://api.kcisa.kr/openapi/service/rest/meta□□/○○○
+     후보를 차례로 두드려 보고 <b>답이 오는 것</b>을 씁니다.
+   ★ 찾으면 기록에 적어 둡니다. 다음부터는 그것만 쓰면 됩니다. */
+const KCISA = 'https://api.kcisa.kr/openapi/service/rest';
+let API = process.env.EMUSEUM_URL || null;   /* 찾은 주소를 담습니다 */
+
+/* 두드려 볼 후보 — 「유물정보12」라는 이름에서 짚이는 것들 */
+const CANDIDATES = [
+  KCISA + '/meta12/getRelic12',
+  KCISA + '/meta12/getRelic',
+  KCISA + '/meta12/relic12',
+  KCISA + '/meta12/getRelicList',
+  KCISA + '/meta12/getNMK12',
+  KCISA + '/meta12/getMuseum12',
+  KCISA + '/meta/getRelic12',
+  KCISA + '/meta/relic12',
+  'https://api.kcisa.kr/API_CNV_012/request',
+  'https://api.kcisa.kr/API_CIA_012/request'
+];
 const UA  = 'OpusfineBot/1.0 (https://opusfine.com; cser@wixon.co.kr)';
 
 const getJSON = makeGetJSON({
@@ -77,15 +101,47 @@ function pick(o, names) {
 }
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
 
+function urlOf(base, pageNo, rows) {
+  let u = base + '?serviceKey=' + encodeURIComponent(GO_KEY)
+        + '&numOfRows=' + rows + '&pageNo=' + pageNo;
+  if (Q) u += '&keyword=' + encodeURIComponent(Q);
+  return u;
+}
+
+/* ── 열리는 주소를 찾습니다 ──
+   ★ 답이 <b>줄을 담고 있어야</b> 맞는 주소입니다. 200 이 와도
+     「서비스 없음」이라고 적힌 답이 오는 일이 있습니다. */
+async function findApi() {
+  if (API) return API;
+  console.log('  열리는 주소를 찾는 중…');
+  for (const base of CANDIDATES) {
+    let j = null;
+    try { j = await getJSON(urlOf(base, 1, 3), 1); }
+    catch (e) {
+      const m = String(e.message || '');
+      console.log('    · ' + base.replace(KCISA, '…') + ' → ' + m.slice(0, 60));
+      continue;
+    }
+    const txt = JSON.stringify(j || {});
+    if (/NO_OPENAPI_SERVICE|SERVICE_KEY_IS_NOT_REGISTERED|폐기|없거나/.test(txt)) {
+      console.log('    · ' + base.replace(KCISA, '…') + ' → 서비스 없음');
+      continue;
+    }
+    const rows = rowsOf(j);
+    if (rows.length) {
+      console.log('    ✔ 찾았습니다 — ' + base);
+      API = base;
+      return API;
+    }
+    console.log('    · ' + base.replace(KCISA, '…') + ' → 답은 오는데 줄이 없음');
+  }
+  return null;
+}
+
 /* 목록 한 쪽 */
 async function listPage(pageNo, rows) {
   spend();
-  let u = API + '/getRelicList'
-        + '?serviceKey=' + encodeURIComponent(GO_KEY)
-        + '&numOfRows=' + rows + '&pageNo=' + pageNo
-        + '&type=json';
-  if (Q) u += '&relicNm=' + encodeURIComponent(Q);
-  return await getJSON(u);
+  return await getJSON(urlOf(API, pageNo, rows));
 }
 
 /* ── 답 안에서 <b>줄 목록</b>을 찾아냅니다 ──
@@ -199,6 +255,14 @@ function build(o, byName) {
   /* ★★ 칸 이름 엿보기 — 짐작하지 않으려는 장치입니다 */
   if (PEEK) {
     console.log('▶ 자료원이 무엇을 주는지 봅니다');
+    const base = await findApi();
+    if (!base) {
+      console.log('\n★ 열리는 주소를 못 찾았습니다.');
+      console.log('  문화공공데이터광장에서 「유물정보12」 상세 쪽을 열어');
+      console.log('  <b>요청 URL</b> 을 확인해 주십시오. 그 주소를 알려 주시면 넣겠습니다.');
+      console.log('  (또는 워크플로에 EMUSEUM_URL 로 넣으셔도 됩니다)');
+      process.exit(1);
+    }
     let j = null;
     try { j = await listPage(1, 3); }
     catch (e) { console.error('★ 못 받았습니다:', e.message); process.exit(1); }
@@ -223,6 +287,9 @@ function build(o, byName) {
   console.log(`▶ 국내 유물 수집 · ${Q ? 'q="' + Q + '"' : '전체'} · limit=${LIMIT}${DRY ? ' · 세어만 봅니다' : ''}`);
   console.log('  ※ 저작권 표시를 아직 확인하지 않아 rights=unknown 으로 담습니다 — 화면에는 안 나옵니다.');
   console.log('    --peek 결과를 보고 정한 뒤 되살립니다.');
+
+  const base = await findApi();
+  if (!base) { console.error('★ 열리는 주소를 못 찾았습니다. --peek 을 먼저 돌려 보십시오.'); process.exit(1); }
 
   let byName = new Map();
   try { byName = await loadArtists(); } catch (e) {}

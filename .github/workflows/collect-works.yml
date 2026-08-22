@@ -53,6 +53,7 @@ jobs:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATA_GO_KEY:          ${{ secrets.DATA_GO_KEY }}
+          EMUSEUM_URL:          ${{ vars.EMUSEUM_URL }}
           IN_SRC:   ${{ github.event.inputs.src   || 'met' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
           IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
