@@ -1,0 +1,85 @@
+name: 작품 수집 (메트로폴리탄)
+
+# ══════════════════════════════════════════════════════════════════
+#  ★ 메트로폴리탄 공개 API 에서 작품과 도판을 받습니다.
+#    퍼블릭 도메인만 도판을 싣고, 저작권이 있는 것은 소장처로만 잇습니다.
+#  ★ 예약 실행 때 값이 비어 오지 않게 기본값을 못박습니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  schedule:
+    - cron: '40 19 * * *'      # 한국 시간 새벽 4시 40분
+  workflow_dispatch:
+    inputs:
+      q:
+        description: '무엇으로 찾을까요 (예: Korea, landscape)'
+        default: 'Korea'
+      dept:
+        description: '부서 번호 (비우면 전부)'
+        default: ''
+      limit:
+        description: '몇 점까지'
+        default: '300'
+      dry:
+        description: '담지 않고 세어만 보기'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: collect-works
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 받아서 쌓기
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
+          IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
+          IN_LIMIT: ${{ github.event.inputs.limit || '300' }}
+          IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
+        run: |
+          ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
+          if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
+          if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+          echo "▶ node scripts/collect-works-met.mjs $ARGS"
+          eval node scripts/collect-works-met.mjs $ARGS
+
+      - name: 실패하면 알리기
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '작품 수집이 실패했습니다';
+            const body  = [
+              '워크플로: `' + context.workflow + '`',
+              '실행: ' + context.serverUrl + '/' + context.repo.owner + '/' +
+                        context.repo.repo + '/actions/runs/' + context.runId
+            ].join('\n');
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'collect-fail'
+            });
+            const same = open.find(i => i.title === title);
+            if (same) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: same.number, body });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['collect-fail'] });
+            }
