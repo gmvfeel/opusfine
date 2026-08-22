@@ -47,7 +47,11 @@
     var p = [];
     p.push('select=id,title,year_text,medium,dimensions,genre,artist_name,artist_id,image_url,image_small,rights,holder,holder_dept,link_source,quality');
     p.push('hidden=not.is.true');
-    p.push('order=quality.desc,sort_no.desc,id.desc');
+    /* ★ 2026-08-22 · <b>도판 있는 작품을 앞에</b> 세웁니다.
+         시카고 작품은 도판을 걸 수 없어(Cloudflare) 자료만 있는데,
+         그것이 앞을 채우면 목록이 밋밋해집니다. 자료는 살리되
+         <b>보이는 것을 먼저</b> 보여 줍니다. */
+    p.push('order=rights.asc,quality.desc,sort_no.desc,id.desc');
 
     if (q) {
       var t = q.replace(/[,()*]/g, ' ').trim();
@@ -106,10 +110,11 @@
         '</span>';
     } else {
       /* ★ 저작권이 살아 있는 작품 — 도판을 싣지 않습니다 */
+      /* ★ 도판을 걸 수 없는 작품 — 자료는 그대로 보여 주고
+           그림은 소장처로 이어 드립니다. */
       plate =
         '<span class="plate"><span class="no rights">' +
-          '저작권이 있는 작품입니다<br>' +
-          '<b>소장처에서 보실 수 있습니다</b>' +
+          '도판은 소장처에서<br><b>보실 수 있습니다</b>' +
         '</span></span>';
     }
 

@@ -88,7 +88,9 @@ async function loadArtists() {
 
 function quality(w) {
   let n = 0;
-  if (w.image_url)   n += 4;
+  /* ★ 도판이 화면에 안 걸리므로 점수를 낮춥니다 —
+       안 보이는 것을 앞줄에 세울 까닭이 없습니다. */
+  if (w.image_url)   n += 1;
   if (w.year_text)   n += 2;
   if (w.medium)      n += 2;
   if (w.dimensions)  n += 1;
@@ -105,10 +107,20 @@ function build(o, iiif, byName) {
   const title = String(pick(o, ['title']) || '').trim();
   if (!title) return null;
 
+  /* ★★ 2026-08-22 · 시카고 도판은 <b>화면에 걸지 않습니다.</b>
+       Cloudflare 가 다른 사이트에서 부르는 것을 막습니다. 브라우저로
+       직접 열면 뜨지만 우리 화면에서는 오지 않고, 우리 서버를 거쳐도
+       마찬가지였습니다.
+     ▶ 주소는 <b>담아 둡니다.</b> 나중에 길이 열리면 rights 만 되돌리면
+       됩니다. 다시 훑을 까닭이 없습니다.
+     ▶ 다만 rights 는 linked — 화면에서는 「소장처에서 보기」가 나옵니다.
+     ★ 시카고 자료는 도판이 없어도 값집니다. 무엇보다 <b>전시 이력</b>이
+       있고, 그것이 전시DB 의 뿌리가 됩니다. */
   const pub = o.is_public_domain === true;
   const imgId = pick(o, ['image_id']);
   const big   = (pub && imgId && iiif) ? `${iiif}/${imgId}/full/1686,/0/default.jpg` : null;
   const small = (pub && imgId && iiif) ? `${iiif}/${imgId}/full/843,/0/default.jpg`  : null;
+  const SHOW_AIC_IMAGE = false;   /* 시카고가 막기를 풀면 true 로 */
 
   const w = {
     aic_id:      num(pick(o, ['id'])),
@@ -124,7 +136,7 @@ function build(o, iiif, byName) {
     image_url:   big,
     image_small: small,
     image_credit: pub ? 'The Art Institute of Chicago (CC0)' : null,
-    rights:      pub ? 'public' : 'linked',
+    rights:      (pub && SHOW_AIC_IMAGE) ? 'public' : 'linked',
     holder:      'The Art Institute of Chicago',
     holder_dept: pick(o, ['department_title', 'department']),
     accession:   pick(o, ['main_reference_number', 'accession_number']),
