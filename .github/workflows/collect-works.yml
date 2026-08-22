@@ -14,8 +14,8 @@ on:
       src:
         description: '어디서 받을까요'
         type: choice
-        default: aic
-        options: [aic, met, aic-peek]
+        default: met
+        options: [met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -52,13 +52,16 @@ jobs:
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          IN_SRC:   ${{ github.event.inputs.src   || 'aic' }}
+          IN_SRC:   ${{ github.event.inputs.src   || 'met' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
           IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
           IN_LIMIT: ${{ github.event.inputs.limit || '300' }}
           IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
         run: |
-          case "${IN_SRC:-aic}" in
+          # ★ 2026-08-22 · 시카고는 Cloudflare 로 바깥 접근을 막습니다.
+          #   도판도 안 오고 소장처 링크도 차단됩니다. 예약 실행은
+          #   메트로 둡니다 — 시카고를 더 받아도 화면에 못 씁니다.
+          case "${IN_SRC:-met}" in
             aic-peek)
               echo "▶ 시카고가 주는 칸 이름을 봅니다"
               node scripts/collect-works-aic.mjs --peek

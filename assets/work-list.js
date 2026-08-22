@@ -47,11 +47,11 @@
     var p = [];
     p.push('select=id,title,year_text,medium,dimensions,genre,artist_name,artist_id,image_url,image_small,rights,holder,holder_dept,link_source,quality');
     p.push('hidden=not.is.true');
-    /* ★ 2026-08-22 · <b>도판 있는 작품을 앞에</b> 세웁니다.
-         시카고 작품은 도판을 걸 수 없어(Cloudflare) 자료만 있는데,
-         그것이 앞을 채우면 목록이 밋밋해집니다. 자료는 살리되
-         <b>보이는 것을 먼저</b> 보여 줍니다. */
-    p.push('order=rights.asc,quality.desc,sort_no.desc,id.desc');
+    /* ★ <b>도판 있는 작품을 앞에</b> 세웁니다.
+       ★★ 2026-08-22 · 처음에 rights.asc 로 썼다가 <b>거꾸로 됐습니다</b>
+         (파트너 확인). 글자 차례로는 linked 가 public 보다 앞이라
+         도판 없는 것이 먼저 나왔습니다. desc 라야 public 이 앞입니다. */
+    p.push('order=rights.desc,quality.desc,sort_no.desc,id.desc');
 
     if (q) {
       var t = q.replace(/[,()*]/g, ' ').trim();
