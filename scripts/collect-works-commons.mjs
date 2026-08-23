@@ -516,8 +516,13 @@ function skeleton(f) {
   return String(f.title || '')
     .replace(/\.[a-z0-9]+$/i, '')
     .toLowerCase()
+    /* ★★ 2026-08-23 · 《Chuseongbu》와 《Chuseongbu-large》가
+         <b>둘 다 남았습니다</b> (파트너 확인). 같은 그림을 크기만
+         달리 올린 것입니다. 꼬리표를 걷어 내야 같은 것으로 봅니다. */
+    .replace(/[-_\s]*(large|small|big|hi ?res|highres|full|orig(inal)?|crop(ped)?|detail|part|thumb|재촬영)\b/g, '')
     .replace(/lccn\d+/g, '')
     .replace(/dsc\d+/g, '')
+    .replace(/\b\d{4},\d{3,4},[\d.]+/g, '')
     .replace(/[-_\s]*\(?\d{1,6}\)?$/g, '')
     .replace(/[^a-z가-힣]/g, '')
     .slice(0, 40);
@@ -613,15 +618,149 @@ async function catPeek(artists) {
    ★ 커먼즈 파일에는 위키데이터 번호가 없습니다. 그래서
      <b>파일 이름</b>을 열쇠로 씁니다(commons_file).
      sql/link-12-B-apply.sql 을 먼저 돌려야 합니다. */
+/* ── 제목 다듬기 ──────────────────────────────────────────────
+   ★★ 2026-08-23 · 커먼즈 파일 이름을 그대로 썼더니 목록이 이랬습니다.
+       《Kim Hong-do, Chuseongbu》
+       《Attributed to Kim Hongdo, British Museum 1984,0405,0.1》
+     작가 이름·기관명·정리번호가 제목에 들어앉아 있습니다.
+
+   ★★ 낱말을 <b>깎아 내는</b> 방식으로 하다가 《British Museum》이
+     제목이 됐습니다. 깎다 보면 남는 것이 무엇일지 알 수 없습니다.
+   ▶ <b>조각으로 나눠 고르는</b> 방식으로 바꿉니다.
+     "A - B - C" 를 잘라 놓고 <b>제목다운 조각</b>을 고릅니다.
+     고를 때는 버리는 것이 아니라 <b>고르는 것</b>이므로,
+     엉뚱한 것이 남는 일이 없습니다.
+
+   ★ 로마자를 한글로 옮기지는 않습니다. "Chuseongbu" 만 보고
+     「추성부도」를 알아내려면 사전이 있어야 하고, 없이 하면
+     <b>없는 이름을 지어내게</b> 됩니다. e뮤지엄이 붙으면
+     처음부터 한글로 오므로 그때 저절로 풀립니다. */
+
+/* 기관·소장처로 보이는 조각 */
+const IS_PLACE = /\b(museum|gallery|collection|university|college|abbey|library|institute|foundation)\b|미술관|박물관|대학교|도서관/i;
+/* 정리번호로 보이는 조각 */
+const IS_CODE  = /^[\s\d.,\-–—#]*$/
+              || null;
+function isCode(t) {
+  return /^[\s\d.,\-–—#]+$/.test(t)
+      || /^(MET|LACMA|LCCN|DP|DSC|IMG)\b/i.test(t)
+      || /^\d{4}[.,]\d+/.test(t);
+}
+
+function nameRe(nm) {
+  if (!nm) return null;
+  const e = String(nm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[-\s]+/g, '[-\\s]*');
+  return new RegExp(e, 'i');
+}
+
+function cleanTitle(raw, artist) {
+  let t = String(raw || '').trim();
+
+  /* ① 커먼즈 이름표 잔글씨 — "Inwang jesaekdolabel QS:Lja,…" */
+  t = t.replace(/label\s+QS:.*$/i, '').replace(/date\s+QS:.*$/i, '').trim();
+
+  /* ② 「, by 아무개」 뒤는 통째로 버립니다.
+       "Alms-bowl Pond …, by Kim Hong-do, Korea, Joseon dynasty, c. 1788 AD,
+        album leaf, ink and light color on silk" → 앞부분만 */
+  t = t.replace(/,?\s+by\s+.*$/i, '').trim();
+  /* ★ 「… drawn by 아무개」에서 by 뒤를 버리면 <b>drawn</b> 이 남습니다 */
+  t = t.replace(/\s+(drawn|painted|made|created|attributed|signed)$/i, '').trim();
+  t = t.replace(/^\s*attributed to\s+/i, '');
+
+  /* ③ 조각으로 나눕니다 — " - " · "—" · "·" · 마침표 뒤 큰 칸 */
+  /* ★ 「석지 채용신 학자 초상-石芝 蔡龍臣 學者肖像-Portrait of a scholar」처럼
+       <b>같은 제목을 세 글자갈래로 되풀이한</b> 것이 많습니다.
+       붙임표에 칸이 없어도 글자갈래가 바뀌면 나눕니다. */
+  const parts = t.split(/\s+[-–—]\s+|\s*·\s*|-(?=[가-힣\u4E00-\u9FFF])|(?<=[가-힣\u4E00-\u9FFF])-|(?<=[a-z가-힣0-9])\.\s+(?=[A-Z가-힣0-9])/)
+                 .map((x) => x.trim()).filter(Boolean);
+
+  const reEn = nameRe(artist.name_en), reKo = nameRe(artist.name_ko);
+
+  /* ★★ 작가 이름을 <b>고르기 전에</b> 조각마다 걷어 냅니다.
+       나중에 걷어 내면 「Kim Hong do」를 고른 뒤 이름을 지워
+       <b>빈 제목</b>이 됩니다. 실제로 그랬습니다. */
+  const strip = (x) => {
+    let v = x;
+    for (const nm of [artist.name_en, artist.name_ko]) {
+      if (!nm) continue;
+      const e = String(nm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[-\s]+/g, '[-\\s]*');
+      v = v.replace(new RegExp('^\\s*' + e + '\\s*[,·—\\-.]*\\s*', 'i'), '');
+      v = v.replace(new RegExp('\\s*[,·—\\-]*\\s*' + e + '\\s*$', 'i'), '');
+    }
+    return v.trim();
+  };
+
+  const score = (x) => {
+    let sc = 0;
+    if (IS_PLACE.test(x)) sc -= 6;          /* 소장처는 제목이 아닙니다 */
+    if (isCode(x))        sc -= 8;          /* 정리번호도 아닙니다 */
+    /* ★ 「Chae Yongshin (Korean, 1848–1941)」 — <b>작가 소개</b>이지
+         제목이 아닙니다. 표기가 조금 달라 이름 견주기에 안 걸리므로
+         <b>생몰년 꼴</b>로 잡습니다. */
+    if (/\([^)]*\d{4}\s*[–—-]\s*\d{4}[^)]*\)/.test(x)) sc -= 6;
+    if (reEn && reEn.test(x)) sc -= 3;
+    if (reKo && reKo.test(x)) sc -= 3;
+    if (/[가-힣]/.test(x))    sc += 4;      /* ★ 한글 조각을 앞세웁니다 */
+    if (/[\u4E00-\u9FFF]/.test(x)) sc += 1;
+    const n = x.length;
+    if (n >= 3 && n <= 60) sc += 2;
+    if (n > 90)            sc -= 2;
+    return sc;
+  };
+
+  const cand = parts.map(strip).filter(function (x) { return x.length >= 2; });
+  if (cand.length) {
+    let best = cand[0], bs = score(cand[0]) + 1;
+    for (let i = 1; i < cand.length; i++) {
+      const v = score(cand[i]);
+      if (v > bs) { bs = v; best = cand[i]; }
+    }
+    t = best;
+  } else {
+    t = strip(t);
+  }
+
+  /* ⑤ 꼬리에 붙은 번호·잔부호 */
+  t = t.replace(/\s*\(\s*\d+\s*\)\s*$/, '');
+  t = t.replace(/\s*\b(MET|LACMA|LCCN)\s*[A-Z]?\d[\d.,-]*\s*$/gi, '');
+  t = t.replace(/\s*\b\d{4},\d{3,4},[\d.]+\s*$/g, '');
+  t = t.replace(/[\s,;·—.\-]+$/, '').replace(/^[\s,;·—.\-]+/, '');
+  t = t.replace(/\s{2,}/g, ' ').trim();
+
+  /* ⑥ 끝내 <b>소장처나 번호만</b> 남았으면 제목이 없는 것입니다.
+       빈 값을 돌려주면 fromFile 이 <b>설명글</b>로 갈아 끼웁니다 —
+       《British Museum》보다 《Ink painting of two immortals and a
+       deer》가 낫습니다. */
+  if (!t || IS_PLACE.test(t) || isCode(t)) return '';
+
+  /* ⑦ 너무 길면 첫 쉼표에서 끊습니다 */
+  if (t.length > 70) {
+    const cut = t.slice(0, 70).lastIndexOf(',');
+    t = (cut > 12 ? t.slice(0, cut) : t.slice(0, 70)).trim();
+  }
+  return t;
+}
+
 function fromFile(f, artist) {
   /* 이름 — ObjectName 이 있으면 그것을, 없으면 파일 이름에서 */
   let title = String(f.object || '').trim();
   if (!title || /^[A-Za-z0-9 ._-]{0,4}$/.test(title)) {
     title = String(f.title || '').replace(/\.[a-z0-9]+$/i, '').replace(/[_]/g, ' ').trim();
   }
-  /* ★ 커먼즈 이름표에 딸려 오는 잔글씨를 걷어 냅니다
-       "Inwang jesaekdolabel QS:Lja,…" 처럼 옵니다. */
-  title = title.replace(/label\s+QS:.*$/i, '').replace(/date\s+QS:.*$/i, '').trim();
+  title = cleanTitle(title, artist);
+
+  /* ★★ 제목이 안 나오면 <b>설명글</b>로 갈아 끼웁니다.
+       "Attributed to Kim Hongdo, British Museum 1984,0405,0.1" 은
+       제목이 없는 파일입니다. 그런데 설명에
+       "Ink painting of two immortals and a deer" 가 적혀 있습니다.
+       소장처 이름을 제목으로 다는 것보다 훨씬 낫습니다. */
+  if (title.length < 2 && f.desc) {
+    title = cleanTitle(String(f.desc).split(/[.;]/)[0], artist);
+  }
+  /* 그래도 없으면 파일 이름을 살짝만 다듬어 씁니다 */
+  if (title.length < 2) {
+    title = String(f.title || '').replace(/\.[a-z0-9]+$/i, '').replace(/_/g, ' ').trim();
+  }
   if (!title) return null;
 
   const yr = yearIn(f.date) || yearIn([f.title, f.object, f.desc].join(' '));
