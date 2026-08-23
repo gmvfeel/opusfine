@@ -4,6 +4,7 @@
    ------------------------------------------------------------------
    쓰는 법
      node scripts/collect-works-gongu.mjs --peek
+     node scripts/collect-works-gongu.mjs --lic 97,98 --dry
      node scripts/collect-works-gongu.mjs --limit 500 --dry
      node scripts/collect-works-gongu.mjs
 
@@ -59,7 +60,28 @@ const LICENSE = {
   '26': { nm: 'CC BY-NC-SA',     ok: false },
   '27': { nm: 'CCL(기타)',       ok: false }
 };
-const USE = Object.keys(LICENSE).filter((k) => LICENSE[k].ok);
+/* ★ 명령줄을 <b>먼저</b> 읽습니다 — 아래 USE 가 --lic 를 봅니다 */
+const argv = process.argv.slice(2);
+const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
+
+/* ★★ 2026-08-23 · 라이선스마다 <b>성격이 딴판</b>입니다 (파트너 확인).
+     97 만료 13,160건 — 저작권이 끝난 <b>옛 작품</b>. 묵매도·괴석·구고청향도
+     98 기증(자유) 3,243건 — 기증받은 작품
+     01 KOGL 41,082건 · 21 CC BY 30,161건
+        — 공공기관·위원회가 만든 <b>디자인 소재</b>가 대부분입니다.
+          PPT 템플릿·유튜브 썸네일·글꼴 견본·다이어리 속지.
+
+   ★ 다섯을 뭉쳐 물었더니 <b>표본 200줄에 미술 작품이 0건</b>이었습니다.
+     최신순이라 소재가 목록을 다 차지한 것입니다.
+
+   ▶ <b>97·98 만</b> 받습니다. 16,403건이고 그것이 옛 작품입니다.
+     KOGL·CC BY 안에도 박물관 유물 사진이 섞여 있을 수 있지만,
+     그건 태그로 골라 <b>나중에 따로</b> 받습니다.
+   ★ --lic 로 바꿔 부를 수 있습니다. */
+const USE_DEFAULT = ['97', '98'];
+const USE = (argv.includes('--lic')
+  ? String(arg('lic', '')).split(',').map((x) => x.trim()).filter(Boolean)
+  : USE_DEFAULT).filter((k) => LICENSE[k] && LICENSE[k].ok);
 
 const WRT_ART   = '10004';   /* 저작물유형 · 미술 */
 const FILE_IMG  = '02';      /* 파일유형 · 이미지 */
@@ -69,8 +91,6 @@ const getJSON = makeGetJSON({
   tries: 5, maxWaitMs: 120 * 1000, budgetMs: 40 * 60 * 1000
 });
 
-const argv = process.argv.slice(2);
-const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
 const PEEK  = argv.includes('--peek');
 const DRY   = argv.includes('--dry');
 const LIMIT = Number(arg('limit', 5000));
@@ -377,26 +397,39 @@ async function peek() {
   }
 
   /* ⑥ 어떤 태그가 오나 · 몇 건이 미술 작품인가 */
-  console.log('\n── ⑥ 실제로 오는 태그 (200줄 표본)');
-  const tagCnt = new Map();
-  let krN = 0, allN = 0;
-  try {
-    const j2 = await getJSON(url(1, 200));
-    for (const r of rowsOf(j2)) {
-      allN++;
-      if (isArtwork(r)) krN++;
-      for (const t of String(r.tagNmList || '').split(',')) {
-        const k = t.trim();
-        if (k && k.length < 16) tagCnt.set(k, (tagCnt.get(k) || 0) + 1);
+  console.log('\n── ⑥ 라이선스마다 <b>따로</b> 세어 봅니다 (각 200줄 표본)');
+  console.log('   ★ 앞 판은 다섯을 뭉쳐 세어 0% 가 나왔습니다.');
+  console.log('     최신순이라 디자인 소재가 목록을 다 차지했기 때문입니다.\n');
+
+  for (const code of ['97', '98', '01', '21']) {
+    const L = LICENSE[code];
+    let all = 0, art = 0, tot = 0;
+    const tagCnt = new Map();
+    const good = [];
+    try {
+      const j2 = await getJSON(url(1, 200, code));
+      tot = totalOf(j2);
+      for (const r of rowsOf(j2)) {
+        all++;
+        if (isArtwork(r)) { art++; if (good.length < 5) good.push(r); }
+        for (const t of String(r.tagNmList || '').split(',')) {
+          const k = t.trim();
+          if (k && k.length < 16) tagCnt.set(k, (tagCnt.get(k) || 0) + 1);
+        }
       }
-    }
-  } catch (e) { console.log('   (못 셈 — ' + e.message + ')'); }
-  const top = [...tagCnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
-  for (const [t, n] of top) console.log(`   ${String(n).padStart(4)}  ${t}`);
-  if (allN) console.log(`\n`
-                      + ` (${Math.round(krN / allN * 100)}%)`);
-  console.log('     → 전체 87,705건이면 대략 '
-            + (allN ? Math.round(87705 * krN / allN).toLocaleString() : '?') + '건쯤');
+    } catch (e) { console.log(`   ${code} (못 셈 — ${String(e.message).slice(0, 50)})`); continue; }
+
+    const pct = all ? Math.round(art / all * 100) : 0;
+    console.log(`   ── ${code} ${L.nm} · 모두 ${tot.toLocaleString()}건`);
+    console.log(`      표본 ${all}줄 가운데 미술 작품 ${art}줄 (${pct}%)`
+              + ` → 대략 ${Math.round(tot * (all ? art / all : 0)).toLocaleString()}건쯤`);
+    const top = [...tagCnt.entries()].sort((x, y) => y[1] - x[1]).slice(0, 8);
+    console.log('      흔한 태그: ' + top.map(([t, n]) => `${t}(${n})`).join(' · '));
+    for (const g of good)
+      console.log(`        ▸ ${String(g.orginSj || '').slice(0, 26).padEnd(28)}`
+                + ` ${String(g.authorListNm || '').slice(0, 18)}`);
+    console.log('');
+  }
 
   /* ⑦ 제공처 거르개 — 안 먹는 것을 확인해 둡니다 */
   console.log('\n── ⑦ 제공처 거르개 (2026-08-23 · <b>안 먹는 것을 확인</b>)');
