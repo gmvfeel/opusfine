@@ -52,18 +52,34 @@ if (!GO_KEY) {
 const KCISA = 'https://api.kcisa.kr/openapi/service/rest';
 let API = process.env.EMUSEUM_URL || null;   /* 찾은 주소를 담습니다 */
 
-/* 두드려 볼 후보 — 「유물정보12」라는 이름에서 짚이는 것들 */
+/* ★★ 2026-08-23 · <b>두 주소를 눈으로 확인했습니다</b> (파트너 확인).
+     짚이는 이름을 열 개 늘어놓던 것을 걷어 냅니다 — 인계문서에
+     「후보 주소 열 개가 아예 닿지 못함」으로 적힌 그 목록입니다.
+
+   ① 문화공공데이터광장 화면에 적힌 것
+        https://api.kcisa.kr/openapi/service/rest/meta/MPKreli
+      ★ 다만 출력 항목 19개에 <b>도판 주소가 없습니다.</b>
+        샘플도 「씨흔굿·쟁기·종다래끼」— 민속 생활도구입니다.
+        미술 자료로는 맞지 않아 보이지만, <b>확인하고</b> 버립니다.
+
+   ② e뮤지엄 자체 API (아침에 찾은 것)
+        http://www.emuseum.go.kr/openapi/relic/list
+      ★ 이쪽은 <b>imgUri</b> 를 준다고 되어 있습니다. 우리가 찾는 것은
+        이쪽일 가능성이 큽니다.
+
+   ★ 어느 것이 <b>도판을 주는지</b> 실제로 보고 고릅니다.
+     짐작으로 하나 골라 수집기를 쓰면 시카고 꼴이 납니다. */
 const CANDIDATES = [
-  KCISA + '/meta12/getRelic12',
-  KCISA + '/meta12/getRelic',
-  KCISA + '/meta12/relic12',
-  KCISA + '/meta12/getRelicList',
-  KCISA + '/meta12/getNMK12',
-  KCISA + '/meta12/getMuseum12',
-  KCISA + '/meta/getRelic12',
-  KCISA + '/meta/relic12',
-  'https://api.kcisa.kr/API_CNV_012/request',
-  'https://api.kcisa.kr/API_CIA_012/request'
+  'https://www.emuseum.go.kr/openapi/relic/list',
+  'http://www.emuseum.go.kr/openapi/relic/list',
+  'https://api.kcisa.kr/openapi/service/rest/meta/MPKreli',
+  KCISA + '/meta/MPKreli'
+];
+
+/* 낱건 상세 · 코드표 — 목록이 열리면 이어서 두드려 봅니다 */
+const DETAIL = [
+  'https://www.emuseum.go.kr/openapi/relic/detail',
+  'http://www.emuseum.go.kr/openapi/relic/detail'
 ];
 const UA  = 'OpusfineBot/1.0 (https://opusfine.com; cser@wixon.co.kr)';
 
@@ -71,6 +87,29 @@ const getJSON = makeGetJSON({
   ua: UA, accept: 'application/json',
   tries: 4, maxWaitMs: 90 * 1000, budgetMs: 40 * 60 * 1000
 });
+
+/* ★★ 국내 공공 API 는 <b>XML 로 답하는 일이 흔합니다.</b> getJSON 은
+     그럴 때 터집니다. 엿보기에서는 <b>날것 그대로</b> 받아
+     무엇이 왔는지 눈으로 봅니다 — JSON 이든 XML 이든 오류쪽지든. */
+async function getRaw(u) {
+  const r = await fetch(u, { headers: { 'User-Agent': UA, Accept: 'application/json, application/xml;q=.9, */*;q=.8' } });
+  const t = await r.text();
+  return { status: r.status, type: r.headers.get('content-type') || '', body: t };
+}
+
+/* XML 에서 칸 이름을 뽑습니다 — 파서를 들이지 않고 이름만 셉니다 */
+function xmlTags(t) {
+  const c = new Map();
+  for (const m of String(t).matchAll(/<([A-Za-z_][\w:.-]*)\s*[^>\/]*>(?!\s*<)/g)) {
+    const k = m[1];
+    if (/^(\?xml|response|header|body|items|item|root)$/i.test(k)) continue;
+    c.set(k, (c.get(k) || 0) + 1);
+  }
+  return [...c.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+/* 도판 주소로 보이는 칸 */
+const IMGISH = /img|image|thumb|photo|사진|url|uri|link|file/i;
 
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
@@ -252,35 +291,95 @@ function build(o, byName) {
 
 /* ── 돌리기 ───────────────────────────────────────────────────── */
 (async () => {
-  /* ★★ 칸 이름 엿보기 — 짐작하지 않으려는 장치입니다 */
+  /* ══ 엿보기 ═════════════════════════════════════════════════════
+     ★★ 2026-08-23 · <b>여러 주소를 다 두드려 보고</b> 무엇이 오는지
+       날것 그대로 보여 줍니다. 앞 판은 「열리는 주소를 찾으면 멈추는」
+       구조였는데, 그러면 <b>첫 번째로 열린 것</b>에 갇힙니다.
+       열리기만 하고 <b>도판을 안 주는</b> 주소가 있습니다 —
+       오늘 화면에서 본 MPKreli 가 그렇습니다(출력 19칸에 그림 없음).
+     ▶ 다 두드려 보고, <b>도판 칸이 있는 것</b>을 고릅니다.
+     ★ JSON 이든 XML 이든 오류쪽지든 <b>있는 그대로</b> 찍습니다.
+       파싱에 실패했다고 넘어가면 왜 안 되는지 영영 모릅니다. */
   if (PEEK) {
-    console.log('▶ 자료원이 무엇을 주는지 봅니다');
-    const base = await findApi();
-    if (!base) {
-      console.log('\n★ 열리는 주소를 못 찾았습니다.');
-      console.log('  문화공공데이터광장에서 「유물정보12」 상세 쪽을 열어');
-      console.log('  <b>요청 URL</b> 을 확인해 주십시오. 그 주소를 알려 주시면 넣겠습니다.');
-      console.log('  (또는 워크플로에 EMUSEUM_URL 로 넣으셔도 됩니다)');
-      process.exit(1);
-    }
-    let j = null;
-    try { j = await listPage(1, 3); }
-    catch (e) { console.error('★ 못 받았습니다:', e.message); process.exit(1); }
+    console.log('▶ 국내 유물 자료원을 두드려 봅니다 — 담지 않습니다\n');
+    const found = [];
 
-    const rows = rowsOf(j);
-    console.log('  받은 줄 수:', rows.length, '· 전체:', totalOf(j));
-    if (!rows.length) {
-      console.log('  ※ 줄을 못 찾았습니다. 답 앞부분을 그대로 찍습니다 —');
-      console.log(JSON.stringify(j).slice(0, 1500));
-      return;
+    for (const base of CANDIDATES) {
+      const u = urlOf(base, 1, 3);
+      console.log('── ' + base);
+      let r = null;
+      try { r = await getRaw(u); }
+      catch (e) { console.log('   ✕ 닿지 못함 — ' + String(e.message).slice(0, 90) + '\n'); continue; }
+
+      console.log(`   HTTP ${r.status} · ${r.type.split(';')[0]} · ${r.body.length}바이트`);
+
+      /* 오류쪽지인가 */
+      const err = /SERVICE_KEY_IS_NOT_REGISTERED|NO_OPENAPI_SERVICE|SERVICE ?ERROR|등록되지|없거나|폐기|LIMITED_NUMBER|권한|인증/i.exec(r.body);
+      if (err) console.log('   ※ 쪽지에 「' + err[0] + '」 가 보입니다');
+
+      /* 칸 이름 뽑기 */
+      let keys = [];
+      let sample = null;
+      if (/json/i.test(r.type) || /^\s*[{[]/.test(r.body)) {
+        try {
+          const j = JSON.parse(r.body);
+          const rows = rowsOf(j);
+          if (rows.length) { keys = Object.keys(rows[0]); sample = rows[0]; }
+          else console.log('   ※ JSON 이나 줄이 없습니다 — ' + r.body.slice(0, 200).replace(/\s+/g, ' '));
+        } catch (e) { console.log('   ※ JSON 이 아닙니다'); }
+      }
+      if (!keys.length) {
+        const tags = xmlTags(r.body);
+        if (tags.length) {
+          keys = tags.map((x) => x[0]);
+          console.log('   XML 칸 ' + keys.length + '가지');
+        }
+      }
+
+      if (!keys.length) {
+        console.log('   앞 300자 — ' + r.body.slice(0, 300).replace(/\s+/g, ' ') + '\n');
+        continue;
+      }
+
+      const imgs = keys.filter((k) => IMGISH.test(k));
+      console.log('   칸: ' + keys.slice(0, 40).join(', '));
+      console.log(imgs.length
+        ? '   ★ 도판으로 보이는 칸: ' + imgs.join(', ')
+        : '   ✕ 도판으로 보이는 칸이 <없습니다>');
+
+      if (sample) {
+        console.log('   한 점의 값 —');
+        for (const k of Object.keys(sample).slice(0, 30)) {
+          const v = sample[k];
+          console.log('     ' + k.padEnd(22)
+            + String(v === null || v === '' ? '(빈 값)' : v).slice(0, 70).replace(/\s+/g, ' '));
+        }
+      }
+      if (imgs.length) found.push(base);
+      console.log('');
     }
-    console.log('\n한 점이 가진 칸 이름:');
-    Object.keys(rows[0]).sort().forEach((k) => {
-      const v = rows[0][k];
-      console.log(`  ${k} = ` + String(v === null ? '(빈 값)' : v).slice(0, 80).replace(/\n/g, ' ⏎ '));
-    });
-    console.log('\n★ 이 목록을 보여 주시면 코드를 맞추겠습니다.');
-    console.log('   특히 <제목·이미지 주소·재료·시대·소장 박물관·공공누리> 가 어느 칸인지 봅니다.');
+
+    /* 낱건 상세도 두드려 봅니다 — 목록에 없는 도판이 여기 있을 수 있습니다 */
+    console.log('── 낱건 상세');
+    for (const d of DETAIL) {
+      const u = d + '?serviceKey=' + encodeURIComponent(GO_KEY)
+              + '&id=PS0100100101101235600000';
+      let r = null;
+      try { r = await getRaw(u); }
+      catch (e) { console.log('   ✕ ' + d + ' — ' + String(e.message).slice(0, 70)); continue; }
+      console.log(`   ${d} → HTTP ${r.status} · ${r.body.length}바이트`);
+      const tags = xmlTags(r.body).map((x) => x[0]);
+      const imgs = tags.filter((k) => IMGISH.test(k));
+      if (tags.length) console.log('     칸: ' + tags.slice(0, 40).join(', '));
+      if (imgs.length) console.log('     ★ 도판 칸: ' + imgs.join(', '));
+      if (!tags.length) console.log('     앞 260자 — ' + r.body.slice(0, 260).replace(/\s+/g, ' '));
+    }
+
+    console.log('\n──────────────────────────────');
+    console.log(found.length
+      ? '★ 도판 칸이 있는 주소: ' + found.join(' · ')
+      : '★ 도판 칸이 있는 주소를 못 찾았습니다.');
+    console.log('  이 결과를 보내 주시면 수집기를 맞추겠습니다. 지금은 담지 않았습니다.');
     return;
   }
 
