@@ -40,15 +40,21 @@
   --sans:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
   --wrap:1280px;
 
-  /* ★ 2026-08-23 · 도판이 오기 전 자리에 <b>로고 획</b>을 옅게 깝니다
-       (파트너 요청). 글자(OPUSFINE)까지 넣으면 작은 칸에서 뭉개지므로
-       <b>획 표시만</b> 씁니다 — 어느 크기에서든 살아 있습니다.
-     ★ 색을 따로 두지 않고 <b>SVG 안에 박아</b> 둡니다. 배경그림에는
-       투명도를 따로 못 주기 때문입니다. */
-  --ph-mark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%23CFCDC3%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%239EBAB4%22%2F%3E%3C%2Fsvg%3E");
+  /* ★ 2026-08-23 · 도판이 오기 전 자리에 <b>로고</b>를 옅게 깝니다 (파트너 요청).
+     ★ 글자를 <b>선(path)으로 바꿔</b> 심었습니다. 배경그림 속 글자는
+       웹폰트를 부르지 못합니다 — 그냥 두면 명조가 아니라 브라우저가
+       가진 아무 세리프로 나옵니다. 선으로 바꾸면 <b>어디서나 같은
+       모양</b>입니다.
+     ★ 파일로 뺀 까닭 — 선 데이터가 6KB 라 CSS 안에 박으면 모든 화면이
+       그만큼 무거워집니다. 파일로 두면 <b>한 번만 받아 두고</b> 씁니다.
+     ★ 아주 작은 칸(광고 섬네일)에는 로고 전체가 뭉개지므로
+       <b>획만</b> 씁니다 — 아래 --ph-icon. */
+  --ph-mark:url("/assets/ph-logo.svg");
+  --ph-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%23CFCDC3%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%239EBAB4%22%2F%3E%3C%2Fsvg%3E");
   --ph-stripe:repeating-linear-gradient(135deg,
     #FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px);
-  --ph-size:min(64px,34%) auto;
+  --ph-size:min(150px,66%) auto;
+  --ph-size-sm:min(34px,40%) auto;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -605,8 +611,14 @@ footer{padding:44px 0 56px;margin-top:30px;border-top:1px solid var(--rule-2);
 html .plate.loading{background:var(--ph-mark) center/var(--ph-size) no-repeat,
   var(--ph-stripe)}
 
+/* ★ 광고 섬네일은 칸이 아주 작습니다 — 로고 전체를 넣으면 글자가
+     뭉개져 오히려 지저분합니다. 거기만 <b>획</b>으로 갑니다. */
+.am[data-art].ph{background:var(--ph-icon) center/var(--ph-size-sm) no-repeat,
+  var(--ph-stripe)}
+
 html[data-theme="dark"]{
-  --ph-mark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%233A3A42%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%2335564F%22%2F%3E%3C%2Fsvg%3E");
+  --ph-mark:url("/assets/ph-logo-dark.svg");
+  --ph-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%233A3A42%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%2335564F%22%2F%3E%3C%2Fsvg%3E");
   --ph-stripe:repeating-linear-gradient(135deg,
     #1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px);
 }
