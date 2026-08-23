@@ -1,6 +1,11 @@
 name: 작품 수집
 
 # ══════════════════════════════════════════════════════════════════
+#  ★ 2026-08-23 · <클리블랜드(cma)>를 더했습니다. 도판이 실제로 뜨는 것을
+#    확인용 화면(tools/cma-proof.html)에서 눈으로 보고 붙였습니다.
+#    한국 443 · 중국 2,478 · 일본 3,237 (CC0 · 도판 있음)
+#  ★ 예약 실행을 met → cma 로 바꿉니다. 우리가 실제로 쓸 수 있는 도판이
+#    가장 많이 나오는 자료원입니다.
 #  ★ 메트로폴리탄 공개 API 에서 작품과 도판을 받습니다.
 #    퍼블릭 도메인만 도판을 싣고, 저작권이 있는 것은 소장처로만 잇습니다.
 #  ★ 예약 실행 때 값이 비어 오지 않게 기본값을 못박습니다.
@@ -14,17 +19,17 @@ on:
       src:
         description: '어디서 받을까요'
         type: choice
-        default: met
-        options: [emuseum-peek, emuseum, met, aic, aic-peek]
+        default: cma
+        options: [cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
       dept:
-        description: '부서 번호 (비우면 전부)'
+        description: '부서 (메트는 번호 · 클리블랜드는 이름 예: Korean Art · 비우면 전부)'
         default: ''
       limit:
-        description: '몇 점까지'
-        default: '300'
+        description: '부서마다 몇 점까지'
+        default: '8000'
       dry:
         description: '담지 않고 세어만 보기'
         type: boolean
@@ -54,16 +59,31 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATA_GO_KEY:          ${{ secrets.DATA_GO_KEY }}
           EMUSEUM_URL:          ${{ vars.EMUSEUM_URL }}
-          IN_SRC:   ${{ github.event.inputs.src   || 'met' }}
+          IN_SRC:   ${{ github.event.inputs.src   || 'cma' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
           IN_DEPT:  ${{ github.event.inputs.dept  || '' }}
-          IN_LIMIT: ${{ github.event.inputs.limit || '300' }}
+          IN_LIMIT: ${{ github.event.inputs.limit || '8000' }}
           IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
         run: |
           # ★ 2026-08-22 · 시카고는 Cloudflare 로 바깥 접근을 막습니다.
-          #   도판도 안 오고 소장처 링크도 차단됩니다. 예약 실행은
-          #   메트로 둡니다 — 시카고를 더 받아도 화면에 못 씁니다.
-          case "${IN_SRC:-met}" in
+          #   도판도 안 오고 소장처 링크도 차단됩니다.
+          # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
+          #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
+          case "${IN_SRC:-cma}" in
+            cma-peek)
+              echo "▶ 클리블랜드가 주는 칸 이름을 봅니다 (담지 않습니다)"
+              node scripts/collect-works-cma.mjs --peek
+              ;;
+            cma)
+              # ★ 부서를 비우면 한국·중국·일본 셋을 차례로 받습니다.
+              #   인도·동남아(3,377점)는 일부러 뺐습니다 — 한국 미술을
+              #   읽는 맥락 밖입니다. 넣으려면 dept 에 이름을 적으십시오.
+              ARGS="--limit ${IN_LIMIT:-8000}"
+              if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept \"${IN_DEPT}\""; fi
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-cma.mjs $ARGS"
+              eval node scripts/collect-works-cma.mjs $ARGS
+              ;;
             emuseum-peek)
               echo "▶ 국내 유물 자료원이 주는 칸 이름을 봅니다"
               node scripts/collect-works-emuseum.mjs --peek
