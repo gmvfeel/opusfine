@@ -5,156 +5,172 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>클리블랜드 자료원 확인 · OPUSFINE</title>
-<link rel="stylesheet" href="/assets/of.css">
 <style>
-/* ── 확인용 화면 ─────────────────────────────────────────────
-   ★ 시안이나 배포물이 아닙니다. <b>자료원을 실제로 확인</b>하려고
-     만든 임시 화면입니다. 확인이 끝나면 지웁니다.
-   ★ 왜 화면으로 만드나 — 수집기(node)는 파트너가 돌릴 수 없고,
-     저는 브라우저를 못 봅니다. 화면으로 만들면 파트너가 주소만
-     열어도 <b>도판이 실제로 뜨는지</b> 그 자리에서 보입니다.
-   ★ 인계문서의 교훈 ① — 「API 가 열려 있고 CC0 라는 것만 보고
-     4,000점을 받았습니다」. 그 일을 되풀이하지 않기 위한 화면입니다. */
-.pf{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
-.pf h1{font-family:var(--serif);font-weight:200;font-size:34px;margin:0 0 6px}
-.pf .lead{color:var(--ink-2);font-size:14px;line-height:1.9;margin:0 0 28px}
-.pf h2{font-family:var(--serif);font-weight:500;font-size:19px;
-  margin:38px 0 14px;padding-top:18px;border-top:1px solid var(--rule-2)}
-.pf .note{font-size:12.5px;color:var(--ink-3);line-height:1.8;margin:0 0 14px}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-23 · 앞 판이 <b>글자가 겹쳐 무너졌습니다</b> (파트너 확인).
+     of.css 를 함께 불렀는데, 거기에 .im .st .a .w .m .h 같은
+     <b>한 글자 이름</b>들이 이미 있어 부딪혔습니다. 벽돌 쌓기
+     (column-count) 안에서 절대위치까지 겹치며 세로로 주저앉았습니다.
+   ▶ of.css 를 <b>부르지 않습니다.</b> 이 화면은 확인용이라 우리 결을
+     따를 까닭이 없고, 남의 규칙과 부딪히지 않는 것이 더 중요합니다.
+   ▶ 이름 앞에 <b>pf-</b> 를 붙여 무엇과도 겹치지 않게 했습니다.
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.pf-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.pf-h1{font-size:28px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.pf-lead{color:#5C5C60;font-size:14px;margin:0 0 30px}
+.pf-h2{font-size:18px;font-weight:600;margin:44px 0 6px;
+  padding-top:20px;border-top:1px solid #E6E4DE}
+.pf-note{font-size:13px;color:#7A7A7E;margin:0 0 16px}
+.pf-note b{color:#8C3A2E}
 
-.cnt{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule-2);
-  border:1px solid var(--rule-2)}
-.cnt div{background:#fff;padding:16px 12px;text-align:center}
-.cnt .k{font-size:12px;color:var(--ink-2)}
-.cnt .v{font-family:var(--serif);font-size:26px;margin-top:4px;
-  font-variant-numeric:tabular-nums}
-.cnt .v.bad{color:var(--accent-2);font-size:16px}
+/* ① 셈 */
+.pf-cnt{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:1px;background:#E6E4DE;border:1px solid #E6E4DE}
+.pf-cnt>div{background:#fff;padding:18px 10px;text-align:center;min-width:0}
+.pf-k{font-size:12px;color:#5C5C60;white-space:nowrap}
+.pf-v{font-size:26px;font-weight:600;margin-top:6px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.pf-v.pf-bad{color:#8C3A2E;font-size:15px}
 
-.gal{column-count:3;column-gap:20px;margin-top:8px}
-@media(max-width:900px){.gal{column-count:2}.cnt{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.gal{column-count:1}}
-.it{break-inside:avoid;display:inline-block;width:100%;margin-bottom:26px}
-.it .im{border:1px solid var(--rule-2);padding:8px;position:relative;
-  background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px);
-  min-height:80px}
-.it .im img{display:block;width:100%;height:auto}
-.it .st{position:absolute;left:8px;top:8px;font-size:10px;font-weight:700;
-  letter-spacing:.08em;padding:4px 8px;background:#fff;border:1px solid var(--rule)}
-.it .st.ok{color:var(--accent)}
-.it .st.no{color:var(--accent-2)}
-.cap2{margin-top:10px;font-size:12.5px;line-height:1.75}
-.cap2 .a{font-weight:600}
-.cap2 .w{font-family:var(--serif)}
-.cap2 .m,.cap2 .h{color:var(--ink-3);font-size:11.5px}
-.cap2 span{display:block}
-.pf a.src{font-size:11px;color:var(--accent);display:inline-block;margin-top:6px}
+/* ② 도판 — 벽돌 쌓기를 <b>쓰지 않습니다</b>.
+     앞 판이 무너진 자리입니다. 격자로 갑니다. */
+.pf-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:22px;margin-top:10px;align-items:start}
+.pf-it{min-width:0}
+.pf-im{position:relative;border:1px solid #E6E4DE;padding:8px;min-height:120px;
+  display:flex;align-items:center;justify-content:center;
+  background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)}
+.pf-im img{display:block;width:100%;height:auto;max-height:340px;object-fit:contain}
+.pf-tag{position:absolute;left:8px;top:8px;z-index:2;
+  font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 8px;
+  background:#fff;border:1px solid #D8D6D0;white-space:nowrap}
+.pf-tag.pf-ok{color:#1F4B47;border-color:#1F4B47}
+.pf-tag.pf-no{color:#8C3A2E;border-color:#8C3A2E}
+.pf-cap{margin-top:10px;font-size:12.5px;line-height:1.7;word-break:break-word}
+.pf-cap>span{display:block}
+.pf-r1{font-weight:600}
+.pf-r2{color:#2A2A2E}
+.pf-r3,.pf-r4{color:#8A8A8E;font-size:11.5px}
+.pf-src{display:inline-block;margin-top:6px;font-size:11.5px;color:#1F4B47}
 
-.msg{border:1px solid var(--rule);padding:16px 18px;font-size:13px;line-height:1.9}
-.msg b{color:var(--accent-2)}
-.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
-.tbl th,.tbl td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule-2)}
-.tbl th{font-size:11px;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
-.tbl td.n{font-variant-numeric:tabular-nums;text-align:right}
+/* ③ 칸 */
+.pf-tbl{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+.pf-tbl th{width:210px;text-align:left;padding:9px 10px;vertical-align:top;
+  border-bottom:1px solid #EFEDE7;color:#7A7A7E;font-weight:600;
+  font-size:11.5px;word-break:break-all}
+.pf-tbl td{padding:9px 10px;border-bottom:1px solid #EFEDE7;
+  word-break:break-word;vertical-align:top}
+
+.pf-msg{border:1px solid #D8D6D0;padding:16px 18px;font-size:13px;margin-top:8px}
+.pf-msg b{color:#8C3A2E}
+
+@media(max-width:640px){
+  .pf-cnt{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pf-tbl th{width:120px}
+}
 </style>
 </head>
 <body>
+<div class="pf-wrap">
 
-<div class="pf">
-  <h1>클리블랜드 자료원 확인</h1>
-  <p class="lead">
-    수집기를 만들기 <b>전에</b> 세 가지를 눈으로 봅니다 —
-    ① 자료를 주는가 ② 도판 주소가 오는가 ③ <b>도판이 실제로 화면에 뜨는가</b>.<br>
-    시카고에서 4,139점을 받고 나서야 ③을 알았습니다. 그 일을 되풀이하지 않으려는 화면입니다.
+  <div class="pf-h1">클리블랜드 자료원 확인</div>
+  <p class="pf-lead">
+    수집기를 만들기 전에 셋을 눈으로 봅니다 — ① 자료를 주는가 ② 도판 주소가 오는가
+    ③ <b>도판이 실제로 화면에 뜨는가</b>.
   </p>
 
-  <h2>① 얼마나 있나</h2>
-  <p class="note">
-    CC0(저작권 풀림) · 도판 있음으로 좁힌 수입니다. 우리가 실제로 쓸 수 있는 것만 셉니다.
+  <div class="pf-h2">① 얼마나 있나</div>
+  <p class="pf-note">CC0(저작권 풀림) · 도판 있음으로 좁힌 수입니다.</p>
+  <div class="pf-cnt" id="pfCounts"></div>
+
+  <div class="pf-h2">② 도판이 뜨는가 — <b>이 아래가 핵심입니다</b></div>
+  <p class="pf-note">
+    그림이 보이면 <b>뜸 ✔</b>, 사선 무늬만 남으면 <b>안 뜸 ✕</b> 입니다.
+    캡션은 우리 차례(작가 / 《작품명》, 연도 / 재료 / 소장처)로 맞춰 보았습니다.
   </p>
-  <div class="cnt" id="counts"></div>
+  <div class="pf-gal" id="pfGal"></div>
 
-  <h2>② 도판이 뜨는가 — <b>이 아래가 핵심입니다</b></h2>
-  <p class="note">
-    한국 · 중국 · 일본 · 인도동남아에서 두 점씩 뽑았습니다.
-    그림이 보이면 <b>뜸</b>, 사선 무늬만 남으면 <b>안 뜸</b>입니다.
-    캡션은 우리 시그니처 차례(작가 / 《작품명》, 연도 / 재료 / 소장처)로 맞춰 보았습니다.
-  </p>
-  <div id="gal" class="gal"></div>
+  <div class="pf-h2">③ 무슨 칸을 주나</div>
+  <p class="pf-note">한 점의 칸 이름과 값입니다. 수집기가 이 이름들을 씁니다.</p>
+  <table class="pf-tbl"><tbody id="pfFields"></tbody></table>
 
-  <h2>③ 무슨 칸을 주나</h2>
-  <p class="note">받은 것 한 점의 칸 이름과 값입니다. 수집기가 이 이름들을 씁니다.</p>
-  <table class="tbl" id="fields"><tbody></tbody></table>
-
-  <div id="err"></div>
+  <div id="pfErr"></div>
 </div>
 
 <script>
-/* ★ 브라우저에서 클리블랜드 API 를 직접 부릅니다.
-     실제 수집은 서버(GitHub Actions)에서 하므로 여기서 막혀도
-     수집에는 지장이 없습니다. 다만 <b>도판이 뜨는지</b>는
-     반드시 브라우저에서 봐야 합니다. */
 (function () {
   'use strict';
   var API = 'https://openaccess-api.clevelandart.org/api/artworks';
+
+  /* ★ 앞 판에서 「인도·동남아 0」이 나왔습니다. 부서 이름이 다른 듯하여
+       <b>후보를 둘</b> 넣고 나오는 쪽을 씁니다. 짐작으로 하나만 박지 않습니다. */
   var DEPTS = [
-    { key: 'Korean Art',                    ko: '한국' },
-    { key: 'Chinese Art',                   ko: '중국' },
-    { key: 'Japanese Art',                  ko: '일본' },
-    { key: 'Indian and South East Asian Art', ko: '인도·동남아' }
+    { key: 'Korean Art',   ko: '한국',   pick: 3 },
+    { key: 'Chinese Art',  ko: '중국',   pick: 2 },
+    { key: 'Japanese Art', ko: '일본',   pick: 2 },
+    { key: 'Indian and Southeast Asian Art', ko: '인도·동남아', pick: 1,
+      alt: 'Indian and South East Asian Art' }
   ];
 
-  var counts = document.getElementById('counts');
-  var gal    = document.getElementById('gal');
-  var fields = document.querySelector('#fields tbody');
-  var errBox = document.getElementById('err');
-  var shownFields = false;
+  var counts = document.getElementById('pfCounts');
+  var gal    = document.getElementById('pfGal');
+  var fields = document.getElementById('pfFields');
+  var errBox = document.getElementById('pfErr');
+  var dumped = false;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
-  function url(d, limit) {
-    return API + '?department=' + encodeURIComponent(d)
+  function url(dep, limit) {
+    return API + '?department=' + encodeURIComponent(dep)
          + '&cc0&has_image=1&limit=' + limit + '&skip=0';
   }
+  function ask(dep, limit) {
+    return fetch(url(dep, limit)).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+  /* 이름 후보를 차례로 시도합니다 */
+  function askAny(d, limit) {
+    return ask(d.key, limit).then(function (j) {
+      if ((!j.info || !j.info.total) && d.alt) {
+        return ask(d.alt, limit).then(function (k) { k._used = d.alt; return k; });
+      }
+      j._used = d.key; return j;
+    });
+  }
 
-  /* ── ① 세기 ── */
   DEPTS.forEach(function (d) {
     var box = document.createElement('div');
-    box.innerHTML = '<div class="k">' + d.ko + '</div><div class="v">…</div>';
+    box.innerHTML = '<div class="pf-k">' + d.ko + '</div><div class="pf-v">…</div>';
     counts.appendChild(box);
 
-    fetch(url(d.key, 1))
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    askAny(d, d.pick)
       .then(function (j) {
-        box.querySelector('.v').textContent =
-          (j.info && typeof j.info.total === 'number')
-            ? j.info.total.toLocaleString() : '?';
+        var v = box.querySelector('.pf-v');
+        v.textContent = (j.info && typeof j.info.total === 'number')
+          ? j.info.total.toLocaleString() : '?';
+        (j.data || []).forEach(function (w) { card(w, d.ko); });
+        if (!dumped && j.data && j.data.length) { dumped = true; dump(j.data[0]); }
       })
       .catch(function (e) {
-        var v = box.querySelector('.v');
-        v.className = 'v bad';
+        var v = box.querySelector('.pf-v');
+        v.className = 'pf-v pf-bad';
         v.textContent = '못 셈';
         blocked(e);
       });
   });
 
-  /* ── ② 도판 ── */
-  DEPTS.forEach(function (d) {
-    fetch(url(d.key, 2))
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (j) {
-        (j.data || []).forEach(function (w) { card(w, d.ko); });
-        if (!shownFields && j.data && j.data.length) { shownFields = true; dump(j.data[0]); }
-      })
-      .catch(blocked);
-  });
-
-  function creator(w) {
+  function who(w) {
     var c = (w.creators || [])[0];
     if (!c) return (w.culture || [])[0] || '작자 미상';
-    /* "Song Xu (Chinese, 1525-c. 1606)" → 이름만 */
     return String(c.description || '').replace(/\s*\(.*$/, '')
         || c.name_in_original_language || '작자 미상';
   }
@@ -162,89 +178,81 @@
   function card(w, ko) {
     var src = w.images && w.images.web && w.images.web.url;
     var el = document.createElement('div');
-    el.className = 'it';
+    el.className = 'pf-it';
     el.innerHTML =
-      '<div class="im"><span class="st">' + esc(ko) + ' · 부르는 중</span></div>' +
-      '<div class="cap2">' +
-        '<span class="a">' + esc(creator(w)) + '</span>' +
-        '<span class="w">《' + esc(w.title || '') + '》' +
+      '<div class="pf-im"><span class="pf-tag">' + esc(ko) + ' · 부르는 중</span></div>' +
+      '<div class="pf-cap">' +
+        '<span class="pf-r1">' + esc(who(w)) + '</span>' +
+        '<span class="pf-r2">《' + esc(w.title || '') + '》' +
           (w.creation_date ? ', ' + esc(w.creation_date) : '') + '</span>' +
-        '<span class="m">' + esc(w.technique || '') + '</span>' +
-        '<span class="h">The Cleveland Museum of Art · ' +
+        '<span class="pf-r3">' + esc(w.technique || '') + '</span>' +
+        '<span class="pf-r4">The Cleveland Museum of Art · ' +
           esc(w.share_license_status || '') + '</span>' +
-        '<a class="src" href="' + esc(w.url || '#') + '" target="_blank" rel="noopener">' +
+        '<a class="pf-src" href="' + esc(w.url || '#') + '" target="_blank" rel="noopener">' +
           '소장처에서 보기 →</a>' +
       '</div>';
     gal.appendChild(el);
+    show(el, src, ko);
+  }
 
-    var im = el.querySelector('.im'), st = el.querySelector('.st');
-    if (!src) { st.className = 'st no'; st.textContent = ko + ' · 주소 없음'; return; }
-
+  function show(el, src, ko) {
+    var im = el.querySelector('.pf-im'), tag = el.querySelector('.pf-tag');
+    if (!src) { tag.className = 'pf-tag pf-no'; tag.textContent = ko + ' · 주소 없음'; return; }
     var img = new Image();
     img.referrerPolicy = 'no-referrer';
-    img.alt = w.title || '';
     img.onload = function () {
       im.appendChild(img);
       im.style.background = 'none';
-      st.className = 'st ok';
-      st.textContent = ko + ' · 뜸 ✔';
+      tag.className = 'pf-tag pf-ok';
+      tag.textContent = ko + ' · 뜸 ✔';
     };
     img.onerror = function () {
-      st.className = 'st no';
-      st.textContent = ko + ' · 안 뜸 ✕';
+      tag.className = 'pf-tag pf-no';
+      tag.textContent = ko + ' · 안 뜸 ✕';
     };
     img.src = src;
   }
 
-  /* ── ③ 칸 이름 ── */
   function dump(w) {
-    var pick = ['id','accession_number','share_license_status','title',
-                'title_in_original_language','creation_date','creation_date_earliest',
-                'technique','department','collection','type','measurements',
-                'creditline','url'];
-    pick.forEach(function (k) { row(k, w[k]); });
-    row('creators[0].description', ((w.creators||[])[0]||{}).description);
-    row('culture[0]',              (w.culture||[])[0]);
-    row('images.web.url',          ((w.images||{}).web||{}).url);
-    row('external_resources.wikidata', ((w.external_resources||{}).wikidata||[])[0]);
-    row('exhibitions.legacy 수',   ((w.exhibitions||{}).legacy||[]).length);
+    ['id','accession_number','share_license_status','title',
+     'title_in_original_language','creation_date','creation_date_earliest',
+     'technique','department','collection','type','measurements',
+     'creditline','url'].forEach(function (k) { row(k, w[k]); });
+    row('creators[0].description',      ((w.creators||[])[0]||{}).description);
+    row('creators[0].name_in_original', ((w.creators||[])[0]||{}).name_in_original_language);
+    row('culture[0]',                   (w.culture||[])[0]);
+    row('images.web.url',               ((w.images||{}).web||{}).url);
+    row('external_resources.wikidata',  ((w.external_resources||{}).wikidata||[])[0]);
+    row('exhibitions.legacy 수',        ((w.exhibitions||{}).legacy||[]).length);
+    row('exhibitions.current 수',       ((w.exhibitions||{}).current||[]).length);
   }
   function row(k, v) {
     var tr = document.createElement('tr');
     tr.innerHTML = '<th>' + esc(k) + '</th><td>' +
-      esc(v == null || v === '' ? '(없음)' : String(v).slice(0, 220)) + '</td>';
+      esc(v == null || v === '' ? '(없음)' : String(v).slice(0, 240)) + '</td>';
     fields.appendChild(tr);
   }
 
-  /* ── 막혔을 때 ── */
   var told = false;
   function blocked(e) {
     if (told) return;
     told = true;
     errBox.innerHTML =
-      '<h2>브라우저에서 API 를 못 불렀습니다</h2>' +
-      '<div class="msg">까닭: <b>' + esc(e && e.message ? e.message : e) + '</b><br><br>' +
-      '이것만으로 자료원을 버리지는 않습니다. 실제 수집은 <b>서버(GitHub Actions)</b>에서 하므로 ' +
-      '브라우저 차단과는 무관합니다.<br>' +
-      '다만 <b>도판이 뜨는지</b>는 아래 두 장으로 따로 봅니다 — 주소를 직접 박아 두었습니다.</div>' +
-      '<div class="gal" id="gal2"></div>';
-    var g2 = document.getElementById('gal2');
-    [['1998.78.14', '중국 · 송욱 《포양호》'],
-     ['1953.424',  '유럽 · 세례 요한의 머리']].forEach(function (p) {
+      '<div class="pf-h2">브라우저에서 API 를 못 불렀습니다</div>' +
+      '<div class="pf-msg">까닭: <b>' + esc(e && e.message ? e.message : e) + '</b><br><br>' +
+      '이것만으로 자료원을 버리지 않습니다. 실제 수집은 <b>서버(GitHub Actions)</b>에서 하므로 ' +
+      '브라우저 차단과 무관합니다. 다만 <b>도판이 뜨는지</b>는 아래 두 장으로 따로 봅니다 — ' +
+      '주소를 직접 박아 두었습니다.</div>' +
+      '<div class="pf-gal" id="pfGal2"></div>';
+    var g2 = document.getElementById('pfGal2');
+    [['1998.78.14','중국 · 송욱 《포양호》'],
+     ['1953.424','유럽 · 세례 요한의 머리']].forEach(function (p) {
       var el = document.createElement('div');
-      el.className = 'it';
-      el.innerHTML = '<div class="im"><span class="st">부르는 중</span></div>' +
-                     '<div class="cap2"><span class="a">' + esc(p[1]) + '</span></div>';
+      el.className = 'pf-it';
+      el.innerHTML = '<div class="pf-im"><span class="pf-tag">부르는 중</span></div>' +
+                     '<div class="pf-cap"><span class="pf-r1">' + esc(p[1]) + '</span></div>';
       g2.appendChild(el);
-      var im = el.querySelector('.im'), st = el.querySelector('.st');
-      var img = new Image();
-      img.referrerPolicy = 'no-referrer';
-      img.onload = function () {
-        im.appendChild(img); im.style.background = 'none';
-        st.className = 'st ok'; st.textContent = '뜸 ✔';
-      };
-      img.onerror = function () { st.className = 'st no'; st.textContent = '안 뜸 ✕'; };
-      img.src = 'https://openaccess-cdn.clevelandart.org/' + p[0] + '/' + p[0] + '_web.jpg';
+      show(el, 'https://openaccess-cdn.clevelandart.org/' + p[0] + '/' + p[0] + '_web.jpg', '도판');
     });
   }
 })();
