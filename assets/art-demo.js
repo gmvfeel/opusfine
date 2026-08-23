@@ -24,13 +24,21 @@
        ② 작품 조회는 <b>한꺼번에</b> 보냅니다 (기다리지 않고 동시에)
        ③ <b>먼저 닿는 것부터</b> 화면에 넣습니다 — 다 모일 때까지
           기다리지 않습니다
-   ★ 못 받으면 견본 그림이 그대로 남습니다 — 빈 네모가 남으면 안 됩니다. */
+   ★★ 2026-08-23 · 못 받은 자리는 <b>사선 무늬</b>로 남습니다 (파트너 지적).
+     전에는 견본 그림이 되살아났습니다 — 색이 튀고, 진짜 도판인 줄
+     알고 보게 됩니다. 빈 네모도 아니고 가짜 그림도 아닌,
+     <b>「여기 그림이 올 자리」</b>라고 말하는 무늬가 맞습니다. */
 (function(){
   'use strict';
   var API = 'https://collectionapi.metmuseum.org/public/collection/v1';
   var slots = Array.prototype.slice.call(document.querySelectorAll('[data-art]'));
   if (!slots.length) return;
-  slots.forEach(function(el){ el.classList.add('loading'); });
+  /* ★ 2026-08-23 · 자리에 <b>사선 무늬</b>를 깝니다 (파트너 지적).
+       ph = placeholder. 견본 그림을 감추고 무늬만 보입니다.
+       loading = 무늬 위를 지나가는 <b>빛줄기</b>(기다리는 중이라는 표시).
+     ★ 둘을 나눈 까닭 — 빛줄기는 몇 초 뒤 멈춰야 하지만,
+       무늬는 <b>도판이 실제로 닿을 때까지</b> 남아야 합니다. */
+  slots.forEach(function(el){ el.classList.add('ph','loading'); });
 
   function j(u){
     return fetch(u).then(function(r){ return r.ok ? r.json() : null; })
@@ -50,14 +58,14 @@
 
   function place(el, o){
     var src = o.primaryImageSmall || o.primaryImage;
-    if (!src) { el.classList.remove('loading'); return; }
+    if (!src) { el.classList.remove('loading'); return; }  /* ph 는 남깁니다 */
     var img = new Image();
     img.src = src;
     img.alt = (o.artistDisplayName ? o.artistDisplayName + ', ' : '') + (o.title || '작품');
     img.onload = function(){
       var svg = el.querySelector('svg');
       if (svg) svg.replaceWith(img); else el.appendChild(img);
-      el.classList.remove('loading');
+      el.classList.remove('ph','loading');   /* 도판이 닿았으니 무늬를 뗍니다 */
 
       var c = capOf(o), kind = el.getAttribute('data-art');
       if (kind === 'hero'){
@@ -142,7 +150,7 @@
 
     if (!faceIds.length && !workIds.length){
       slots.forEach(function(el){ el.classList.remove('loading'); });
-      return;
+      return;                              /* ph 는 남깁니다 — 무늬로 둡니다 */
     }
 
     /* ② 한꺼번에 보내고 ③ 먼저 닿는 것부터 넣습니다 */
@@ -158,7 +166,8 @@
     run(faceIds, arSlots.slice());
     run(workIds, etc.slice());
 
-    /* 6초 뒤에도 안 온 자리는 견본을 그대로 둡니다 */
+    /* ★ 6초 뒤 <b>빛줄기만</b> 멈춥니다. 무늬(ph)는 그대로 둡니다 —
+         전에는 여기서 견본 그림이 되살아났습니다. */
     setTimeout(function(){
       slots.forEach(function(el){ el.classList.remove('loading'); });
     }, 6000);

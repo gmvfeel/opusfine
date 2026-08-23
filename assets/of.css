@@ -521,6 +521,24 @@ footer{padding:44px 0 56px;margin-top:30px;border-top:1px solid var(--rule-2);
   background:linear-gradient(90deg,transparent,rgba(23,23,26,.05),transparent);
   animation:sweep 1.4s infinite}
 @keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ★ 2026-08-23 · 도판이 오기 전 자리 (파트너 지적)
+     전에는 <b>색색의 견본 그림</b>이 먼저 보였습니다. 진짜 도판인 줄
+     알고 봤다가 바뀌므로 어수선하고, 흰 바탕에 색이 튀어 결도 깨졌습니다.
+   ▶ 작품DB·작가DB 화면에서 이미 쓰는 <b>사선 무늬</b>로 통일합니다.
+     빈 네모가 아니라 <b>「여기 그림이 올 자리」</b>라고 말하는 무늬입니다.
+   ★ 견본 SVG 를 지우지 않고 <b>안 보이게만</b> 합니다(visibility).
+     지우면 자리가 폭삭 주저앉습니다 — 칸의 높이를 정하는 것이
+     바로 그 SVG 의 viewBox 이기 때문입니다. 자리는 그대로 두고
+     그림만 감춥니다.
+   ★ 도판이 닿으면 art-demo.js 가 ph 를 떼어 무늬가 사라집니다.
+     끝내 못 받은 자리는 <b>무늬로 남습니다</b> — 견본 그림이
+     되살아나지 않습니다. */
+[data-art].ph{background:repeating-linear-gradient(135deg,
+  #FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)}
+[data-art].ph > svg{visibility:hidden}
+html[data-theme="dark"] [data-art].ph{background:repeating-linear-gradient(135deg,
+  #1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px)}
 /* ★ 도판이 견본임을 밝히는 줄입니다.
    ★ 2026-08-21 · 자리마다 붙으니 <b>어수선했습니다</b> (파트너 지적).
      작가DB 격자에만 남깁니다 — 거기 한 번 나오면 「초상은 견본」임을
