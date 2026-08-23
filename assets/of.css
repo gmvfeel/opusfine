@@ -39,6 +39,16 @@
   --serif:'Noto Serif KR',serif;
   --sans:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
   --wrap:1280px;
+
+  /* ★ 2026-08-23 · 도판이 오기 전 자리에 <b>로고 획</b>을 옅게 깝니다
+       (파트너 요청). 글자(OPUSFINE)까지 넣으면 작은 칸에서 뭉개지므로
+       <b>획 표시만</b> 씁니다 — 어느 크기에서든 살아 있습니다.
+     ★ 색을 따로 두지 않고 <b>SVG 안에 박아</b> 둡니다. 배경그림에는
+       투명도를 따로 못 주기 때문입니다. */
+  --ph-mark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%23CFCDC3%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%239EBAB4%22%2F%3E%3C%2Fsvg%3E");
+  --ph-stripe:repeating-linear-gradient(135deg,
+    #FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px);
+  --ph-size:min(64px,34%) auto;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -84,6 +94,51 @@ a{color:inherit;text-decoration:none}
 .lang::after{content:'';position:absolute;right:2px;top:50%;width:5px;height:5px;
   border-right:1px solid var(--ink-3);border-bottom:1px solid var(--ink-3);
   transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* ── 고르는 상자 ──────────────────────────────────────────────
+   ★ 2026-08-23 · 브라우저 기본 <select> 를 <b>우리 것으로 갈아 끼웁니다</b>
+     (파트너 지적). 펼쳤을 때 <b>파란 칠과 검정 테두리</b>가 나왔습니다.
+   ★ 그것은 CSS 로 못 고칩니다 — 닫힌 모습은 우리가 그리지만, 펼친
+     목록은 <b>운영체제가 직접</b> 그리기 때문입니다. 그려 주는 그림에
+     붓을 댈 수 없으니 <b>목록을 우리가 만들어</b> 대신 씁니다.
+   ★ 원래 <select> 는 지우지 않고 <b>감춰 둡니다.</b> 자바스크립트가
+     막히면 그것이 그대로 나와 여전히 고를 수 있습니다.
+   ★ 하위 메뉴(.dd)와 <b>같은 그림자·같은 줄</b>을 씁니다. 화면 안에
+     떠 있는 판은 다 같은 높이로 읽혀야 합니다. */
+.ofsel{position:relative}
+.ofsel > select{display:none}
+.ofsel-btn{appearance:none;border:0;background:transparent;font:inherit;
+  color:inherit;cursor:pointer;text-align:left;line-height:1}
+.lang .ofsel-btn{font-size:9px;font-weight:700;color:var(--ink-2);
+  padding:0 13px 0 0;letter-spacing:.06em}
+.ft-family .ofsel-btn{font-size:11px;color:var(--ink-2);
+  border:1px solid var(--rule);background:var(--paper);padding:9px 36px 9px 14px}
+.lang .ofsel-btn:hover,.ft-family .ofsel-btn:hover{color:var(--ink)}
+
+.ofsel-list{position:absolute;z-index:80;margin:0;padding:5px 0;list-style:none;
+  background:var(--paper);border:1px solid var(--rule);
+  box-shadow:0 1px 2px rgba(23,23,26,.05),0 12px 30px -8px rgba(23,23,26,.13);
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .16s,transform .16s,visibility .16s}
+.ofsel.on > .ofsel-list{opacity:1;visibility:visible;transform:translateY(0)}
+/* ★ 자리가 모자라면 <b>위로</b> 펼칩니다 — 꼬리말의 것은 화면 맨 아래라
+     아래로 펴면 잘립니다. 어느 쪽인지는 열 때마다 스스로 잽니다. */
+.ofsel-list.down{top:100%;margin-top:7px}
+.ofsel-list.up{bottom:100%;margin-bottom:7px}
+.lang .ofsel-list{right:0;min-width:92px}
+.ft-family .ofsel-list{left:0;min-width:100%}
+.ofsel-list li{display:block}
+.ofsel-list li > button{display:flex;align-items:center;gap:8px;width:100%;
+  appearance:none;border:0;background:transparent;font:inherit;cursor:pointer;
+  padding:7px 15px;font-size:11.5px;font-weight:500;letter-spacing:.04em;
+  color:var(--ink-2);white-space:nowrap;text-align:left;transition:.14s}
+.ofsel-list li > button::before{content:'';flex:none;width:4px;height:4px;
+  border-radius:50%;background:transparent}
+.ofsel-list li > button:hover,
+.ofsel-list li > button:focus-visible{color:var(--accent);background:#FAFAF8;outline:0}
+/* 지금 골라져 있는 것 — 색이 아니라 <b>작은 점</b>과 굵기로 알립니다 */
+.ofsel-list li > button[aria-selected="true"]{color:var(--ink);font-weight:700}
+.ofsel-list li > button[aria-selected="true"]::before{background:var(--accent)}
 
 /* ── 도구 셋 ──
    ★ 2026-08-22 · 아이콘 대신 <b>글자</b>로 적습니다 (파트너 결정).
@@ -534,11 +589,27 @@ footer{padding:44px 0 56px;margin-top:30px;border-top:1px solid var(--rule-2);
    ★ 도판이 닿으면 art-demo.js 가 ph 를 떼어 무늬가 사라집니다.
      끝내 못 받은 자리는 <b>무늬로 남습니다</b> — 견본 그림이
      되살아나지 않습니다. */
-[data-art].ph{background:repeating-linear-gradient(135deg,
-  #FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)}
+[data-art].ph{background:var(--ph-mark) center/var(--ph-size) no-repeat,
+  var(--ph-stripe)}
 [data-art].ph > svg{visibility:hidden}
-html[data-theme="dark"] [data-art].ph{background:repeating-linear-gradient(135deg,
-  #1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px)}
+
+/* ★ 다른 화면(작품DB·작가DB)에서 <b>기다리는 중</b>인 자리도 같게 맞춥니다.
+     화면마다 기다리는 모습이 다르면 안 됩니다.
+   ★ 다만 <b>글이 적힌 자리</b>(.noimg · .thin — 「도판 없음」 따위를
+     가운데 적어 둔 곳)에는 넣지 않습니다. 글 뒤에 표시가 겹치면
+     둘 다 안 읽힙니다. 거기는 무늬만 둡니다.
+   ★ 앞에 html 을 붙인 까닭 — 그 화면들은 저마다 <style> 안에 같은
+     이름의 규칙을 갖고 있고, 그것이 이 파일보다 <b>나중에</b> 읽힙니다.
+     나중 것이 이기므로, 한 칸 더 좁혀(html) 이쪽이 이기게 둡니다.
+     그 화면들의 <style> 은 손대지 않아도 됩니다. */
+html .plate.loading{background:var(--ph-mark) center/var(--ph-size) no-repeat,
+  var(--ph-stripe)}
+
+html[data-theme="dark"]{
+  --ph-mark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M3%2026%20C%208%2011%2C%2017%205%2C%2025%209%20C%2030%2012%2C%2028%2020%2C%2022%2022%22%20fill%3D%22none%22%20stroke%3D%22%233A3A42%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2226%22%20r%3D%222%22%20fill%3D%22%2335564F%22%2F%3E%3C%2Fsvg%3E");
+  --ph-stripe:repeating-linear-gradient(135deg,
+    #1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px);
+}
 /* ★ 도판이 견본임을 밝히는 줄입니다.
    ★ 2026-08-21 · 자리마다 붙으니 <b>어수선했습니다</b> (파트너 지적).
      작가DB 격자에만 남깁니다 — 거기 한 번 나오면 「초상은 견본」임을
@@ -725,6 +796,11 @@ html[data-theme="dark"] .ft-family select,
 html[data-theme="dark"] .qb.done{color:inherit}
 html[data-theme="dark"] .ft-family select,
 html[data-theme="dark"] .lang select{background:transparent;color:var(--ink-2)}
+/* ★ 어두운 바탕 — 옅은 그림자는 보이지 않으므로 짙게 깝니다 */
+html[data-theme="dark"] .ofsel-list{
+  box-shadow:0 2px 6px rgba(0,0,0,.45),0 24px 56px -14px rgba(0,0,0,.65)}
+html[data-theme="dark"] .ofsel-list li > button:hover,
+html[data-theme="dark"] .ofsel-list li > button:focus-visible{background:#1B1B1E}
 html[data-theme="dark"] .adwrap::before{background:var(--paper)}
 html[data-theme="dark"] .btn{background:var(--ink);color:var(--paper)}
 html[data-theme="dark"] .btn:hover{background:var(--accent);color:#101012}
