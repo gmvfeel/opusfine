@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [cma, cma-peek, commons, commons-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [cma, cma-peek, commons, commons-peek, commons-catpeek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -70,6 +70,10 @@ jobs:
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
+            commons-catpeek)
+              echo "▶ 커먼즈 <분류>에 무엇이 들어 있는지 있는 그대로 봅니다 (담지 않습니다)"
+              node scripts/collect-works-commons.mjs --catpeek
+              ;;
             commons-peek)
               echo "▶ 우리 작가의 작품이 커먼즈에 얼마나 있는지 봅니다 (담지 않습니다)"
               node scripts/collect-works-commons.mjs --peek

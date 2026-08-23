@@ -60,6 +60,7 @@ const getJSON = makeGetJSON({
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
 const PEEK  = argv.includes('--peek');
+const CATPEEK = argv.includes('--catpeek');
 const DRY   = argv.includes('--dry');
 const LIMIT = Number(arg('limit', 5000));
 
@@ -130,10 +131,17 @@ async function ask(q) {
      SERVICE 는 질의가 커지면 자주 시간이 초과됩니다. */
 function query(qids, prop) {
   const vals = qids.map((q) => 'wd:' + q).join(' ');
+  /* ★★ 2026-08-23 · P800 을 <b>거꾸로 물었습니다</b>. 제 잘못입니다.
+       P170 은 「작품 → 그린 이」  ?work wdt:P170 ?artist
+       P800 은 「작가 → 대표작」  ?artist wdt:P800 ?work   ← 방향이 반대
+     앞 판에서 P800 이 0줄이었던 까닭입니다. 방향만 맞추면 됩니다. */
+  const triple = prop === 'P800'
+    ? '?artist wdt:P800 ?work .'
+    : '?work wdt:' + prop + ' ?artist .';
   return `
 SELECT ?work ?artist ?img ?ko ?en ?date ?matLabel ?colLabel ?inv WHERE {
   VALUES ?artist { ${vals} }
-  ?work wdt:${prop} ?artist .
+  ${triple}
   ?work wdt:P18 ?img .
   OPTIONAL { ?work rdfs:label ?ko  FILTER(lang(?ko) = "ko") }
   OPTIONAL { ?work rdfs:label ?en  FILTER(lang(?en) = "en") }
@@ -258,6 +266,125 @@ async function upsert(rows) {
   return { ok: rows.length, msg: '' };
 }
 
+/* ══ 커먼즈 분류 엿보기 ═══════════════════════════════════════════
+   ★★ 왜 이것이 필요한가
+     위키데이터에는 <b>항목</b>이 있어야 찾아집니다. 정선의 그림이
+     수백 점 전하는데 위키데이터 항목은 서너 개뿐입니다.
+     그래서 P170 을 아무리 잘 물어도 45점밖에 안 나왔습니다.
+
+     그런데 <b>커먼즈에는 파일이 잔뜩 있습니다.</b> 항목이 없어도
+     파일은 있습니다. Category:Jeong Seon 안에 정선 그림이
+     수십 장씩 들어 있습니다.
+
+   ★ 다만 분류에는 <b>아무거나 다 들어옵니다</b> — 그림뿐 아니라
+     무덤 사진, 기념우표, 전시 포스터, 책 표지, 서명 조각까지.
+     거르는 규칙이 있어야 하는데, 그 규칙은 <b>실물을 보고</b>
+     짜야 합니다. 짐작으로 낱말을 박으면 오늘 김관호를 잘못 감춘
+     일이 되풀이됩니다.
+
+   ▶ 그래서 이 모드는 <b>거르지 않고 있는 그대로</b> 보여 줍니다.
+     보고 나서 규칙을 씁니다.
+   ══════════════════════════════════════════════════════════════ */
+const COMMONS = 'https://commons.wikimedia.org/w/api.php';
+
+/* 작가마다 커먼즈 분류 이름 (위키데이터 P373) */
+async function commonsCats(qids) {
+  const out = new Map();
+  for (let i = 0; i < qids.length; i += PACK) {
+    const vals = qids.slice(i, i + PACK).map((q) => 'wd:' + q).join(' ');
+    const q = `SELECT ?artist ?cat WHERE { VALUES ?artist { ${vals} } ?artist wdt:P373 ?cat . }`;
+    let rows = [];
+    try { rows = await ask(q); } catch (e) { continue; }
+    for (const b of rows) {
+      const a = qid(b.artist && b.artist.value);
+      const c = b.cat && b.cat.value;
+      if (a && c) out.set(a, c);
+    }
+  }
+  return out;
+}
+
+/* 분류에 파일이 몇 개인가 — categoryinfo 로 한 번에 50개씩 셉니다 */
+async function catCounts(cats) {
+  const out = new Map();
+  for (let i = 0; i < cats.length; i += 50) {
+    const part = cats.slice(i, i + 50);
+    const url = COMMONS + '?action=query&format=json&formatversion=2&prop=categoryinfo'
+              + '&titles=' + encodeURIComponent(part.map((c) => 'Category:' + c).join('|'));
+    let j = null;
+    try { j = await getJSON(url); } catch (e) { continue; }
+    for (const p of (j && j.query && j.query.pages) || []) {
+      const nm = String(p.title || '').replace(/^Category:/, '');
+      out.set(nm, (p.categoryinfo && p.categoryinfo.files) || 0);
+    }
+  }
+  return out;
+}
+
+/* 분류 안의 파일 목록 — 있는 그대로 */
+async function catFiles(cat, n) {
+  const url = COMMONS + '?action=query&format=json&formatversion=2'
+            + '&generator=categorymembers&gcmtype=file&gcmlimit=' + n
+            + '&gcmtitle=' + encodeURIComponent('Category:' + cat)
+            + '&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=800';
+  let j = null;
+  try { j = await getJSON(url); } catch (e) { return []; }
+  return ((j && j.query && j.query.pages) || []).map((p) => {
+    const ii = (p.imageinfo || [])[0] || {};
+    const ex = ii.extmetadata || {};
+    const g = (k) => (ex[k] && String(ex[k].value || '').replace(/<[^>]*>/g, '').trim()) || '';
+    return {
+      title: String(p.title || '').replace(/^File:/, ''),
+      mime:  ii.mime || '',
+      w: ii.width || 0, h: ii.height || 0,
+      license: g('LicenseShortName'),
+      object:  g('ObjectName'),
+      date:    g('DateTimeOriginal').slice(0, 40),
+      desc:    g('ImageDescription').slice(0, 60)
+    };
+  });
+}
+
+async function catPeek(artists) {
+  console.log('\n══ 커먼즈 분류 엿보기 — 거르지 않고 있는 그대로 ══\n');
+
+  const cats = await commonsCats(artists.map((a) => a.wikidata_id));
+  console.log(`  커먼즈 분류가 있는 작가 ${cats.size}명 / ${artists.length}명\n`);
+  if (!cats.size) return;
+
+  const names = [...cats.values()];
+  const counts = await catCounts(names);
+
+  const rows = artists
+    .filter((a) => cats.has(a.wikidata_id))
+    .map((a) => ({ ko: a.name_ko || a.name_en, cat: cats.get(a.wikidata_id),
+                   n: counts.get(cats.get(a.wikidata_id)) || 0 }))
+    .sort((x, y) => y.n - x.n);
+
+  const total = rows.reduce((s, r) => s + r.n, 0);
+  console.log(`  분류 안 파일 모두 ${total}개 (거르기 전)\n`);
+  console.log('  파일 많은 작가 서른');
+  for (const r of rows.slice(0, 30)) {
+    console.log(`    ${String(r.ko).padEnd(14)} ${String(r.n).padStart(5)}개   Category:${r.cat}`);
+  }
+
+  /* ★ 세 사람만 <b>실제 파일 이름</b>을 봅니다. 여기서 무엇을
+       걸러야 할지가 드러납니다. */
+  const pick = rows.filter((r) => r.n > 0).slice(0, 3);
+  for (const r of pick) {
+    console.log(`\n  ── ${r.ko} · Category:${r.cat} · ${r.n}개 가운데 스물 ──`);
+    const fs = await catFiles(r.cat, 20);
+    for (const f of fs) {
+      console.log(`    ${f.title}`);
+      console.log(`      ${f.mime} ${f.w}x${f.h} · ${f.license}`
+                + (f.object ? ` · 이름:${f.object}` : '')
+                + (f.date ? ` · 연도:${f.date}` : ''));
+      if (f.desc) console.log(`      설명: ${f.desc}`);
+    }
+  }
+  console.log('\n  ★ 위 목록을 보고 거르는 규칙을 짭니다. 지금은 담지 않습니다.');
+}
+
 /* ══ 돌리기 ══════════════════════════════════════════════════════ */
 (async () => {
   console.log('▶ 작품 수집 (커먼즈 · 우리 작가에게서 출발)'
@@ -269,6 +396,8 @@ async function upsert(rows) {
     console.log('  ★ 번호가 있는 작가가 없습니다. 작가 수집을 먼저 돌리십시오.');
     return;
   }
+
+  if (CATPEEK) { await catPeek(artists); return; }
 
   const have = await loadExisting();
   console.log(`  이미 담긴 작품 번호 ${have.size}개 (이것들은 건너뜁니다)\n`);
