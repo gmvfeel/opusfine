@@ -31,6 +31,7 @@
   }
   function $(id) { return document.getElementById(id); }
   function hide(id) { var e = $(id); if (e) e.style.display = 'none'; }
+  function show(id) { var e = $(id); if (e) e.style.display = ''; }
 
   var head = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
 
@@ -104,17 +105,21 @@
       if (!rows.length) fx.style.display = 'none';
     }
 
-    /* 그림 — 지금은 초상입니다 */
+    /* 그림 — 작가 도판(초상 또는 대표작)
+       ★★ 2026-08-23 · 「작품 도판은 작품DB 가 붙으면 이 자리에 놓입니다」를
+         지웁니다. <b>작품DB 가 붙었습니다.</b> 아래 paintWorks 가
+         그 작가의 작품을 실제로 불러옵니다. */
     var pl = $('pv-plate');
     var cap = $('pv-cap');
     if (a.image_url && pl) {
       pl.innerHTML = '<img src="' + esc(a.image_url) + '" alt="' + esc(a.name_ko) + '" referrerpolicy="no-referrer">';
       if (cap) {
         cap.querySelector('.cap-artist').textContent = a.name_ko;
-        cap.querySelector('.cap-work').innerHTML = '<em>초상</em>';
+        /* ★ 「초상」이라 못박지 않습니다 — 위키데이터 P18 은
+             초상이 없으면 <b>대표작</b>을 줍니다(이암 《모견도》). */
+        cap.querySelector('.cap-work').innerHTML = '<em>작가 도판</em>';
         cap.querySelector('.cap-meta').textContent = a.image_credit || '';
-        cap.querySelector('.cap-hold').textContent =
-          '작품 도판은 작품DB 가 붙으면 이 자리에 놓입니다';
+        cap.querySelector('.cap-hold').textContent = '초상이 없으면 대표작이 실립니다';
       }
     } else {
       if (pl) pl.innerHTML =
@@ -167,11 +172,106 @@
     }).join('');
   }
 
+  /* ── 작품 ──
+     ★★ 2026-08-23 · <b>작품DB 를 붙입니다.</b>
+       커먼즈·위키데이터에서 그 작가의 작품 330여 점을 거두어
+       artist_id 로 이어 두었습니다. 화면이 그것을 읽지 않아
+       「아직 붙지 않았습니다」가 떠 있었습니다.
+     ★ 손으로 적힌 견본 여덟 점(인왕제색도·금강전도…)을 <b>지웁니다.</b>
+       김홍도 화면에 정선 작품이 떠 있었습니다 — 견본을 남겨 두면
+       그대로 거짓이 됩니다.
+     ★ 도판 있는 것을 앞에 세웁니다. 없는 것은 뒤로 갑니다 —
+       빈 자리가 앞에 오면 목록이 비어 보입니다. */
+  async function paintWorks(a) {
+    var sec = $('sec-works');
+    if (!sec) return;
+
+    var base = OF.SB_URL + '/rest/v1/artworks?artist_id=eq.' + a.id
+             + '&hidden=not.is.true';
+    var rows = [];
+    try {
+      rows = await get(base
+        + '&select=id,title,title_han,year_text,medium,holder,image_small,image_url,rights'
+        + '&order=quality.desc,id.asc&limit=24');
+    } catch (e) { }
+
+    if (!rows.length) { hide('sec-works'); return 0; }
+    /* ★ 처음에 hideEmpty 가 감춰 둡니다. 작품이 있을 때만 되살립니다. */
+    show('sec-works');
+
+    /* 모두 몇 점인가 · 도판이 있는 것은 몇 점인가 */
+    var total = rows.length, withPic = 0;
+    try {
+      var r1 = await fetch(base + '&select=id&limit=1',
+        { headers: headCount() });
+      var m1 = /\/(\d+)$/.exec(r1.headers.get('content-range') || '');
+      if (m1) total = Number(m1[1]);
+      var r2 = await fetch(base + '&image_small=not.is.null&select=id&limit=1',
+        { headers: headCount() });
+      var m2 = /\/(\d+)$/.exec(r2.headers.get('content-range') || '');
+      if (m2) withPic = Number(m2[1]);
+    } catch (e) { withPic = rows.filter(function (w) { return w.image_small; }).length; }
+
+    var sub = sec.querySelector('.sec-sub');
+    if (sub) {
+      sub.innerHTML = total + '점'
+        + (withPic ? ' 가운데 도판이 있는 <b style="color:var(--accent)">' + withPic + '</b>점' : '');
+    }
+    var more = sec.querySelector('.sec-more');
+    if (more) more.href = '/db/work.html?artist=' + a.id;
+
+    var box = sec.querySelector('.wks');
+    if (!box) return;
+
+    /* 도판 있는 것 먼저 */
+    rows.sort(function (x, y) {
+      return (y.image_small ? 1 : 0) - (x.image_small ? 1 : 0);
+    });
+
+    box.innerHTML = rows.map(function (w) {
+      var src = w.image_small || w.image_url;
+      var pic = src
+        ? '<img src="' + esc(src) + '" alt="' + esc(w.title || '') +
+          '" referrerpolicy="no-referrer" loading="lazy">'
+        : '<span style="display:block;height:220px;background:' +
+          'repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px)"></span>';
+      /* 시그니처 차례 — 《작품명》, 연도 / 재료 / 소장처 */
+      var meta = [w.year_text, w.medium].filter(Boolean).join(' · ');
+      return '<a class="wkc" href="/db/work-view.html?id=' + w.id + '">' +
+             '<span class="p">' + pic + '</span>' +
+             '<span class="t">《' + esc(w.title || '') + '》' +
+               (w.title_han ? ' <i style="font-style:normal;color:var(--ink-3);font-size:12px">' +
+                 esc(w.title_han) + '</i>' : '') + '</span>' +
+             (meta ? '<span class="m">' + esc(meta) + '</span>' : '') +
+             (w.holder ? '<span class="h">' + esc(w.holder) + '</span>' : '') +
+             '</a>';
+    }).join('');
+    return total;
+  }
+
+  function headCount() {
+    return { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY,
+             Prefer: 'count=exact', Range: '0-0' };
+  }
+
   /* ── 아직 표가 없는 구역 ──
      ★ 견본을 남겨 두면 거짓이 됩니다. 통째로 감춥니다.
-       작품·전시·소장처·학술 표가 생기면 하나씩 되살립니다. */
+       표가 생기면 하나씩 되살립니다.
+     ★ sec-works 는 <b>되살렸습니다</b> — 작품DB 가 붙었습니다. */
   function hideEmpty() {
     ['sec-works', 'sec-exh', 'sec-hold', 'sec-rel', 'sec-paper'].forEach(hide);
+  }
+
+  /* ★ 「작품·전시·소장처·학술 자료는 아직 붙지 않았습니다」
+       — 작품은 붙었으므로 문구를 고칩니다. 거짓을 남기지 않습니다. */
+  function fixNote(hasWorks) {
+    var n = $('demo-note');
+    if (!n) return;
+    n.innerHTML = '작가 정보는 <b>위키데이터</b>에서 받은 것입니다 · '
+      + '그림은 위키미디어 커먼즈 원본을 링크합니다'
+      + (hasWorks
+         ? ' · 작품은 <b>공개 자료에서 거둔 것</b>이라 전하는 것의 일부입니다'
+         : ' · 전시·소장처·학술 자료는 <b>아직 붙지 않았습니다</b>');
   }
 
   async function boot() {
@@ -185,6 +285,8 @@
       var a = rows[0];
       paintHead(a);
       paintBio(a);
+      var n = await paintWorks(a);
+      fixNote(!!n);
       await paintMore(a);
     } catch (e) {
       notFound('자료를 불러오지 못했습니다 · ' + e.message);
