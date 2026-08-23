@@ -123,6 +123,16 @@ async function loadArtists() {
   return byName;
 }
 
+/* 도판 주소 — 크기 고르개(thumbSe)를 바꿔 줍니다 */
+function thumbOf(o, size) {
+  const u = String(o.thumbUrl || o.detailThmbUrl || '').trim();
+  if (!u) return null;
+  if (size === 'small' && SMALL_OK) return u.replace(/thumbSe=[^&]*/, 'thumbSe=' + SMALL_SE);
+  return u;
+}
+let SMALL_OK = false;
+let SMALL_SE = 'b_thumb';
+
 function quality(w) {
   let n = 0;
   if (w.image_url)   n += 4;
@@ -151,10 +161,23 @@ function build(o, byName) {
   const L = LICENSE[code];
   if (!L || !L.ok) return null;
 
-  const who = String(o.authorListNm || o.athrNm || '').split(',')[0].trim();
+  /* ★★ 2026-08-23 · 작가 이름이 <b>「허형(許瀅)」</b> 꼴로 옵니다
+       (파트너 확인). 그대로 담으면 우리 작가DB 의 「허형」과 영영
+       안 맞습니다. 괄호를 떼고, 안에 든 한자는 <b>버리지 않고</b>
+       따로 챙깁니다 — 나중에 작가 잇기에 쓸 수 있습니다. */
+  const raw = String(o.authorListNm || o.athrNm || '').split(',')[0].trim();
+  const nm = /^(.+?)\s*[(（]\s*([^)）]+)\s*[)）]\s*$/.exec(raw);
+  const who  = nm ? nm[1].trim() : raw;
+  const whoHan = nm ? nm[2].trim() : null;
+  /* 제목도 「묵매도(墨梅圖)」 꼴이 섞입니다 — 같은 방식으로 가릅니다 */
+  const tm = /^(.+?)\s*[(（]\s*([\u4E00-\u9FFF\s]+)\s*[)）]\s*$/.exec(title);
+  const titleKo  = tm ? tm[1].trim() : title;
+  const titleHan = tm ? tm[2].replace(/\s+/g, '') : null;
+
   const w = {
     gongu_sn:   sn,
-    title,
+    title:      titleKo,
+    title_han:  titleHan,
     title_en:   null,
     year_text:  String(o.orginCrtDt || '').trim() || null,
     medium:     String(o.orginMatrlTech || '').trim() || null,
@@ -163,8 +186,13 @@ function build(o, byName) {
     artist_name: (!who || /미상/.test(who)) ? null : who,
     artist_id:  null,
     link_status: 'none',
-    image_url:  String(o.detailThmbUrl || o.thumbUrl || '').trim() || null,
-    image_small: String(o.thumbUrl || o.detailThmbUrl || '').trim() || null,
+    /* ★★ 도판이 495KB~795KB 입니다 (파트너 확인). 목록에 스무 장이면
+         10MB 가 넘습니다. 주소에 thumbSe 라는 <b>크기 고르개</b>가 있어
+         작은 것으로 바꿔 담습니다 — t_thumb(큰 것) → b_thumb(작은 것).
+       ★ 다만 <b>있는지 확인한 뒤</b> 씁니다. --peek 에서 재 봅니다.
+         없으면 그대로 큰 것을 씁니다. */
+    image_url:  thumbOf(o, 'big'),
+    image_small: thumbOf(o, 'small'),
     image_credit: '공유마당 · ' + (o.srcTrgetInttNm || '한국저작권위원회')
                 + ' (' + (L.nm) + ')',
     rights:     L.rights,
@@ -253,8 +281,33 @@ async function peek() {
   else for (const [k, v] of Object.entries(w))
     console.log('   ' + k.padEnd(14) + String(v === null ? '(빈 값)' : v).slice(0, 88));
 
-  /* ⑤ 도판이 실제로 뜨는가 — 오늘의 핵심 */
-  console.log('\n── ⑤ 도판이 실제로 뜨는가');
+  /* ⑤ 도판 — 뜨는가 · <b>더 작은 것이 있는가</b>
+     ★★ 목록 도판이 495KB~795KB 입니다. 목록에 스무 장이면 10MB 를
+       넘습니다. 주소의 thumbSe 를 바꿔 <b>작은 것이 있는지</b> 재 봅니다.
+       짐작으로 바꿔 담지 않습니다 — 없는 크기를 넣으면 다 깨집니다. */
+  console.log('\n── ⑤ 도판이 뜨는가 · 더 작은 것이 있는가');
+  const one = rows0.find((r) => r.thumbUrl || r.detailThmbUrl);
+  if (one) {
+    const base = String(one.thumbUrl || one.detailThmbUrl).trim();
+    const cur = (/thumbSe=([^&]*)/.exec(base) || [])[1] || '(없음)';
+    console.log(`   지금 크기값 thumbSe=${cur}`);
+    for (const se of [cur, 'b_thumb', 's_thumb', 'm_thumb', 'l_thumb']) {
+      if (!se || se === '(없음)') continue;
+      const u = base.replace(/thumbSe=[^&]*/, 'thumbSe=' + se);
+      let msg = '?';
+      try {
+        const rr = await fetch(u, { headers: { 'User-Agent': UA } });
+        const ct = rr.headers.get('content-type') || '';
+        const b = await rr.arrayBuffer();
+        const ok = rr.ok && /image/.test(ct) && b.byteLength > 3000;
+        msg = ok ? `뜸 ✔ ${(b.byteLength / 1024).toFixed(0)}KB`
+                 : `안 뜸 ✕ HTTP ${rr.status} ${(b.byteLength / 1024).toFixed(0)}KB`;
+      } catch (e) { msg = '✕ ' + String(e.message).slice(0, 40); }
+      console.log(`     thumbSe=${se.padEnd(10)} ${msg}`);
+    }
+  }
+
+  console.log('\n   ── 세 점을 그대로 불러 봅니다');
   for (const r of rows0.slice(0, 3)) {
     const u = String(r.thumbUrl || r.detailThmbUrl || '').trim();
     if (!u) { console.log('   ✕ 주소 없음 — ' + (r.orginSj || '')); continue; }
@@ -264,15 +317,26 @@ async function peek() {
       const ct = rr.headers.get('content-type') || '';
       const b = await rr.arrayBuffer();
       s = (rr.ok && /image/.test(ct) && b.byteLength > 3000)
-        ? `뜸 ✔ ${ct.split(';')[0]} ${b.byteLength}바이트`
-        : `안 뜸 ✕ HTTP ${rr.status} ${ct} ${b.byteLength}바이트`;
-    } catch (e) { s = '✕ ' + String(e.message).slice(0, 60); }
-    console.log(`   [${s}] ${String(r.orginSj || '').slice(0, 34)}`);
-    console.log(`     ${u.slice(0, 120)}`);
+        ? `뜸 ✔ ${(b.byteLength / 1024).toFixed(0)}KB`
+        : `안 뜸 ✕ HTTP ${rr.status}`;
+    } catch (e) { s = '✕ ' + String(e.message).slice(0, 50); }
+    console.log(`   [${s}] ${String(r.orginSj || '').slice(0, 30)} — ${String(r.authorListNm || '')}`);
   }
 
+  /* ⑥ 한국미술정보센터 것만 — 우리가 노리는 것 */
+  console.log('\n── ⑥ 제공처별 (미술·이미지·받을 라이선스만)');
+  for (const [nm, cd] of [['한국미술정보센터', '01'], ['국립중앙박물관', '38'],
+                          ['문화재청', '33'], ['국립민속박물관', '32'],
+                          ['한국고전번역원', '03'], ['한국미술협회', '44']]) {
+    let n = null;
+    try { n = totalOf(await getJSON(url(1, 1) + '&searchSrcTrgetInttCd=' + cd)); } catch (e) { }
+    console.log(`   ${nm.padEnd(16)} ${n == null ? '(못 셈)' : n.toLocaleString() + '건'}`);
+  }
+  console.log('   ★ 위 수가 전체(87,705)와 같으면 <b>제공처 거르개가 안 먹는 것</b>입니다.');
+
   console.log('\n──────────────────────────────');
-  console.log('★ ⑤가 「뜸 ✔」이면 붙일 수 있습니다. 지금은 담지 않았습니다.');
+  console.log('★ 도판이 뜨고 작은 크기가 있으면 바로 담습니다.');
+  console.log('  지금은 담지 않았습니다.');
 }
 
 /* ══ 돌리기 ══════════════════════════════════════════════════════ */
