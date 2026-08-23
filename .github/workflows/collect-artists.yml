@@ -27,7 +27,7 @@ on:
         description: '무엇을 받을까요'
         type: choice
         default: kr
-        options: [kr, joseon, kr4, kr3, world, kr2]
+        options: [missing, missing-peek, kr, joseon, kr4, kr3, world, kr2]
       limit:
         description: '몇 명까지'
         default: '400'
@@ -64,10 +64,28 @@ jobs:
           IN_LIMIT: ${{ github.event.inputs.limit || '400' }}
           IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
         run: |
-          ARGS="--mode ${IN_MODE:-kr} --limit ${IN_LIMIT:-400}"
-          if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
-          echo "▶ node scripts/collect-artists.mjs $ARGS"
-          node scripts/collect-artists.mjs $ARGS
+          # ★★ 2026-08-23 · <missing> 갈래를 더했습니다.
+          #   위키데이터에서 작가를 긁어 오는 것이 아니라,
+          #   <우리 작품이 부르는 이름>을 모아 그 사람을 찾아 채웁니다.
+          #   채우는 즉시 그 사람의 작품이 이어집니다 — 헛일이 없습니다.
+          case "${IN_MODE:-kr}" in
+            missing-peek)
+              echo "▶ 누가 빠져 있는지 봅니다 (담지 않습니다)"
+              node scripts/collect-artists-missing.mjs --peek
+              ;;
+            missing)
+              ARGS="--limit ${IN_LIMIT:-400}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-artists-missing.mjs $ARGS"
+              eval node scripts/collect-artists-missing.mjs $ARGS
+              ;;
+            *)
+              ARGS="--mode ${IN_MODE:-kr} --limit ${IN_LIMIT:-400}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-artists.mjs $ARGS"
+              node scripts/collect-artists.mjs $ARGS
+              ;;
+          esac
 
       - name: 실패하면 알리기
         if: failure()
