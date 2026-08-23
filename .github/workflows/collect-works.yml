@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [cma, cma-peek, commons, commons-peek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -70,6 +70,20 @@ jobs:
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
+            commons-peek)
+              echo "▶ 우리 작가의 작품이 커먼즈에 얼마나 있는지 봅니다 (담지 않습니다)"
+              node scripts/collect-works-commons.mjs --peek
+              ;;
+            commons)
+              # ★ 작품에서 작가를 찾는 것이 아니라, <우리 작가에게서
+              #   출발해> 그 사람의 작품을 받습니다. 받는 순간 이미
+              #   이어져 있어 잇기 문제가 생기지 않습니다.
+              # ★ sql/link-11-B-apply.sql 을 먼저 돌려야 합니다.
+              ARGS="--limit ${IN_LIMIT:-8000}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-commons.mjs $ARGS"
+              eval node scripts/collect-works-commons.mjs $ARGS
+              ;;
             cma-peek)
               echo "▶ 클리블랜드가 주는 칸 이름을 봅니다 (담지 않습니다)"
               node scripts/collect-works-cma.mjs --peek
