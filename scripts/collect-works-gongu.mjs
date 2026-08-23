@@ -1,167 +1,340 @@
 #!/usr/bin/env node
 /* ══════════════════════════════════════════════════════════════════
-   OPUSFINE · 공유마당 탐색 · scripts/collect-works-gongu.mjs
+   OPUSFINE · 공유마당 · scripts/collect-works-gongu.mjs
    ------------------------------------------------------------------
    쓰는 법
      node scripts/collect-works-gongu.mjs --peek
+     node scripts/collect-works-gongu.mjs --limit 500 --dry
+     node scripts/collect-works-gongu.mjs
 
-   ★★ 왜 공유마당인가 (2026-08-23 · 확인함)
-     · 회화 분류에만 <b>30,603건</b>. 서예·조형·공예·소묘·판화도 따로.
-     · 저작권을 <b>「만료저작물」</b>로 거를 수 있습니다 — 우리가 손으로
+   ★★ 2026-08-23 · <b>정의서를 받아 짐작을 걷어 냈습니다</b> (파트너 제공).
+     요청 주소·코드표·응답 항목이 다 적혀 있습니다. 오늘 e뮤지엄에서
+     주소를 못 찾아 두 시간을 쓴 것과 정반대입니다.
+
+     요청 URL  http://gongu.copyright.or.kr/gongu/wrt/wrtApi/search.json
+
+   ★ 공유마당이 왜 좋은가
+     · 회화만 <b>30,603건</b> · 서예·조형·공예·판화도 따로
+     · <b>저작권 처리가 끝난 것만</b> 모아 둔 곳입니다. 우리가 손으로
        하던 「사후 70년」 판단을 그쪽이 이미 해 두었습니다.
-     · 제공처에 <b>한국미술정보센터·국립중앙박물관·국립현대미술관·
-       문화재청·국립민속박물관·한국미술협회</b>가 있습니다.
+     · 상세에 <b>재료·크기·소장처·제작연도</b>가 옵니다 —
+       우리 시그니처 캡션(작가/《작품》,연도/재료/소장처)에 딱 맞습니다.
 
-   ★★ 오늘 두 번 막힌 것을 되풀이하지 않기 위한 순서
-       ① <b>닿는가</b> — api.kcisa.kr 은 GitHub 서버에서 못 닿았습니다.
-                      이것부터 봅니다. 못 닿으면 나머지는 뜻이 없습니다.
-       ② <b>자료가 오는가</b> — 목록에서 몇 건이 잡히는가
-       ③ <b>도판이 뜨는가</b> — 실제 그림 주소를 받아 불러 봅니다
-       ④ 제공처·저작권 <b>코드값</b>을 알아냅니다 (짐작하지 않습니다)
+   ★★ 라이선스를 <b>골라 받습니다</b>
+     오퍼스파인에는 광고가 붙습니다(상업적 이용). 그래서
+     <b>상업적 이용이 막힌 것은 아예 받지 않습니다.</b>
+       받음  97 만료 · 98 기증(자유이용) · 01 KOGL 제1유형 · 21 CC BY · 23 CC BY-SA
+       안 받음 02·04 KOGL 상업금지 · 24·26·27 CCL 비영리
+       안 받음 22·25 CCL 변경금지 — <b>썸네일로 줄이는 것도 「변경」</b>일
+              수 있습니다. 다툼의 소지를 애초에 안 만듭니다.
+     ★ 99 기증(이용허락)도 뺍니다 — 건별로 허락을 받아야 합니다.
 
-   ★ 목록 쪽은 <b>열쇠 없이도</b> 열립니다(공개 화면). 그래서 ①~④ 를
-     열쇠 없이 먼저 봅니다. 공식 API 주소는 열쇠 화면에 적혀 있는데
-     아직 모르므로, 알게 되면 그때 붙입니다.
-
-   ★ 긁기(scraping)는 <b>확인용으로만</b> 씁니다. 실제 수집은
-     공식 API 로 합니다 — 남의 화면을 긁어 쓰는 것은 예의가 아니고
-     화면이 바뀌면 조용히 깨집니다.
+   ★ --peek 은 담지 않고 <b>몇 건인지·도판이 뜨는지</b>만 봅니다.
    ══════════════════════════════════════════════════════════════════ */
 
-import { makeGetJSON } from './lib/http.mjs';
+import { makeGetJSON, isStop, stopReason } from './lib/http.mjs';
 
-const KEY = process.env.GONGU_KEY || '';
+const SB_URL = process.env.SUPABASE_URL;
+const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
+const KEY    = process.env.GONGU_KEY;
+
+const API = 'https://gongu.copyright.or.kr/gongu/wrt/wrtApi/search.json';
 const UA  = 'OpusfineBot/1.0 (https://opusfine.com; cser@wixon.co.kr)';
-const BASE = 'https://gongu.copyright.or.kr';
 
-/* 화면에서 확인한 갈래 코드 */
-const LIST = BASE + '/gongu/wrt/wrtCl/listWrtImage.do';
-const CLS = [
-  { name: '회화',       wrtTy: 10004, cl: 10035 },
-  { name: '서예',       wrtTy: 10004, cl: 10040 },
-  { name: '조형',       wrtTy: 10004, cl: 10038 },
-  { name: '캘리그라피', wrtTy: 10004, cl: 10036 },
-  { name: '만화',       wrtTy: 10004, cl: 10042 }
-];
+/* 정의서 코드표 — 짐작이 아니라 <b>받아 적은 것</b>입니다 */
+const LICENSE = {
+  '97': { nm: '만료',            ok: true,  rights: 'public' },
+  '98': { nm: '기증(자유이용)',  ok: true,  rights: 'public' },
+  '01': { nm: 'KOGL 출처표시',   ok: true,  rights: 'public' },
+  '21': { nm: 'CC BY',           ok: true,  rights: 'public' },
+  '23': { nm: 'CC BY-SA',        ok: true,  rights: 'public' },
+  '99': { nm: '기증(이용허락)',  ok: false },
+  '02': { nm: 'KOGL 상업금지',   ok: false },
+  '03': { nm: 'KOGL 변경금지',   ok: false },
+  '04': { nm: 'KOGL 상업+변경금지', ok: false },
+  '20': { nm: 'CCL(기타)',       ok: false },
+  '22': { nm: 'CC BY-ND',        ok: false },
+  '24': { nm: 'CC BY-NC',        ok: false },
+  '25': { nm: 'CC BY-NC-ND',     ok: false },
+  '26': { nm: 'CC BY-NC-SA',     ok: false },
+  '27': { nm: 'CCL(기타)',       ok: false }
+};
+const USE = Object.keys(LICENSE).filter((k) => LICENSE[k].ok);
 
-async function raw(u) {
-  const r = await fetch(u, { headers: { 'User-Agent': UA, Accept: 'text/html,application/xml,*/*' } });
-  return { status: r.status, type: r.headers.get('content-type') || '', body: await r.text() };
+const WRT_ART   = '10004';   /* 저작물유형 · 미술 */
+const FILE_IMG  = '02';      /* 파일유형 · 이미지 */
+
+const getJSON = makeGetJSON({
+  ua: UA, accept: 'application/json',
+  tries: 5, maxWaitMs: 120 * 1000, budgetMs: 40 * 60 * 1000
+});
+
+const argv = process.argv.slice(2);
+const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
+const PEEK  = argv.includes('--peek');
+const DRY   = argv.includes('--dry');
+const LIMIT = Number(arg('limit', 5000));
+const PAGE  = 100;
+
+if (!KEY) {
+  console.error('★ GONGU_KEY 가 없습니다. 공유마당 API 키를 Secrets 에 넣으십시오.');
+  process.exit(1);
+}
+if (!PEEK && (!SB_URL || !SB_KEY)) {
+  console.error('★ SUPABASE_URL · SUPABASE_SERVICE_KEY 가 없습니다.');
+  process.exit(1);
 }
 
-/* ── 화면에서 값 뽑기 ──
-   ★ 정규식으로 화면을 읽습니다. 확인용이라 이 정도면 됩니다.
-     실제 수집은 API 로 하므로 여기 규칙이 깨져도 자료가 상하지 않습니다. */
-function total(html) {
-  const m = /총\s*:\s*<[^>]*>?\s*([\d,]+)\s*<?[^>]*>?\s*건/.exec(html)
-         || /([\d,]{3,})\s*건/.exec(html);
-  return m ? Number(m[1].replace(/,/g, '')) : null;
+function url(page, rows, lic) {
+  return API + '?apiKey=' + encodeURIComponent(KEY)
+    + '&wrtTy=' + WRT_ART + '&wrtFileTy=' + FILE_IMG
+    + '&licenseCd=' + (lic || USE.join(','))
+    + '&pageUnit=' + rows + '&pageIndex=' + page;
 }
-function items(html) {
-  const out = [];
-  const re = /wrt\/wrt\/view\.do\?wrtSn=(\d+)[^"']*["'][^>]*>([^<]{1,80})</g;
-  let m;
-  while ((m = re.exec(html)) !== null) {
-    const t = m[2].replace(/\s+/g, ' ').trim();
-    if (t && !/이미지$/.test(t)) out.push({ sn: m[1], title: t });
+
+/* 응답에서 줄을 꺼냅니다 — 정의서에 resultList 로 적혀 있습니다 */
+function rowsOf(j) {
+  if (!j) return [];
+  if (Array.isArray(j.resultList)) return j.resultList;
+  for (const k of Object.keys(j)) if (Array.isArray(j[k]) && j[k].length && j[k][0].wrtSn) return j[k];
+  return [];
+}
+const totalOf = (j) => Number((j && (j.resultCnt ?? j.totalCount)) || 0);
+
+/* ── 우리 작가DB ── */
+async function loadArtists() {
+  const byName = new Map();
+  let from = 0;
+  for (;;) {
+    const r = await fetch(SB_URL + '/rest/v1/artists?select=id,name_ko,name_en&limit=1000&offset=' + from,
+      { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    if (!r.ok) break;
+    const rows = await r.json();
+    if (!rows.length) break;                       /* ★ 0줄일 때 끝냅니다 */
+    for (const a of rows) for (const nm of [a.name_ko, a.name_en]) {
+      if (!nm) continue;
+      const k = String(nm).trim();
+      if (!k) continue;
+      if (!byName.has(k)) byName.set(k, []);
+      byName.get(k).push(a.id);
+    }
+    from += rows.length;
   }
-  /* 같은 것이 두 번 잡힙니다(그림 링크 + 글자 링크) */
-  const seen = new Set();
-  return out.filter((x) => (seen.has(x.sn) ? false : (seen.add(x.sn), true)));
+  return byName;
 }
-/* 고르개의 코드값 — 짐작하지 않고 화면에서 뽑습니다 */
-function options(html, nameHint) {
-  const out = [];
-  const re = new RegExp('<(?:option|input)[^>]*value=["\'](\\d{1,8})["\'][^>]*>\\s*([^<]{1,30})', 'g');
-  let m;
-  while ((m = re.exec(html)) !== null) {
-    const t = m[2].trim();
-    if (t && (!nameHint || nameHint.test(t))) out.push([t, m[1]]);
+
+function quality(w) {
+  let n = 0;
+  if (w.image_url)   n += 4;
+  if (w.year_text)   n += 2;
+  if (w.medium)      n += 2;
+  if (w.artist_name) n += 2;
+  if (w.artist_id)   n += 2;
+  if (w.holder)      n += 1;
+  if (w.link_source) n += 1;
+  if (w.genre)       n += 1;
+  return n;
+}
+
+/* ── 한 점 만들기 ──
+   ★ 목록만으로도 담을 수 있게 짭니다. 상세는 재료·소장처가 있어
+     더 좋지만 <b>건마다 한 번 더 물어야</b> 합니다. 하루 한도가
+     있으므로 목록으로 먼저 채우고, 상세는 나중에 채웁니다. */
+function build(o, byName) {
+  const sn = String(o.wrtSn || '').trim();
+  const title = String(o.orginSj || '').trim();
+  if (!sn || !title) return null;
+
+  /* ★ 라이선스를 <b>다시 확인</b>합니다. 요청에서 걸렀어도
+       응답이 다르게 올 수 있습니다 — 믿고 넘어가지 않습니다. */
+  const code = String(o.licenseCd || '').padStart(2, '0');
+  const L = LICENSE[code];
+  if (!L || !L.ok) return null;
+
+  const who = String(o.authorListNm || o.athrNm || '').split(',')[0].trim();
+  const w = {
+    gongu_sn:   sn,
+    title,
+    title_en:   null,
+    year_text:  String(o.orginCrtDt || '').trim() || null,
+    medium:     String(o.orginMatrlTech || '').trim() || null,
+    dimensions: String(o.orginSize || '').trim() || null,
+    genre:      String(o.clListName || o.clNm || '').replace(/\s+/g, ' ').trim() || null,
+    artist_name: (!who || /미상/.test(who)) ? null : who,
+    artist_id:  null,
+    link_status: 'none',
+    image_url:  String(o.detailThmbUrl || o.thumbUrl || '').trim() || null,
+    image_small: String(o.thumbUrl || o.detailThmbUrl || '').trim() || null,
+    image_credit: '공유마당 · ' + (o.srcTrgetInttNm || '한국저작권위원회')
+                + ' (' + (L.nm) + ')',
+    rights:     L.rights,
+    holder:     String(o.orginPosesn || o.srcTrgetInttNm || '').trim() || null,
+    link_source: String(o.gongLinkUrl || o.linkUrl || '').trim()
+              || ('https://gongu.copyright.or.kr/gongu/wrt/wrt/view.do?wrtSn=' + sn),
+    hidden:     false
+  };
+
+  /* 작가 잇기 — 이름이 꼭 같고 하나뿐일 때만 */
+  if (w.artist_name) {
+    const hit = byName.get(w.artist_name);
+    if (hit && hit.length === 1) { w.artist_id = hit[0]; w.link_status = 'auto'; }
+    else if (hit && hit.length > 1) { w.link_status = 'ambig'; }
   }
-  return out;
+  w.quality = quality(w);
+  if (w.quality < 4) return null;
+  return w;
 }
 
-(async () => {
-  console.log('▶ 공유마당 탐색 — 담지 않습니다\n');
-  console.log('  열쇠: ' + (KEY ? '있음(' + KEY.slice(0, 8) + '…)' : '없음 — 목록 확인만 합니다') + '\n');
+async function upsert(rows) {
+  if (!rows.length) return { ok: 0, msg: '' };
+  const r = await fetch(SB_URL + '/rest/v1/artworks?on_conflict=gongu_sn', {
+    method: 'POST',
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=ignore-duplicates,return=minimal'
+    },
+    body: JSON.stringify(rows)
+  });
+  if (!r.ok) {
+    const t = (await r.text()).slice(0, 300);
+    if (t.includes('42P10') || t.includes('gongu_sn'))
+      return { ok: 0, msg: '★ artworks.gongu_sn 칸이나 고유 인덱스가 없습니다. '
+                         + 'sql/gongu-14-B-apply.sql 을 먼저 돌리십시오. (' + t + ')' };
+    return { ok: 0, msg: r.status + ' ' + t };
+  }
+  return { ok: rows.length, msg: '' };
+}
 
-  /* ── ① 닿는가 ── */
-  console.log('── ① GitHub 서버에서 닿는가');
-  let home = null;
-  try { home = await raw(BASE + '/gongu/main/main.do'); }
+/* ══ 엿보기 ══════════════════════════════════════════════════════ */
+async function peek() {
+  console.log('▶ 공유마당 엿보기 — 담지 않습니다\n');
+
+  /* ① 닿는가 · 열쇠가 먹는가 */
+  console.log('── ① 닿는가 · 열쇠가 먹는가');
+  let j = null;
+  try { j = await getJSON(url(1, 3, '97')); }
   catch (e) {
-    console.log('   ✕ 못 닿습니다 — ' + String(e.message).slice(0, 120));
-    console.log('     (api.kcisa.kr 과 같은 증상입니다. 이러면 GitHub Actions 에서는');
-    console.log('      수집할 수 없고, 다른 자리에서 돌리거나 중계가 필요합니다.)');
+    console.log('   ✕ ' + String(e.message).slice(0, 160));
+    console.log('     (api.kcisa.kr 과 같은 증상이면 GitHub Actions 에서는 못 받습니다)');
     return;
   }
-  console.log(`   ✔ 닿습니다 — HTTP ${home.status} · ${home.body.length}바이트\n`);
-
-  /* ── ② 갈래마다 몇 건인가 ── */
-  console.log('── ② 갈래마다 몇 건인가');
-  let firstHtml = null;
-  for (const c of CLS) {
-    const u = `${LIST}?menuNo=200018&pageIndex=1&sortSe=date&wrtTy=${c.wrtTy}&depth2ClSn=${c.cl}&pageUnit=24`;
-    let r = null;
-    try { r = await raw(u); } catch (e) { console.log(`   ${c.name} ✕ ${e.message}`); continue; }
-    const n = total(r.body);
-    console.log(`   ${c.name.padEnd(12)} ${n == null ? '(못 셈)' : n.toLocaleString() + '건'}`);
-    if (!firstHtml) firstHtml = r.body;
+  const rows0 = rowsOf(j);
+  console.log(`   ✔ 답이 옵니다 · 전체 ${totalOf(j).toLocaleString()}건 · 이번에 ${rows0.length}줄`);
+  if (!rows0.length) {
+    console.log('   ※ 줄이 없습니다. 답 앞부분 —');
+    console.log('   ' + JSON.stringify(j).slice(0, 600));
+    return;
   }
 
-  /* ── ③ 제공처·저작권 코드값 ── */
-  console.log('\n── ③ 고르개 코드값 (짐작하지 않고 화면에서 뽑습니다)');
-  if (firstHtml) {
-    const prov = options(firstHtml, /미술정보|박물관|미술관|문화재청|미술협회|고전번역/);
-    if (prov.length) {
-      console.log('   제공처');
-      prov.slice(0, 15).forEach(([t, v]) => console.log(`     ${t.padEnd(20)} ${v}`));
-    } else {
-      console.log('   (제공처 코드를 화면에서 못 뽑았습니다 — 화면 구조가 다릅니다)');
-    }
+  /* ② 라이선스마다 몇 건인가 */
+  console.log('\n── ② 라이선스마다 몇 건인가 (미술 · 이미지)');
+  for (const [code, L] of Object.entries(LICENSE)) {
+    let n = null;
+    try { n = totalOf(await getJSON(url(1, 1, code))); } catch (e) { }
+    console.log(`   ${(L.ok ? '받음  ' : '안 받음')} ${code} ${L.nm.padEnd(18)}`
+              + (n == null ? '(못 셈)' : n.toLocaleString() + '건'));
+  }
+  let useN = null;
+  try { useN = totalOf(await getJSON(url(1, 1))); } catch (e) { }
+  console.log(`   ── 받을 것 모두: ${useN == null ? '?' : useN.toLocaleString()}건`);
+
+  /* ③ 한 줄이 무엇을 주나 */
+  console.log('\n── ③ 한 줄이 주는 칸과 값');
+  const o = rows0[0];
+  for (const k of Object.keys(o)) {
+    console.log('   ' + k.padEnd(20)
+      + String(o[k] === null || o[k] === '' ? '(빈 값)' : o[k]).slice(0, 78).replace(/\s+/g, ' '));
   }
 
-  /* ── ④ 한 점을 열어 도판 주소를 봅니다 ── */
-  console.log('\n── ④ 도판이 뜨는가');
-  if (!firstHtml) { console.log('   (목록을 못 받아 건너뜁니다)'); return; }
-  const list = items(firstHtml);
-  console.log(`   목록에서 잡은 항목 ${list.length}개`);
-  if (!list.length) { console.log('   (항목을 못 뽑았습니다)'); return; }
+  console.log('\n── ④ 우리 표에 들어갈 모습');
+  const w = build(o, new Map());
+  if (!w) console.log('   (충실도가 모자라거나 라이선스가 안 맞아 담지 않습니다)');
+  else for (const [k, v] of Object.entries(w))
+    console.log('   ' + k.padEnd(14) + String(v === null ? '(빈 값)' : v).slice(0, 88));
 
-  for (const it of list.slice(0, 3)) {
-    console.log(`\n   ▸ ${it.title} (wrtSn=${it.sn})`);
-    let d = null;
-    try { d = await raw(`${BASE}/gongu/wrt/wrt/view.do?wrtSn=${it.sn}&menuNo=200018`); }
-    catch (e) { console.log('     ✕ 상세를 못 받음'); continue; }
-
-    /* 도판 주소로 보이는 것 */
-    const imgs = [...new Set([...d.body.matchAll(/(?:src|href)=["']([^"']*(?:thumb|image|img|down|file)[^"']*)["']/gi)]
-      .map((m) => m[1])
-      .filter((u) => !/static\/gongu\/img/.test(u))
-      .map((u) => (u.startsWith('http') ? u : BASE + u)))].slice(0, 6);
-
-    if (!imgs.length) { console.log('     ✕ 도판 주소를 못 찾음'); continue; }
-    for (const u of imgs) {
-      let ok = '?', len = 0, ct = '';
-      try {
-        const r = await fetch(u, { headers: { 'User-Agent': UA } });
-        ct = r.headers.get('content-type') || '';
-        const b = await r.arrayBuffer();
-        len = b.byteLength;
-        ok = (r.ok && /image/.test(ct) && len > 3000) ? '뜸 ✔' : `HTTP ${r.status}`;
-      } catch (e) { ok = '✕ ' + String(e.message).slice(0, 40); }
-      console.log(`     [${ok}] ${ct.split(';')[0]} ${len}바이트`);
-      console.log(`       ${u.slice(0, 110)}`);
-    }
-
-    /* 저작권 표시 */
-    const lic = /(만료저작물|기증저작물|공공누리|제\s*1\s*유형|CC[- ]?BY[-A-Z]*)/.exec(d.body);
-    if (lic) console.log(`     저작권 표시: ${lic[1]}`);
+  /* ⑤ 도판이 실제로 뜨는가 — 오늘의 핵심 */
+  console.log('\n── ⑤ 도판이 실제로 뜨는가');
+  for (const r of rows0.slice(0, 3)) {
+    const u = String(r.thumbUrl || r.detailThmbUrl || '').trim();
+    if (!u) { console.log('   ✕ 주소 없음 — ' + (r.orginSj || '')); continue; }
+    let s = '?';
+    try {
+      const rr = await fetch(u, { headers: { 'User-Agent': UA } });
+      const ct = rr.headers.get('content-type') || '';
+      const b = await rr.arrayBuffer();
+      s = (rr.ok && /image/.test(ct) && b.byteLength > 3000)
+        ? `뜸 ✔ ${ct.split(';')[0]} ${b.byteLength}바이트`
+        : `안 뜸 ✕ HTTP ${rr.status} ${ct} ${b.byteLength}바이트`;
+    } catch (e) { s = '✕ ' + String(e.message).slice(0, 60); }
+    console.log(`   [${s}] ${String(r.orginSj || '').slice(0, 34)}`);
+    console.log(`     ${u.slice(0, 120)}`);
   }
 
   console.log('\n──────────────────────────────');
-  console.log('★ 이 결과를 보내 주시면 다음을 정합니다.');
-  console.log('  · 닿는다 → 공식 API 주소를 열쇠 화면에서 확인해 붙입니다');
-  console.log('  · 도판이 뜬다 → 어느 주소꼴을 쓸지 정합니다');
-  console.log('  지금은 아무것도 담지 않았습니다.');
+  console.log('★ ⑤가 「뜸 ✔」이면 붙일 수 있습니다. 지금은 담지 않았습니다.');
+}
+
+/* ══ 돌리기 ══════════════════════════════════════════════════════ */
+(async () => {
+  if (PEEK) { await peek(); return; }
+
+  console.log(`▶ 공유마당 수집 · 미술·이미지 · 라이선스 ${USE.join(',')}`
+    + ` · limit=${LIMIT}${DRY ? ' · 세어만 봅니다' : ''}`);
+
+  let byName = new Map();
+  try { byName = await loadArtists(); } catch (e) { }
+  console.log(`  작가 이름 ${byName.size}개를 담아 두었습니다\n`);
+
+  let got = 0, kept = 0, put = 0, skipLic = 0, thin = 0, auto = 0;
+  const errs = [];
+
+  for (let p = 1; got < LIMIT; p++) {
+    let j = null;
+    try { j = await getJSON(url(p, PAGE)); }
+    catch (e) {
+      if (isStop(e)) { console.log('  ■ 멈춥니다 — ' + stopReason(e)); break; }
+      errs.push(`page ${p}: ${e.message}`);
+      if (errs.length > 3) break;
+      continue;
+    }
+    const rows = rowsOf(j);
+    if (!rows.length) break;                       /* ★ 0줄일 때 끝냅니다 */
+    const total = totalOf(j);
+
+    const out = [];
+    for (const o of rows) {
+      got++;
+      const before = kept;
+      const w = build(o, byName);
+      if (!w) {
+        const code = String(o.licenseCd || '').padStart(2, '0');
+        if (!LICENSE[code] || !LICENSE[code].ok) skipLic++; else thin++;
+        continue;
+      }
+      kept++;
+      if (w.link_status === 'auto') auto++;
+      out.push(w);
+    }
+
+    if (!DRY && out.length) {
+      const res = await upsert(out);
+      if (res.msg) { errs.push(res.msg); if (errs.length > 3) break; }
+      else put += res.ok;
+    }
+    console.log(`  ${got}/${total || '?'} · 담을 것 ${kept}${DRY ? '' : ` · 담음 ${put}`}`);
+    if (total && got >= total) break;
+  }
+
+  console.log('──────────────────────────────');
+  console.log(`  받은 것            ${got}`);
+  console.log(`  라이선스가 안 맞아 뺌 ${skipLic}`);
+  console.log(`  얇아서 뺀 것        ${thin}`);
+  console.log(`  담을 만한 것        ${kept}`);
+  console.log(`  작가와 이어짐       ${auto}`);
+  if (!DRY) console.log(`  실제로 담음         ${put}`);
+  if (errs.length) {
+    console.log(`  ★ 문제 ${errs.length}건`);
+    errs.slice(0, 3).forEach((m) => console.log('     · ' + m));
+  }
 })();

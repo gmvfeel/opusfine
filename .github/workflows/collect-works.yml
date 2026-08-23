@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -71,6 +71,15 @@ jobs:
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
+            gongu)
+              # ★ 공유마당 — 상업적 이용이 되는 라이선스만 받습니다
+              #   (만료·기증자유·KOGL제1유형·CC BY·CC BY-SA)
+              # ★ sql/gongu-14-B-apply.sql 을 먼저 돌려야 합니다.
+              ARGS="--limit ${IN_LIMIT:-8000}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-gongu.mjs $ARGS"
+              eval node scripts/collect-works-gongu.mjs $ARGS
+              ;;
             gongu-peek)
               # ★ 공유마당 — 닿는지 · 도판이 뜨는지부터 봅니다.
               #   api.kcisa.kr 이 GitHub 서버에서 못 닿았던 전례가 있습니다.
