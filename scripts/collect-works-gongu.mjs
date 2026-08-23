@@ -130,8 +130,40 @@ function thumbOf(o, size) {
   if (size === 'small' && SMALL_OK) return u.replace(/thumbSe=[^&]*/, 'thumbSe=' + SMALL_SE);
   return u;
 }
+/* ★★ 2026-08-23 · 크기 고르개(thumbSe)는 <b>안 먹습니다</b> (파트너 확인).
+     t_thumb·b_thumb·s_thumb·m_thumb·l_thumb 모두 같은 483KB 였습니다.
+     API 로는 못 줄이므로 원본을 링크합니다. 나중에 R2 로 옮길 때
+     우리가 줄입니다. */
 let SMALL_OK = false;
 let SMALL_SE = 'b_thumb';
+
+/* ── 한국 것 가리기 ────────────────────────────────────────────
+   ★★ 제공처 거르개(searchSrcTrgetInttCd)도 <b>안 먹습니다</b>
+     (파트너 확인 · 어느 코드를 넣어도 87,705건).
+
+   ▶ 대신 <b>tagNmList</b> 를 씁니다. 응답에 이미 실려 오므로
+     따로 물을 것이 없습니다.
+       "미술,국내미술,동양화,고전미술,허형(許瀅)"
+     여기 <b>국내미술</b> 이 있습니다.
+
+   ★ 87,705건을 다 받으면 오퍼스파인이 <b>서양 창고</b>가 됩니다.
+     CC BY 30,161건은 대개 바깥 것입니다. 한국 미술 포털이니
+     한국 것을 골라 담습니다.
+   ★ 낱말을 짐작하지 않습니다 — --peek 에서 <b>실제로 오는 태그</b>를
+     세어 보고 정했습니다. */
+const TAG_KR = /국내미술|한국화|동양화|고전미술|민화|불화|서예|문인화|산수화|풍속화|조선|고려|삼국|근대미술/;
+/* 바깥 것이라고 말해 주는 태그 — 있으면 뺍니다 */
+const TAG_OUT = /해외미술|서양미술|외국/;
+
+function isKorean(o) {
+  const t = String(o.tagNmList || '') + ' ' + String(o.clListName || o.clNm || '');
+  if (TAG_OUT.test(t)) return false;
+  if (TAG_KR.test(t)) return true;
+  /* ★ 태그가 없을 때는 <b>제목과 작가가 한글인지</b>로 봅니다.
+       Bonnard·Munch 같은 것은 여기서 걸러집니다. */
+  const s2 = String(o.orginSj || '') + ' ' + String(o.authorListNm || '');
+  return /[가-힣]/.test(s2);
+}
 
 function quality(w) {
   let n = 0;
@@ -160,6 +192,9 @@ function build(o, byName) {
   const code = String(o.licenseCd || '').padStart(2, '0');
   const L = LICENSE[code];
   if (!L || !L.ok) return null;
+
+  /* ★ 한국 것만 담습니다 — 위 isKorean 주석 참조 */
+  if (!isKorean(o)) return null;
 
   /* ★★ 2026-08-23 · 작가 이름이 <b>「허형(許瀅)」</b> 꼴로 옵니다
        (파트너 확인). 그대로 담으면 우리 작가DB 의 「허형」과 영영
@@ -323,8 +358,30 @@ async function peek() {
     console.log(`   [${s}] ${String(r.orginSj || '').slice(0, 30)} — ${String(r.authorListNm || '')}`);
   }
 
-  /* ⑥ 한국미술정보센터 것만 — 우리가 노리는 것 */
-  console.log('\n── ⑥ 제공처별 (미술·이미지·받을 라이선스만)');
+  /* ⑥ 어떤 태그가 오나 — <b>거르는 낱말을 짐작하지 않기 위함</b> */
+  console.log('\n── ⑥ 실제로 오는 태그 (200줄 표본)');
+  const tagCnt = new Map();
+  let krN = 0, allN = 0;
+  try {
+    const j2 = await getJSON(url(1, 200));
+    for (const r of rowsOf(j2)) {
+      allN++;
+      if (isKorean(r)) krN++;
+      for (const t of String(r.tagNmList || '').split(',')) {
+        const k = t.trim();
+        if (k && k.length < 16) tagCnt.set(k, (tagCnt.get(k) || 0) + 1);
+      }
+    }
+  } catch (e) { console.log('   (못 셈 — ' + e.message + ')'); }
+  const top = [...tagCnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
+  for (const [t, n] of top) console.log(`   ${String(n).padStart(4)}  ${t}`);
+  if (allN) console.log(`\n   ★ 표본 ${allN}줄 가운데 <b>한국 것 ${krN}줄</b>`
+                      + ` (${Math.round(krN / allN * 100)}%)`);
+  console.log('     → 전체 87,705건이면 대략 '
+            + (allN ? Math.round(87705 * krN / allN).toLocaleString() : '?') + '건쯤');
+
+  /* ⑦ 제공처 거르개 — 안 먹는 것을 확인해 둡니다 */
+  console.log('\n── ⑦ 제공처 거르개 (2026-08-23 · <b>안 먹는 것을 확인</b>)');
   for (const [nm, cd] of [['한국미술정보센터', '01'], ['국립중앙박물관', '38'],
                           ['문화재청', '33'], ['국립민속박물관', '32'],
                           ['한국고전번역원', '03'], ['한국미술협회', '44']]) {
@@ -350,7 +407,7 @@ async function peek() {
   try { byName = await loadArtists(); } catch (e) { }
   console.log(`  작가 이름 ${byName.size}개를 담아 두었습니다\n`);
 
-  let got = 0, kept = 0, put = 0, skipLic = 0, thin = 0, auto = 0;
+  let got = 0, kept = 0, put = 0, skipLic = 0, skipOut = 0, thin = 0, auto = 0;
   const errs = [];
 
   for (let p = 1; got < LIMIT; p++) {
@@ -373,7 +430,9 @@ async function peek() {
       const w = build(o, byName);
       if (!w) {
         const code = String(o.licenseCd || '').padStart(2, '0');
-        if (!LICENSE[code] || !LICENSE[code].ok) skipLic++; else thin++;
+        if (!LICENSE[code] || !LICENSE[code].ok) skipLic++;
+        else if (!isKorean(o)) skipOut++;
+        else thin++;
         continue;
       }
       kept++;
@@ -393,6 +452,7 @@ async function peek() {
   console.log('──────────────────────────────');
   console.log(`  받은 것            ${got}`);
   console.log(`  라이선스가 안 맞아 뺌 ${skipLic}`);
+  console.log(`  한국 것이 아니라 뺌  ${skipOut}`);
   console.log(`  얇아서 뺀 것        ${thin}`);
   console.log(`  담을 만한 것        ${kept}`);
   console.log(`  작가와 이어짐       ${auto}`);
