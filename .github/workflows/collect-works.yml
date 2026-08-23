@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -58,6 +58,7 @@ jobs:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATA_GO_KEY:          ${{ secrets.DATA_GO_KEY }}
+          GONGU_KEY:            ${{ secrets.GONGU_KEY }}
           EMUSEUM_URL:          ${{ vars.EMUSEUM_URL }}
           IN_SRC:   ${{ github.event.inputs.src   || 'cma' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
@@ -70,6 +71,12 @@ jobs:
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
+            gongu-peek)
+              # ★ 공유마당 — 닿는지 · 도판이 뜨는지부터 봅니다.
+              #   api.kcisa.kr 이 GitHub 서버에서 못 닿았던 전례가 있습니다.
+              echo "▶ 공유마당을 두드려 봅니다 (담지 않습니다)"
+              node scripts/collect-works-gongu.mjs --peek
+              ;;
             commons-cat)
               # ★ 커먼즈 <분류>에서 그림을 거둡니다. 저작권이 풀린
               #   작가(죽은 지 70년 넘음)만 다룹니다.
