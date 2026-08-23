@@ -119,7 +119,7 @@ function quality(w) {
   if (w.holder)      n += 1;
   if (w.link_source) n += 1;
   if (w.genre)       n += 1;
-  if (w.title_orig)  n += 1;
+  if (w.title_han)   n += 1;
   return n;
 }
 
@@ -155,6 +155,23 @@ function exhibitionText(o) {
   return all.length ? all.join('\n') : null;
 }
 
+/* ── 소장 내력 ──
+   ★ [{description, date}, …] 로 옵니다. 차례(sortorder)를 지켜
+     한 줄씩 붙입니다. 차례가 뒤섞이면 이력이 거꾸로 읽힙니다. */
+function provenanceText(o) {
+  const rows = (o.provenance || [])
+    .slice()
+    .sort((a, b) => (a.sortorder || 0) - (b.sortorder || 0))
+    .map((p) => {
+      const t = String(p.description || '').replace(/<[^>]*>/g, '').trim();
+      if (!t) return null;
+      const d = String(p.date || '').trim();
+      return d ? `${d}  ${t}` : t;
+    })
+    .filter(Boolean);
+  return rows.length ? rows.join('\n') : null;
+}
+
 /* ── 한 점 만들기 ── */
 function build(o, byName) {
   if (!o || !o.id) return null;
@@ -172,7 +189,11 @@ function build(o, byName) {
     cma_id:      o.id,
     title,
     title_en:    title,
-    title_orig:  String(o.title_in_original_language || '').trim() || null,
+    /* ★★ 2026-08-23 · 표를 보니 <b>title_han 이 이미 있었습니다</b>.
+         제가 표를 안 보고 title_orig 를 새로 만들 뻔했습니다.
+         같은 것을 담는 칸이 둘이면 나중에 어느 쪽을 봐야 하는지
+         헷갈리고, 화면이 한쪽만 보면 다른 쪽 자료는 영영 안 나옵니다. */
+    title_han:   String(o.title_in_original_language || '').trim() || null,
     year_text:   o.creation_date || null,
     year_from:   Number.isFinite(o.creation_date_earliest) ? o.creation_date_earliest : null,
     year_to:     Number.isFinite(o.creation_date_latest)   ? o.creation_date_latest   : null,
@@ -199,6 +220,11 @@ function build(o, byName) {
          작가DB(wikidata_id)와 맞춰 볼 때 매번 잘라 내야 합니다. */
     wikidata_id: wd ? (String(wd).match(/Q\d+/) || [null])[0] : null,
     exhibition_history: exhibitionText(o),
+    /* ★ 소장 내력 — 미술 아카이브에서 값진 자료입니다.
+         「누가 갖고 있다가 누구에게 갔는가」는 작품의 이력 그 자체입니다.
+         날짜와 글이 따로 오므로 「1998– 클리블랜드」처럼 붙여 담습니다. */
+    provenance:  provenanceText(o),
+    credit_line: String(o.creditline || '').trim() || null,
     artist_id:   null,
     link_status: 'none',
     hidden:      false
@@ -280,6 +306,8 @@ async function peek() {
   show('external_resources.wikidata', ((o.external_resources || {}).wikidata || [])[0]);
   show('exhibitions 수', ((o.exhibitions || {}).current || []).length
                        + ((o.exhibitions || {}).legacy  || []).length);
+  show('provenance 수', (o.provenance || []).length);
+  show('creditline',    o.creditline);
 
   console.log('\n▶ 우리 표에 들어갈 모습\n');
   const w = build(o, new Map());
