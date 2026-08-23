@@ -363,7 +363,20 @@ async function catFiles(cat, n) {
      「이건 그림인데 왜 빠졌지」를 파트너가 눈으로 볼 수 있어야 합니다. */
 
 /* 그림이라고 말해 주는 낱말 */
-const SAY_ART = /painting|paintings|dipinto|peinture|gem(ä|ae)lde|album\s*(leaf|of)|hanging scroll|handscroll|folding screen|ink and |ink on |colou?r on |watercolou?r|oil on|calligraphy|drawn by|painted by|self.?portrait|portrait of|landscape|자화상|초상|필\s|그림|수묵|담채|채색|비단에|종이에|화첩|병풍|족자|서화|산수/i;
+const SAY_ART_EN = /painting|paintings|dipinto|peinture|gem(ä|ae)lde|album\s*(leaf|of)|hanging scroll|handscroll|folding screen|ink and |ink on |colou?r on |watercolou?r|oil on|calligraphy|drawn by|painted by|self.?portrait|portrait of|landscape|national treasure|treasure of/i;
+/* ★★ 2026-08-23 · <b>한국 미술 낱말</b>을 따로 둡니다 (파트너 확인).
+     채용신 《고종 어진》이 빠져 있었습니다. 설명이 한글인데
+     <b>어진(御眞)</b>이 목록에 없었습니다 — 임금의 초상을 이르는
+     말이고, 한국 미술 아카이브에 없어서는 안 될 낱말입니다.
+   ★ 지금 채워 두면 채용신·이한철·조석진처럼 <b>어진화사</b>로
+     활동한 화가들 작품이 계속 새어 나가는 것을 막습니다.
+     나중에 e뮤지엄 자료에도 그대로 씁니다.
+   ★★ 둘을 <b>|| 로 잇지 않습니다.</b> 정규식은 언제나 참이라
+     앞엣것만 남고 뒤엣것은 죽습니다. 함수로 둘 다 봅니다. */
+const SAY_ART_KO = /어진|어용|영정|진영|초상|자화상|화상|필\s|그림|수묵|담채|채색|비단에|종이에|화첩|병풍|족자|두루마리|서화|산수|풍속|화조|영모|묵죽|묵매|사군자|그린|그렸|보물\s*(제|No)|국보/;
+
+function sayArt(t) { return SAY_ART_EN.test(t) || SAY_ART_KO.test(t); }
+
 /* 그림 제목에 흔한 글자 — 圖(도) · 帖(첩) · 屛(병) */
 const SAY_TITLE = /[圖図帖屛屏軸卷巻]|jeondo|jesaekdo|chongramdo|nongjeopdo|byeong\b/i;
 /* 그림이 아니라고 말해 주는 낱말 */
@@ -407,7 +420,7 @@ function artScore(f, artist) {
        사진도 같은 분류에 들어 있습니다. */
   sc += 2;
 
-  const isArt = SAY_ART.test(text);
+  const isArt = sayArt(text);
   if (isArt)                sc += 5;
   if (SAY_TITLE.test(text)) sc += 2;
   if (SAY_NOT.test(text))   sc -= 6;
