@@ -179,9 +179,18 @@ nav > .mi > a{display:block;padding:22px 0;border-bottom:2px solid transparent}
 nav > .mi:hover > a,nav > .mi > a.on{border-bottom-color:var(--ink)}
 nav a:hover{border-bottom-color:var(--ink)}
 
-/* 작은 상자 */
+/* 작은 상자
+   ★ 2026-08-23 · 하위 판에 <b>옅은 그림자</b>를 넣습니다 (파트너 지적).
+     바탕도 희고 판도 희어서 가는 줄 하나로는 <b>떠 있다</b>는 것이
+     읽히지 않았습니다.
+   ★ 색을 쓰지 않는 원칙은 그대로입니다 — 그림자도 회색이 아니라
+     <b>먹빛(#17171A)을 아주 옅게</b> 깝니다. 회색 그림자는 탁해 보입니다.
+   ★ 두 겹으로 깝니다. 가까운 것(1px)은 판의 <b>가장자리</b>를 세우고,
+     먼 것(12px 번짐)은 판이 <b>얼마나 떠 있는지</b>를 말합니다.
+     한 겹만 쓰면 둘 중 하나가 반드시 어색합니다. */
 .dd{position:absolute;top:100%;left:-16px;min-width:184px;
   background:var(--paper);border:1px solid var(--rule);padding:10px 0;
+  box-shadow:0 1px 2px rgba(23,23,26,.05),0 12px 30px -8px rgba(23,23,26,.13);
   opacity:0;visibility:hidden;transform:translateY(-6px);
   transition:opacity .18s,transform .18s,visibility .18s;z-index:70}
 .mi:hover .dd{opacity:1;visibility:visible;transform:translateY(0)}
@@ -198,7 +207,10 @@ nav a:hover{border-bottom-color:var(--ink)}
      <b>메뉴 아래 제자리</b>에 떨어지되 넓게 펼칩니다. 아카이브가 첫
      메뉴라 오른쪽으로 자연스럽게 펴집니다.
    ★ 창이 좁으면 화면 안에 들어오도록 스스로 줄어듭니다. */
+/* ★ 큰 판은 <b>조금 더 깊게</b> 깝니다. 넓은 면은 같은 그림자를 써도
+     얕아 보입니다 — 번짐 거리를 면적에 맞춰 늘려야 같은 높이로 읽힙니다. */
 .dd.dd-wide{left:-20px;min-width:0;padding:0;
+  box-shadow:0 2px 4px rgba(23,23,26,.05),0 24px 56px -14px rgba(23,23,26,.17);
   width:min(940px, calc(100vw - 64px))}
 .dd-in{display:grid;grid-template-columns:1.05fr 1.05fr .95fr;gap:0 34px;padding:22px 24px}
 .dd-h{display:block;font-size:10px;letter-spacing:.2em;color:var(--ink-3);
@@ -219,7 +231,10 @@ nav a:hover{border-bottom-color:var(--ink)}
 .dd-pick .pk-m{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
 .dd-pick .pk:hover .pk-t{color:var(--accent)}
 
-html[data-theme="dark"] .dd{background:var(--paper)}
+/* ★ 어두운 바탕에서는 옅은 그림자가 보이지 않습니다. 순검정으로
+     <b>더 짙게</b> 깔되, 가장자리는 그림자 대신 <b>테두리</b>가 세웁니다. */
+html[data-theme="dark"] .dd{background:var(--paper);
+  box-shadow:0 2px 6px rgba(0,0,0,.45),0 24px 56px -14px rgba(0,0,0,.65)}
 html[data-theme="dark"] .dd a:hover{background:#1B1B1E}
 html[data-theme="dark"] .dd.dd-wide .dd-in{background:var(--paper)}
 
