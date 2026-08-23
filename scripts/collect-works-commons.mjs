@@ -80,7 +80,7 @@ async function loadArtists() {
   let from = 0;
   for (;;) {
     const r = await fetch(
-      SB_URL + '/rest/v1/artists?select=id,name_ko,name_en,wikidata_id'
+      SB_URL + '/rest/v1/artists?select=id,name_ko,name_en,wikidata_id,birth_year,death_year'
       + '&hidden=not.is.true&wikidata_id=not.is.null'
       + '&order=quality.desc,id.asc&limit=1000&offset=' + from,
       { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
@@ -345,6 +345,130 @@ async function catFiles(cat, n) {
   });
 }
 
+/* ── 그림다움 점수 ────────────────────────────────────────────
+   ★★ 2026-08-23 · 분류 실물을 보고 짰습니다 (짐작이 아닙니다).
+     정선 20개는 전부 그림이었고, 김홍도는 안산 풍경 사진 2장이,
+     나혜석은 스물 가운데 <b>열넷</b>이 인물 사진·잡지 광고·편지였습니다.
+
+   ★ 낱말 하나로 자르지 않습니다. <b>여러 신호를 더합니다.</b>
+     낱말 하나로 자르면 그 낱말이 없는 그림이 통째로 빠집니다 —
+     오늘 김관호를 그렇게 잘못 감췄습니다.
+
+   ★ 4점 이상만 담습니다. <b>어중간한 것은 안 담는 쪽</b>을 고릅니다.
+     빠뜨린 그림은 나중에 더하면 되지만, 잘못 담긴 사진은
+     「정선의 작품」이라는 거짓말로 화면에 남습니다.
+
+   ★ 점수는 --catpeek 에서 <b>파일마다 보입니다.</b>
+     「이건 그림인데 왜 빠졌지」를 파트너가 눈으로 볼 수 있어야 합니다. */
+
+/* 그림이라고 말해 주는 낱말 */
+const SAY_ART = /painting|paintings|dipinto|peinture|gem(ä|ae)lde|album\s*(leaf|of)|hanging scroll|handscroll|folding screen|ink and |ink on |colou?r on |watercolou?r|oil on|calligraphy|drawn by|painted by|self.?portrait|portrait of|landscape|자화상|초상|필\s|그림|수묵|담채|채색|비단에|종이에|화첩|병풍|족자|서화|산수/i;
+/* 그림 제목에 흔한 글자 — 圖(도) · 帖(첩) · 屛(병) */
+const SAY_TITLE = /[圖図帖屛屏軸卷巻]|jeondo|jesaekdo|chongramdo|nongjeopdo|byeong\b/i;
+/* 그림이 아니라고 말해 주는 낱말 */
+const SAY_NOT = /photograph|사진|letter|편지|광고|advertisement|magazine|잡지|poster|포스터|grave|tomb|무덤|stamp|우표|banknote|지폐|monument|기념비|statue|동상|exhibition view|전시\s*전경|signature|서명|book cover|표지|map\b|지도|logo|screenshot|plaque|현판|festival|축제|family|가족|married|wedding|결혼|혼례|lecture|강연|homage|오마주/i;
+
+/* ★★ 「…of 작가이름」 — <b>그 사람을 그리거나 찍은 것</b>입니다.
+     "Portrait of Kim Hong-do" 는 김홍도의 <b>작품이 아니라</b>
+     김홍도를 그린 남의 그림입니다. 앞 판이 이것을 못 가려
+     단원 초상을 김홍도 작품으로 담았습니다. */
+const SAY_OF = /(portrait|painting|photo|picture|image)\s+of\s+([^.;]{0,50})/gi;
+/* ★★ 「사람 + 연도」 꼴 — "Na Hye-sok in 1926" · "Na Hye-sok, 1928"
+     사진 설명의 전형입니다. */
+const SAY_SHOT = /\bin\s+(1[89]|20)\d\d\b|,\s*(c\.\s*)?(1[89]|20)\d\d\b|\bin\s+[A-Z][a-z]+\s*$/;
+
+function yearIn(text) {
+  const t = String(text || '');
+  let m = t.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
+  if (m) return Number(m[1]);
+  /* "late 18th century" · "18thC" → 그 세기의 한가운데로 봅니다 */
+  m = t.match(/\b(1[0-9]|20)\s*th\s*(century|C)\b/i);
+  if (m) return (Number(m[1]) - 1) * 100 + 50;
+  return null;
+}
+
+/* ★★ 이름 견주기 — <b>닿소리만 남겨</b> 견줍니다.
+     로마자 표기가 사람마다 다릅니다.
+       Na Hye-sok / Na Hyeseok / Na Hye-seok  → 모두 <b>nhysk</b>
+     앞 판은 글자 그대로 견줘서 「Peonies … by Na Hyeseok」을 놓쳤습니다. */
+function bones(s2) {
+  return String(s2 || '').toLowerCase()
+    .replace(/[^a-z가-힣]/g, '')
+    .replace(/[aeiou]/g, '');
+}
+
+function artScore(f, artist) {
+  let sc = 0;
+  const text = [f.title, f.object, f.desc].filter(Boolean).join(' ');
+
+  /* ★ 그 작가의 분류 안에 있다는 것만으로 <b>조금</b> 줍니다.
+       분류가 그 작가 것이니 아주 무관하진 않습니다. 다만 조금만 —
+       사진도 같은 분류에 들어 있습니다. */
+  sc += 2;
+
+  const isArt = SAY_ART.test(text);
+  if (isArt)                sc += 5;
+  if (SAY_TITLE.test(text)) sc += 2;
+  if (SAY_NOT.test(text))   sc -= 6;
+
+
+  /* ★★ 가장 센 신호 — <b>「by 작가이름」</b> */
+  const bEn = bones(artist.name_en), bKo = bones(artist.name_ko);
+  const bTx = bones(text);
+  const named = (bEn.length > 3 && bTx.includes(bEn))
+             || (bKo.length > 1 && bTx.includes(bKo));
+  const isNot = SAY_NOT.test(text);
+  /* ★ 「…이 아니다」 낱말이 걸렸으면 <b>by 덤을 주지 않습니다.</b>
+       「나혜석의 가족사진」의 <b>의</b> 를 「그렸다」로 잘못 읽었습니다. */
+  if (named && !isNot && /\bby\b|\bdi\b|의\s|필\s/i.test(text)) sc += 5;
+  else if (named) sc += 1;
+
+  /* ★ 만든 해가 작가가 살아 있던 때 안에 들면 그림 쪽입니다.
+       연도를 <b>글 전체</b>에서 찾습니다 — date 칸만 보면
+       설명에 적힌 "c. 1788" 을 놓칩니다. */
+  const yr = yearIn(f.date) || yearIn(text);
+  const b = artist.birth_year, d = artist.death_year;
+  if (yr && b && yr >= b - 5 && yr <= (d || b + 100) + 5) sc += 3;
+
+  /* ★★ 「…of 그 작가」 — 그 사람을 <b>그린/찍은</b> 것입니다.
+     ★ 「of」 <b>바로 뒤에</b> 그 작가 이름이 오는지를 봅니다.
+       그냥 「of 가 있고 어딘가에 이름이 있다」로 보면
+       "Ink painting of two immortals … by Kim Hongdo" 처럼
+       <b>진짜 작품</b>까지 깎입니다. 앞 판이 그랬습니다.
+     ★ "Self-Portrait by …" 는 본인 작품이므로 뺍니다. */
+  SAY_OF.lastIndex = 0;
+  let ofHit = false, m2;
+  while ((m2 = SAY_OF.exec(text)) !== null) {
+    const after = bones(m2[2]);
+    if ((bEn.length > 3 && after.includes(bEn)) || (bKo.length > 1 && after.includes(bKo))) {
+      ofHit = true; break;
+    }
+  }
+  if (ofHit && !/\bby\b|self.?portrait|자화상/i.test(text)) sc -= 9;
+
+  /* ★ 「이름 + 연도」 꼴은 사진 설명입니다 — 그림 낌새가 없을 때만. */
+  if (!isArt && named && SAY_SHOT.test(text)) sc -= 6;
+
+  /* ★★ 최근 날짜 + 자유 라이선스 = 누가 찍어 올린 것.
+       그런데 <b>그림을 찍어 올린 것</b>도 많습니다. 그림 낌새가
+       없을 때만 깎습니다 — 앞 판은 무조건 깎아 여러 점을 놓쳤습니다. */
+  const shot = yearIn(f.date);
+  if (!isArt && !named && shot && shot >= 2000 && /CC /i.test(f.license || '')) sc -= 4;
+
+  /* ★ 아주 작은 것은 섬네일 사진이 많습니다. 그림 낌새가 있으면
+       깎지 않습니다 — 김홍도 《계회도》가 232x567 입니다. */
+  const long = Math.max(f.w || 0, f.h || 0);
+  if (!isArt && !named && long && long < 400) sc -= 3;
+
+  return sc;
+}
+
+/* ★ 분류 이름이 <b>작가 분류가 아닌 것</b>을 걸러 냅니다.
+     「Category:Files by KYJOON」은 어떤 사용자가 올린 파일 모음입니다.
+     위키데이터 P373 이 잘못 걸린 것이고, 그 안에는 그 작가의 작품이
+     없습니다. */
+const BAD_CAT = /^(files by|media by|images by|photographs by|uploads by|user:)/i;
+
 async function catPeek(artists) {
   console.log('\n══ 커먼즈 분류 엿보기 — 거르지 않고 있는 그대로 ══\n');
 
@@ -357,8 +481,15 @@ async function catPeek(artists) {
 
   const rows = artists
     .filter((a) => cats.has(a.wikidata_id))
-    .map((a) => ({ ko: a.name_ko || a.name_en, cat: cats.get(a.wikidata_id),
+    .map((a) => ({ a, ko: a.name_ko || a.name_en, cat: cats.get(a.wikidata_id),
                    n: counts.get(cats.get(a.wikidata_id)) || 0 }))
+    .filter((r) => {
+      if (BAD_CAT.test(r.cat)) {
+        console.log(`  (건너뜀 · ${r.ko} — Category:${r.cat} 는 작가 분류가 아닙니다)`);
+        return false;
+      }
+      return true;
+    })
     .sort((x, y) => y.n - x.n);
 
   const total = rows.reduce((s, r) => s + r.n, 0);
@@ -370,19 +501,26 @@ async function catPeek(artists) {
 
   /* ★ 세 사람만 <b>실제 파일 이름</b>을 봅니다. 여기서 무엇을
        걸러야 할지가 드러납니다. */
-  const pick = rows.filter((r) => r.n > 0).slice(0, 3);
+  /* ★ 점수를 <b>파일마다 찍어</b> 보여 줍니다. 「이건 그림인데
+       왜 빠졌지」를 파트너가 눈으로 볼 수 있어야 합니다. */
+  const pick = rows.filter((r) => r.n > 0).slice(0, 4);
+  let keep = 0, drop = 0;
   for (const r of pick) {
     console.log(`\n  ── ${r.ko} · Category:${r.cat} · ${r.n}개 가운데 스물 ──`);
     const fs = await catFiles(r.cat, 20);
     for (const f of fs) {
-      console.log(`    ${f.title}`);
-      console.log(`      ${f.mime} ${f.w}x${f.h} · ${f.license}`
-                + (f.object ? ` · 이름:${f.object}` : '')
-                + (f.date ? ` · 연도:${f.date}` : ''));
-      if (f.desc) console.log(`      설명: ${f.desc}`);
+      const sc = artScore(f, r.a);
+      const ok = sc >= 4;
+      if (ok) keep++; else drop++;
+      console.log(`    [${ok ? '담음' : '뺌 '} ${String(sc).padStart(3)}] ${f.title}`);
+      console.log(`             ${f.w}x${f.h} · ${f.license}`
+                + (f.date ? ` · 연도:${String(f.date).slice(0, 24)}` : ''));
+      if (f.desc) console.log(`             ${f.desc}`);
     }
   }
-  console.log('\n  ★ 위 목록을 보고 거르는 규칙을 짭니다. 지금은 담지 않습니다.');
+  console.log(`\n  네 사람 여든 개 가운데 — 담을 것 ${keep} · 뺄 것 ${drop}`);
+  console.log('  ★ 「담음/뺌」이 어긋난 것이 있으면 알려 주십시오. 점수를 고칩니다.');
+  console.log('  ★ 지금은 담지 않았습니다.');
 }
 
 /* ══ 돌리기 ══════════════════════════════════════════════════════ */
