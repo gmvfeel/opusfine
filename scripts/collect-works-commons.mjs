@@ -61,6 +61,7 @@ const argv = process.argv.slice(2);
 const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
 const PEEK  = argv.includes('--peek');
 const CATPEEK = argv.includes('--catpeek');
+const CAT     = argv.includes('--cat');
 const DRY   = argv.includes('--dry');
 const LIMIT = Number(arg('limit', 5000));
 
@@ -463,6 +464,63 @@ function artScore(f, artist) {
   return sc;
 }
 
+/* ── 저작권 관문 ──────────────────────────────────────────────
+   ★★ 2026-08-23 · 서도호 분류에서 드러났습니다 (파트너 확인).
+     미국 정부가 찍은 사진이라 <b>사진은</b> 퍼블릭 도메인입니다.
+     그러나 <b>작품 자체의 저작권은 살아 있습니다.</b> 사진의 권리와
+     작품의 권리는 <b>다릅니다.</b>
+
+   ▶ 죽은 지 <b>70년</b>이 안 된 작가는 통째로 건너뜁니다.
+     살아 있는 작가는 말할 것도 없습니다.
+     ★ 이것은 점수로 재는 것이 아닙니다. <b>관문</b>입니다.
+       아무리 그림다워도 권리가 없으면 못 싣습니다.
+
+   ★ 엄격하게 갑니다. 남의 작품을 함부로 실으면 점 하나가 아니라
+     <b>아카이브 전체의 믿음</b>이 무너집니다.
+   ★ 몰년을 모르는 사람도 건너뜁니다 — 모를 때 안 싣는 쪽입니다.
+     조선 화가는 몰년이 다 있으므로 잃는 것이 거의 없습니다. */
+const PD_YEARS = 70;
+
+function rightsGate(artist) {
+  const now = new Date().getFullYear();
+  const d = artist.death_year;
+  if (d && (now - d) > PD_YEARS) return { ok: true, why: '' };
+  if (d) return { ok: false, why: `몰년 ${d} — 아직 ${PD_YEARS}년이 안 됐습니다` };
+  /* 몰년이 없어도 태어난 지 오래면 풀린 것으로 봅니다 */
+  const b = artist.birth_year;
+  if (b && (now - b) > (PD_YEARS + 100)) return { ok: true, why: '' };
+  return { ok: false, why: b ? `몰년 모름 (${b}년생)` : '생몰년 모름' };
+}
+
+/* ── 같은 것 여러 장 거르기 ───────────────────────────────────
+   ★★ 서도호 스물이 <b>한 작품을 여러 각도에서 찍은 것</b>이었습니다
+     (LCCN2013634555 … 574). 그대로 담으면 목록이 똑같은 것으로
+     도배됩니다.
+   ★ 파일 이름에서 <b>번호와 잔글씨를 걷어 낸 뼈대</b>가 같으면
+     한 장만 남깁니다. 가장 큰 것을 남깁니다 — 같은 작품이라면
+     큰 쪽이 낫습니다. */
+function skeleton(f) {
+  return String(f.title || '')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .toLowerCase()
+    .replace(/lccn\d+/g, '')
+    .replace(/dsc\d+/g, '')
+    .replace(/[-_\s]*\(?\d{1,6}\)?$/g, '')
+    .replace(/[^a-z가-힣]/g, '')
+    .slice(0, 40);
+}
+
+function dedupe(list) {
+  const best = new Map();
+  for (const f of list) {
+    const k = skeleton(f) || String(f.title);
+    const cur = best.get(k);
+    const size = (f.w || 0) * (f.h || 0);
+    if (!cur || size > (cur.w || 0) * (cur.h || 0)) best.set(k, f);
+  }
+  return [...best.values()];
+}
+
 /* ★ 분류 이름이 <b>작가 분류가 아닌 것</b>을 걸러 냅니다.
      「Category:Files by KYJOON」은 어떤 사용자가 올린 파일 모음입니다.
      위키데이터 P373 이 잘못 걸린 것이고, 그 안에는 그 작가의 작품이
@@ -479,7 +537,19 @@ async function catPeek(artists) {
   const names = [...cats.values()];
   const counts = await catCounts(names);
 
-  const rows = artists
+  /* ★ 저작권이 안 풀린 작가는 <b>목록에서부터</b> 뺍니다.
+       그림다움을 재기 전에 거르는 관문입니다. */
+  let blocked = 0;
+  const okArtists = artists.filter((a) => {
+    if (!cats.has(a.wikidata_id)) return false;
+    const g = rightsGate(a);
+    if (!g.ok) { blocked++; return false; }
+    return true;
+  });
+  console.log(`  저작권이 안 풀려 건너뛴 작가 ${blocked}명`
+            + ` (죽은 지 ${PD_YEARS}년이 안 됐거나 몰년을 모름)\n`);
+
+  const rows = okArtists
     .filter((a) => cats.has(a.wikidata_id))
     .map((a) => ({ a, ko: a.name_ko || a.name_en, cat: cats.get(a.wikidata_id),
                    n: counts.get(cats.get(a.wikidata_id)) || 0 }))
@@ -507,7 +577,7 @@ async function catPeek(artists) {
   let keep = 0, drop = 0;
   for (const r of pick) {
     console.log(`\n  ── ${r.ko} · Category:${r.cat} · ${r.n}개 가운데 스물 ──`);
-    const fs = await catFiles(r.cat, 20);
+    const fs = dedupe(await catFiles(r.cat, 20));
     for (const f of fs) {
       const sc = artScore(f, r.a);
       const ok = sc >= 4;
@@ -523,6 +593,142 @@ async function catPeek(artists) {
   console.log('  ★ 지금은 담지 않았습니다.');
 }
 
+/* ══ 분류에서 거두기 ═════════════════════════════════════════════
+   ★ catPeek 이 보여 준 것을 <b>그대로</b> 담습니다. 눈으로 본 것과
+     담기는 것이 다르면 안 됩니다 — 같은 함수(artScore·dedupe·
+     rightsGate)를 씁니다.
+   ★ 커먼즈 파일에는 위키데이터 번호가 없습니다. 그래서
+     <b>파일 이름</b>을 열쇠로 씁니다(commons_file).
+     sql/link-12-B-apply.sql 을 먼저 돌려야 합니다. */
+function fromFile(f, artist) {
+  /* 이름 — ObjectName 이 있으면 그것을, 없으면 파일 이름에서 */
+  let title = String(f.object || '').trim();
+  if (!title || /^[A-Za-z0-9 ._-]{0,4}$/.test(title)) {
+    title = String(f.title || '').replace(/\.[a-z0-9]+$/i, '').replace(/[_]/g, ' ').trim();
+  }
+  /* ★ 커먼즈 이름표에 딸려 오는 잔글씨를 걷어 냅니다
+       "Inwang jesaekdolabel QS:Lja,…" 처럼 옵니다. */
+  title = title.replace(/label\s+QS:.*$/i, '').replace(/date\s+QS:.*$/i, '').trim();
+  if (!title) return null;
+
+  const yr = yearIn(f.date) || yearIn([f.title, f.object, f.desc].join(' '));
+  const inLife = yr && artist.birth_year
+              && yr >= artist.birth_year - 5
+              && yr <= (artist.death_year || artist.birth_year + 100) + 5;
+
+  const url = 'https://commons.wikimedia.org/wiki/Special:FilePath/'
+            + encodeURIComponent(String(f.title).replace(/ /g, '_'));
+
+  const w = {
+    commons_file: f.title,
+    title,
+    title_en:    /[가-힣]/.test(title) ? null : title,
+    year_text:   inLife ? String(yr) : null,
+    year_from:   inLife ? yr : null,
+    year_to:     inLife ? yr : null,
+    medium:      null,
+    dimensions:  null,
+    genre:       null,
+    artist_name: artist.name_ko || artist.name_en,
+    artist_id:   artist.id,
+    /* ★ 그 작가의 분류에서 나왔고 그림으로 판정된 것입니다.
+         위키데이터가 「그렸다」고 한 것(P170)보다는 약한 근거라
+         auto 가 아니라 <b>cat</b> 으로 적습니다. 나중에 골라
+         다시 볼 수 있어야 합니다. */
+    link_status: 'cat',
+    image_url:   url + '?width=1200',
+    image_small: url + '?width=800',
+    image_credit: 'Wikimedia Commons' + (f.license ? ' · ' + f.license : ''),
+    rights:      'public',
+    holder:      null,
+    link_source: 'https://commons.wikimedia.org/wiki/File:'
+               + encodeURIComponent(String(f.title).replace(/ /g, '_')),
+    hidden:      false
+  };
+  w.quality = quality(w);
+  return w;
+}
+
+async function upsertFiles(rows) {
+  if (!rows.length) return { ok: 0, msg: '' };
+  const r = await fetch(SB_URL + '/rest/v1/artworks?on_conflict=commons_file', {
+    method: 'POST',
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=ignore-duplicates,return=minimal'
+    },
+    body: JSON.stringify(rows)
+  });
+  if (!r.ok) {
+    const t = (await r.text()).slice(0, 300);
+    if (t.includes('42P10') || t.includes('commons_file')) {
+      return { ok: 0, msg: '★ artworks.commons_file 칸이 없거나 고유 인덱스가 없습니다. '
+                         + 'sql/link-12-B-apply.sql 을 먼저 돌리십시오. (' + t + ')' };
+    }
+    return { ok: 0, msg: r.status + ' ' + t };
+  }
+  return { ok: rows.length, msg: '' };
+}
+
+async function catHarvest(artists) {
+  console.log('\n══ 커먼즈 분류에서 거두기 ══\n');
+
+  const cats = await commonsCats(artists.map((a) => a.wikidata_id));
+  const use = artists.filter((a) => cats.has(a.wikidata_id)
+                                 && !BAD_CAT.test(cats.get(a.wikidata_id))
+                                 && rightsGate(a).ok);
+  console.log(`  분류가 있고 저작권이 풀린 작가 ${use.length}명\n`);
+  if (!use.length) return;
+
+  let got = 0, kept = 0, put = 0, dropped = 0, merged = 0;
+  const errs = [];
+
+  for (const a of use) {
+    const cat = cats.get(a.wikidata_id);
+    let fs = [];
+    try { fs = await catFiles(cat, 200); }
+    catch (e) { if (isStop(e)) { console.log('  ■ 멈춥니다'); break; } continue; }
+    got += fs.length;
+
+    const before = fs.length;
+    fs = dedupe(fs);
+    merged += before - fs.length;
+
+    const rows = [];
+    for (const f of fs) {
+      /* ★ 그림 파일만 — pdf · svg · ogg 가 섞입니다 */
+      if (f.mime && !/^image\/(jpeg|png|tiff?|webp)$/.test(f.mime)) { dropped++; continue; }
+      if (artScore(f, a) < 4) { dropped++; continue; }
+      const w = fromFile(f, a);
+      if (!w) { dropped++; continue; }
+      rows.push(w);
+    }
+    kept += rows.length;
+
+    if (!DRY && rows.length) {
+      const res = await upsertFiles(rows);
+      if (res.msg) { errs.push(res.msg); if (errs.length > 3) break; }
+      else put += res.ok;
+    }
+    if (rows.length) {
+      console.log(`    ${String(a.name_ko || a.name_en).padEnd(14)}`
+                + ` ${String(rows.length).padStart(3)}점  (분류 ${before}개 중)`);
+    }
+  }
+
+  console.log('\n──────────────────────────────');
+  console.log(`  분류에서 본 파일    ${got}`);
+  console.log(`  같은 것이라 합침    ${merged}`);
+  console.log(`  그림이 아니라 뺌    ${dropped}`);
+  console.log(`  담을 만한 작품      ${kept}점 (작가와 모두 이어짐)`);
+  if (!DRY) console.log(`  실제로 담음         ${put}`);
+  if (errs.length) {
+    console.log(`  ★ 문제 ${errs.length}건`);
+    errs.slice(0, 3).forEach((m) => console.log('     · ' + m));
+  }
+}
+
 /* ══ 돌리기 ══════════════════════════════════════════════════════ */
 (async () => {
   console.log('▶ 작품 수집 (커먼즈 · 우리 작가에게서 출발)'
@@ -536,12 +742,20 @@ async function catPeek(artists) {
   }
 
   if (CATPEEK) { await catPeek(artists); return; }
+  if (CAT)     { await catHarvest(artists); return; }
 
   const have = await loadExisting();
   console.log(`  이미 담긴 작품 번호 ${have.size}개 (이것들은 건너뜁니다)\n`);
 
-  const byQid = new Map(artists.map((a) => [a.wikidata_id, a]));
-  const qids  = artists.map((a) => a.wikidata_id);
+  /* ★★ 저작권 관문 — 그림다움을 재기 <b>전에</b> 거릅니다.
+       죽은 지 70년이 안 된 작가의 작품은 권리가 살아 있습니다.
+       위키데이터에서 받은 것도 마찬가지입니다. */
+  const okArtists = artists.filter((a) => rightsGate(a).ok);
+  console.log(`  저작권이 풀린 작가 ${okArtists.length}명`
+            + ` (안 풀려 건너뜀 ${artists.length - okArtists.length}명)\n`);
+
+  const byQid = new Map(okArtists.map((a) => [a.wikidata_id, a]));
+  const qids  = okArtists.map((a) => a.wikidata_id);
 
   const seen = new Map();      /* 작품번호 → 담을 것 (P170 과 P800 이 겹칩니다) */
   const perArtist = new Map(); /* 작가별 몇 점인가 — 엿보기에서 보여 줍니다 */
