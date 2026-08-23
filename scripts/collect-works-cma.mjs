@@ -155,6 +155,45 @@ function exhibitionText(o) {
   return all.length ? all.join('\n') : null;
 }
 
+/* ── 제목 ──
+   ★★ 2026-08-23 · 엿보기에서 알았습니다 — 한국 소장품은
+     title_in_original_language 에 <b>한글까지</b> 옵니다.
+       "금동아미타여래삼존좌상 [金銅阿彌陀如來三尊坐像]"
+     영문 "Amitabha Triad" 보다 이쪽이 낫습니다. 한국 미술 포털인데
+     화면에 영문 제목이 뜨면 안 됩니다. (파트너 결정 · 안 가)
+
+   ▶ 한글이 있으면 <b>한글을 title 로</b> 올립니다.
+     영문은 title_en 에 그대로 두고, 한자는 title_han 에 담습니다.
+
+   ★ 형식이 늘 같으리라 <b>믿지 않습니다.</b> 대괄호가 없을 수도,
+     한자만 올 수도, 한글과 한자가 섞여 올 수도 있습니다.
+     그래서 <b>글자 종류로 가릅니다</b> — 대괄호를 자르는 것이 아니라
+     한글 낱자가 실제로 있는지 봅니다.
+   ★ 중국·일본 것은 한글이 없으므로 영문 그대로 갑니다.
+     자동으로 그렇게 됩니다 — 부서를 따로 보지 않습니다. */
+const HANGUL = /[\uAC00-\uD7A3]/;
+const HANJA  = /[\u4E00-\u9FFF\u3400-\u4DBF]/;
+
+function titles(o) {
+  const en   = String(o.title || '').trim();
+  const orig = String(o.title_in_original_language || '').trim();
+  if (!orig) return { title: en, title_en: en, title_han: null };
+
+  /* 「한글 [한자]」· 「한글(한자)」 꼴이면 갈라 둡니다 */
+  const m = orig.match(/^(.+?)\s*[\[(]\s*(.+?)\s*[\])]\s*$/);
+  let ko = null, han = null;
+
+  if (m && HANGUL.test(m[1])) { ko = m[1].trim(); han = m[2].trim(); }
+  else if (HANGUL.test(orig)) { ko = orig; han = HANJA.test(orig) ? orig : null; }
+  else                        { han = orig; }
+
+  return {
+    title:     ko || en,          /* 한글이 있으면 한글, 없으면 영문 */
+    title_en:  en || null,
+    title_han: han || null
+  };
+}
+
 /* ── 소장 내력 ──
    ★ [{description, date}, …] 로 옵니다. 차례(sortorder)를 지켜
      한 줄씩 붙입니다. 차례가 뒤섞이면 이력이 거꾸로 읽힙니다. */
@@ -175,8 +214,8 @@ function provenanceText(o) {
 /* ── 한 점 만들기 ── */
 function build(o, byName) {
   if (!o || !o.id) return null;
-  const title = String(o.title || '').trim();
-  if (!title) return null;                   /* 이름 없는 것은 담지 않습니다 */
+  const t = titles(o);
+  if (!t.title) return null;                 /* 이름 없는 것은 담지 않습니다 */
 
   const cc0 = o.share_license_status === 'CC0';
   const web = ((o.images || {}).web || {}).url || null;
@@ -187,13 +226,14 @@ function build(o, byName) {
 
   const w = {
     cma_id:      o.id,
-    title,
-    title_en:    title,
-    /* ★★ 2026-08-23 · 표를 보니 <b>title_han 이 이미 있었습니다</b>.
-         제가 표를 안 보고 title_orig 를 새로 만들 뻔했습니다.
-         같은 것을 담는 칸이 둘이면 나중에 어느 쪽을 봐야 하는지
-         헷갈리고, 화면이 한쪽만 보면 다른 쪽 자료는 영영 안 나옵니다. */
-    title_han:   String(o.title_in_original_language || '').trim() || null,
+    /* ★ title / title_en / title_han — 위 titles() 참조.
+         한국 것은 한글이 title 로 올라옵니다.
+       ★ title_orig 를 따로 만들지 않습니다 — title_han 이
+         이미 있었습니다(2026-08-23 표 확인). 같은 것을 담는 칸이
+         둘이면 화면이 한쪽만 보고 다른 쪽은 영영 안 나옵니다. */
+    title:       t.title,
+    title_en:    t.title_en,
+    title_han:   t.title_han,
     year_text:   o.creation_date || null,
     year_from:   Number.isFinite(o.creation_date_earliest) ? o.creation_date_earliest : null,
     year_to:     Number.isFinite(o.creation_date_latest)   ? o.creation_date_latest   : null,
@@ -279,8 +319,11 @@ function pageUrl(dept, skip, limit) {
    ★ 담지 않습니다. 자료원이 <b>실제로 주는 것</b>만 보여 줍니다. */
 async function peek() {
   console.log('▶ 엿보기 — 담지 않습니다\n');
+  /* ★ 인도·동남아는 이름이 두 가지로 돌아다닙니다. 확인 화면에서
+       3,377점이 나온 쪽이 맞습니다. 담지는 않지만 엿보기에서는
+       바른 이름으로 셉니다 — 0 을 보고 「없구나」 하면 안 됩니다. */
   for (const d of ['Korean Art', 'Chinese Art', 'Japanese Art',
-                   'Indian and South East Asian Art']) {
+                   'Indian and Southeast Asian Art']) {
     let j = null;
     try { j = await getJSON(pageUrl(d, 0, 1)); }
     catch (e) { console.log(`  ${d.padEnd(34)} ★ 못 받음 — ${e.message}`); continue; }
@@ -300,6 +343,10 @@ async function peek() {
                    'creation_date_latest','technique','measurements','department',
                    'collection','type','url']) show(k, o[k]);
   show('creators[0].description', ((o.creators || [])[0] || {}).description);
+  { const t = titles(o);
+    show('→ title (화면에 뜰 것)', t.title);
+    show('→ title_en',            t.title_en);
+    show('→ title_han',           t.title_han); }
   show('culture[0]',              (o.culture || [])[0]);
   show('images.web.url',          ((o.images || {}).web || {}).url);
   show('images.print.url',        ((o.images || {}).print || {}).url);
