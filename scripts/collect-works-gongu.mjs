@@ -78,7 +78,15 @@ const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[
      KOGL·CC BY 안에도 박물관 유물 사진이 섞여 있을 수 있지만,
      그건 태그로 골라 <b>나중에 따로</b> 받습니다.
    ★ --lic 로 바꿔 부를 수 있습니다. */
-const USE_DEFAULT = ['97', '98'];
+/* ★★ 2026-08-23 · 라이선스마다 200줄씩 세어 보고 <b>97 하나만</b>
+     남겼습니다 (파트너 확인).
+       97 만료          200/200 (100%) — 미술·국내미술·동양화·고전미술
+                        오세창 49 · 김정희 47 · 김홍도 35 · 윤용구 16
+       98 기증(자유)     0/200 — 일러스트·달력·캘린더
+       01 KOGL          0/200 — 태그조차 없음
+       21 CC BY         0/200 — 그래픽디자인·다이어리·스티커
+     98·01·21 은 <b>한 건도 못 씁니다.</b> 뺍니다. */
+const USE_DEFAULT = ['97'];
 const USE = (argv.includes('--lic')
   ? String(arg('lic', '')).split(',').map((x) => x.trim()).filter(Boolean)
   : USE_DEFAULT).filter((k) => LICENSE[k] && LICENSE[k].ok);

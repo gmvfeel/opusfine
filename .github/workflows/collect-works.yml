@@ -72,8 +72,9 @@ jobs:
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
             gongu)
-              # ★ 공유마당 — 상업적 이용이 되는 라이선스만 받습니다
-              #   (만료·기증자유·KOGL제1유형·CC BY·CC BY-SA)
+              # ★ 공유마당 — <만료(97)>만 받습니다.
+              #   200줄씩 세어 보니 97 은 100% 가 한국 고전미술이고
+              #   98·01·21 은 0% (일러스트·달력·다이어리·스티커)였습니다.
               # ★ sql/gongu-14-B-apply.sql 을 먼저 돌려야 합니다.
               ARGS="--limit ${IN_LIMIT:-8000}"
               if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
