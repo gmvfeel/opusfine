@@ -21,6 +21,15 @@
   var page = 0, total = 0, busy = false;
   var q = '', fGenre = '', fEra = '';
 
+  /* ★★ 2026-08-23 · <b>?artist=번호</b> 를 받습니다.
+       작가 상세의 「작품 전체 →」가 이 화면으로 옵니다. 받지 않으면
+       그 단추가 <b>모든 작품</b>을 보여 주어 헛돕니다.
+     ★ 숫자만 받습니다 — 주소에 적힌 것을 그대로 질의에 넣지 않습니다. */
+  var ARTIST = (function () {
+    var v = new URLSearchParams(location.search).get('artist');
+    return (v && /^\d+$/.test(v)) ? v : '';
+  })();
+
   /* 갈래 — 메트가 적어 준 classification 을 우리 말로 묶습니다 */
   var GENRE = {
     '회화': ['Paintings', 'Painting'],
@@ -47,6 +56,7 @@
     var p = [];
     p.push('select=id,title,year_text,medium,dimensions,genre,artist_name,artist_id,image_url,image_small,rights,holder,holder_dept,link_source,quality');
     p.push('hidden=not.is.true');
+    if (ARTIST) p.push('artist_id=eq.' + ARTIST);
     /* ★ <b>도판 있는 작품을 앞에</b> 세웁니다.
        ★★ 2026-08-22 · 처음에 rights.asc 로 썼다가 <b>거꾸로 됐습니다</b>
          (파트너 확인). 글자 차례로는 linked 가 public 보다 앞이라
