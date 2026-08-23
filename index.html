@@ -21,21 +21,21 @@
 <section class="hero">
   <div class="wrap">
     <div class="hero-in" id="hslide">
-      <div class="eyebrow" id="h-eb">국립현대미술관 서울</div>
-      <h1 id="h-t">색면과 여백<br><b>한국 추상 60년</b></h1>
-      <div class="sub" id="h-s">전후 세대부터 오늘까지, 한국 추상회화가 지나온 길을 한자리에서 봅니다. 소장품 140여 점과 미공개 자료를 함께 냅니다.</div>
-      <div class="hmeta" id="h-m">
-        <span><b>2026.08.02 — 11.16</b></span><i>·</i><span>서울관 3·4전시실</span><i>·</i><span>참여작가 <b>38명</b></span>
-      </div>
+      <!-- ★★ 2026-08-23 · 손으로 적은 견본을 <b>지웠습니다</b>.
+           없는 전시(색면과 여백)와 없는 숫자(작품 184,206)가 대문
+           얼굴에 적혀 있었습니다. 이제 assets/hero.js 가 DB 에서
+           받아 채웁니다 — 못 받으면 히어로를 통째로 감춥니다. -->
+      <div class="eyebrow" id="h-eb"></div>
+      <h1 id="h-t">불러오는 중…</h1>
+      <div class="sub" id="h-s"></div>
+      <div class="hmeta" id="h-m"></div>
       <div class="hero-cta">
-        <a class="btn" href="#ex">전시 자세히</a>
-        <a class="btn ghost" href="#db">아카이브 둘러보기</a>
+        <a class="btn" href="/db/work.html">아카이브 둘러보기</a>
+        <a class="btn ghost" href="/db/artist.html">작가 보기</a>
       </div>
     </div>
-    <div class="dots" id="dots" role="tablist" aria-label="전시 넘기기">
-      <i class="on" tabindex="0" role="tab" aria-label="1번"></i><i tabindex="0" role="tab" aria-label="2번"></i>
-      <i tabindex="0" role="tab" aria-label="3번"></i><i tabindex="0" role="tab" aria-label="4번"></i>
-    </div>
+    <!-- ★ 점은 hero.js 가 장 수에 맞춰 만듭니다 — 넷으로 못박지 않습니다 -->
+    <div class="dots" id="dots" role="tablist" aria-label="넘기기"></div>
   </div>
 </section>
 
