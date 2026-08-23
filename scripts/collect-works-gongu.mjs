@@ -137,32 +137,50 @@ function thumbOf(o, size) {
 let SMALL_OK = false;
 let SMALL_SE = 'b_thumb';
 
-/* ── 한국 것 가리기 ────────────────────────────────────────────
-   ★★ 제공처 거르개(searchSrcTrgetInttCd)도 <b>안 먹습니다</b>
-     (파트너 확인 · 어느 코드를 넣어도 87,705건).
+/* ── 미술 작품 가리기 ──────────────────────────────────────────
+   ★★ 2026-08-23 · 태그를 세어 보고 <b>거르개를 뒤집었습니다</b>
+     (파트너 확인). 표본 200줄의 태그가 이랬습니다.
+       일러스트 127 · 국민저작물 118 · 보물찾기 118 · 디자인 68
+       그래픽디자인 63 · 디지털다이어리 37 · 패턴 35 · PPT 9
+       템플릿 9 · 유튜브썸네일 7 · 감탄로드탄탄체 18
+     <b>미술 작품이 아닙니다.</b> PPT 템플릿·유튜브 썸네일·
+     다이어리 속지·글꼴 견본입니다.
 
-   ▶ 대신 <b>tagNmList</b> 를 씁니다. 응답에 이미 실려 오므로
-     따로 물을 것이 없습니다.
-       "미술,국내미술,동양화,고전미술,허형(許瀅)"
-     여기 <b>국내미술</b> 이 있습니다.
+   ★ 앞 판은 「한국 것인가」만 물었고 200줄이 <b>모두 통과</b>했습니다.
+     한국에서 만든 <b>디자인 소재</b>였기 때문입니다.
+     이대로 담으면 오퍼스파인이 <b>PPT 템플릿 창고</b>가 됩니다.
 
-   ★ 87,705건을 다 받으면 오퍼스파인이 <b>서양 창고</b>가 됩니다.
-     CC BY 30,161건은 대개 바깥 것입니다. 한국 미술 포털이니
-     한국 것을 골라 담습니다.
-   ★ 낱말을 짐작하지 않습니다 — --peek 에서 <b>실제로 오는 태그</b>를
-     세어 보고 정했습니다. */
-const TAG_KR = /국내미술|한국화|동양화|고전미술|민화|불화|서예|문인화|산수화|풍속화|조선|고려|삼국|근대미술/;
-/* 바깥 것이라고 말해 주는 태그 — 있으면 뺍니다 */
-const TAG_OUT = /해외미술|서양미술|외국/;
+   ▶ 물음을 바꿉니다 — <b>「고전·전통 미술인가」</b>.
+     들어오는 낱말이 <b>있어야만</b> 담습니다. 없으면 뺍니다.
+     ★ 모를 때 <b>안 담는 쪽</b>입니다. 87,705건 가운데 옥석이
+       섞여 있고, 놓친 것은 나중에 더하면 되지만 잘못 담긴
+       템플릿은 「조선의 작품」인 양 화면에 남습니다.
 
-function isKorean(o) {
-  const t = String(o.tagNmList || '') + ' ' + String(o.clListName || o.clNm || '');
+   ★ 실물로 확인한 것 — 묵매도(허형)·괴석(안중식)·구고청향도(안중식)는
+     「미술,국내미술,동양화,고전미술」로 제대로 달려 있습니다. */
+
+/* 들어오는 낱말 — 하나라도 있어야 담습니다 */
+const TAG_IN = /고전미술|국내미술|동양화|한국화|민화|불화|산수화|문인화|풍속화|화조화|영모화|초상화|어진|서예|서화|수묵|채색화|판화|도자|백자|청자|분청|공예품|유물|국보|보물|조선시대|고려시대|삼국시대|근대미술/;
+
+/* 나가는 낱말 — 하나라도 있으면 뺍니다 (들어오는 낱말보다 셉니다) */
+const TAG_OUT = /일러스트|디자인|템플릿|PPT|프레젠테이션|패턴|썸네일|다이어리|국민저작물|보물찾기|글꼴|폰트|체\b|아이콘|캘리그라피|배경화면|스티커|카드뉴스|굿즈|모션|3D|픽토그램|이모티콘|해외미술|서양미술/;
+
+function isArtwork(o) {
+  const tag = String(o.tagNmList || '');
+  const cls = String(o.clListName || o.clNm || '');
+  const t = tag + ' ' + cls;
+
+  /* ★ 나가는 낱말이 <b>먼저</b>입니다. 「고전미술」과 「템플릿」이
+       같이 달린 것이 있는데, 그런 것은 소재입니다. */
   if (TAG_OUT.test(t)) return false;
-  if (TAG_KR.test(t)) return true;
-  /* ★ 태그가 없을 때는 <b>제목과 작가가 한글인지</b>로 봅니다.
-       Bonnard·Munch 같은 것은 여기서 걸러집니다. */
+  if (!TAG_IN.test(t)) return false;
+
+  /* ★ 제목·작가에 한글이나 한자가 있어야 합니다 —
+       Bonnard·Munch 같은 바깥 것을 여기서 뺍니다. */
   const s2 = String(o.orginSj || '') + ' ' + String(o.authorListNm || '');
-  return /[가-힣]/.test(s2);
+  if (!/[가-힣\u4E00-\u9FFF]/.test(s2)) return false;
+
+  return true;
 }
 
 function quality(w) {
@@ -193,8 +211,8 @@ function build(o, byName) {
   const L = LICENSE[code];
   if (!L || !L.ok) return null;
 
-  /* ★ 한국 것만 담습니다 — 위 isKorean 주석 참조 */
-  if (!isKorean(o)) return null;
+  /* ★ 미술 작품만 담습니다 — 위 isArtwork 주석 참조 */
+  if (!isArtwork(o)) return null;
 
   /* ★★ 2026-08-23 · 작가 이름이 <b>「허형(許瀅)」</b> 꼴로 옵니다
        (파트너 확인). 그대로 담으면 우리 작가DB 의 「허형」과 영영
@@ -358,7 +376,7 @@ async function peek() {
     console.log(`   [${s}] ${String(r.orginSj || '').slice(0, 30)} — ${String(r.authorListNm || '')}`);
   }
 
-  /* ⑥ 어떤 태그가 오나 — <b>거르는 낱말을 짐작하지 않기 위함</b> */
+  /* ⑥ 어떤 태그가 오나 · 몇 건이 미술 작품인가 */
   console.log('\n── ⑥ 실제로 오는 태그 (200줄 표본)');
   const tagCnt = new Map();
   let krN = 0, allN = 0;
@@ -366,7 +384,7 @@ async function peek() {
     const j2 = await getJSON(url(1, 200));
     for (const r of rowsOf(j2)) {
       allN++;
-      if (isKorean(r)) krN++;
+      if (isArtwork(r)) krN++;
       for (const t of String(r.tagNmList || '').split(',')) {
         const k = t.trim();
         if (k && k.length < 16) tagCnt.set(k, (tagCnt.get(k) || 0) + 1);
@@ -375,7 +393,7 @@ async function peek() {
   } catch (e) { console.log('   (못 셈 — ' + e.message + ')'); }
   const top = [...tagCnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
   for (const [t, n] of top) console.log(`   ${String(n).padStart(4)}  ${t}`);
-  if (allN) console.log(`\n   ★ 표본 ${allN}줄 가운데 <b>한국 것 ${krN}줄</b>`
+  if (allN) console.log(`\n`
                       + ` (${Math.round(krN / allN * 100)}%)`);
   console.log('     → 전체 87,705건이면 대략 '
             + (allN ? Math.round(87705 * krN / allN).toLocaleString() : '?') + '건쯤');
@@ -431,7 +449,7 @@ async function peek() {
       if (!w) {
         const code = String(o.licenseCd || '').padStart(2, '0');
         if (!LICENSE[code] || !LICENSE[code].ok) skipLic++;
-        else if (!isKorean(o)) skipOut++;
+        else if (!isArtwork(o)) skipOut++;
         else thin++;
         continue;
       }
@@ -452,7 +470,7 @@ async function peek() {
   console.log('──────────────────────────────');
   console.log(`  받은 것            ${got}`);
   console.log(`  라이선스가 안 맞아 뺌 ${skipLic}`);
-  console.log(`  한국 것이 아니라 뺌  ${skipOut}`);
+  console.log(`  미술 작품이 아니라 뺌 ${skipOut}`);
   console.log(`  얇아서 뺀 것        ${thin}`);
   console.log(`  담을 만한 것        ${kept}`);
   console.log(`  작가와 이어짐       ${auto}`);
