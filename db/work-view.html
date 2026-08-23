@@ -310,41 +310,26 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   <section class="dsec" id="sec-exh">
     <div class="dhd">
       <span class="dt">전시 이력</span><span class="dt-en">Exhibitions</span>
-      <span class="sec-sub">개인전 <b style="color:var(--accent)">6</b> · 단체전 <b style="color:var(--accent)">32</b></span>
+      <span class="sec-sub"></span>
       <a class="sec-more" href="#">전체 →</a>
     </div>
-    <div class="exh">
-      <a class="exh-r" href="#"><span class="exh-y">2026</span>
-        <span><span class="exh-t"><em>《진경, 우리 산천》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
-        <span class="exh-k solo">개인전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2024</span>
-        <span><span class="exh-t"><em>《조선의 산수》</em></span><span class="exh-v">간송미술관, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2023</span>
-        <span><span class="exh-t"><em>《겸재와 그 시대》</em></span><span class="exh-v">삼성미술관 리움, 서울</span></span>
-        <span class="exh-k solo">개인전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2021</span>
-        <span><span class="exh-t"><em>《한국 회화 600년》</em></span><span class="exh-v">국립현대미술관 덕수궁, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2019</span>
-        <span><span class="exh-t"><em>《Korean Landscape Painting》</em></span><span class="exh-v">The Metropolitan Museum of Art, New York</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2016</span>
-        <span><span class="exh-t"><em>《금강산, 그리다》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-    </div>
+    <!-- ★★ 2026-08-23 · 손으로 적은 <b>견본 전시 여섯</b>을 지웠습니다.
+         (진경 우리 산천 · 조선의 산수 · 겸재와 그 시대…) 정선 것이었는데
+         어느 작품을 열어도 그대로 떴습니다. 이제 work-view.js 가
+         DB 의 exhibition_history 로 채웁니다. 없으면 구역을 감춥니다. -->
+    <div class="exh"></div>
   </section>
 
   <!-- ══ 소장처 ══ -->
   <section class="dsec" id="sec-hold">
     <div class="dhd"><span class="dt">소장처</span><span class="dt-en">Collections</span>
-      <span class="sec-sub">어느 곳이 몇 점 갖고 있나</span></div>
-    <div class="hold">
-      <a href="#"><div class="hn">국립중앙박물관</div><div class="hc">38<i>점</i></div></a>
-      <a href="#"><div class="hn">간송미술관</div><div class="hc">24<i>점</i></div></a>
-      <a href="#"><div class="hn">삼성미술관 리움</div><div class="hc">17<i>점</i></div></a>
-      <a href="#"><div class="hn">서울대학교박물관</div><div class="hc">11<i>점</i></div></a>
-    </div>
+      <span class="sec-sub"></span></div>
+    <!-- ★★ 2026-08-23 · 견본 넷을 지웠습니다. 어느 작품을 열어도
+         「국립중앙박물관 38점」이 그대로 떴습니다.
+       ★ 이 자리는 work-view.js 가 <b>소장 내력(provenance)</b> 으로
+         씁니다 — 클리블랜드가 「누가 갖고 있다가 누구에게 갔는가」를
+         날짜와 함께 줍니다. 없으면 구역을 감춥니다. -->
+    <div class="exh"></div>
   </section>
 
   <!-- ══ 관계 ══ -->

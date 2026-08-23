@@ -40,8 +40,17 @@
                          + '<a href="/db/work.html">작품</a> / ' + esc(w.title);
 
     /* 제목이 주인공입니다 */
+    /* ★★ 2026-08-23 · <b>한자 제목</b>을 곁들입니다.
+         공유마당·클리블랜드가 title_han 을 줍니다 —
+         「금동아미타여래삼존좌상 金銅阿彌陀如來三尊坐像」
+         한국 미술에서 한자 제목은 <b>곁다리가 아니라 본이름</b>인
+         경우가 많습니다. 담아 놓고 안 보이면 없는 것과 같습니다. */
     var nm = $('pv-name');
-    if (nm) nm.innerHTML = '《' + esc(w.title) + '》';
+    if (nm) nm.innerHTML = '《' + esc(w.title) + '》'
+      + (w.title_han && w.title_han !== w.title
+         ? ' <i style="font-style:normal;font-size:.62em;color:var(--ink-3);'
+           + 'font-weight:400">' + esc(w.title_han) + '</i>'
+         : '');
 
     var en = $('pv-en');
     if (en) {
@@ -95,6 +104,18 @@
           [w.medium, w.dimensions].filter(Boolean).join(' · ');
         cap.querySelector('.cap-hold').textContent = w.holder || '';
       }
+      /* ★★★ <b>출처 표시</b> — 이것은 예의가 아니라 <b>의무</b>입니다.
+           CC BY·CC BY-SA·공공누리 제1유형은 모두 출처를 밝혀야
+           쓸 수 있습니다. 담아 두고 화면에 안 내면 <b>지키지 않은
+           것</b>이 됩니다.
+         ★ 도판 바로 아래에 답니다 — 그 도판에 딸린 말이므로. */
+      if (w.image_credit) {
+        var cr = document.createElement('div');
+        cr.className = 'artcap';
+        cr.style.marginTop = '8px';
+        cr.textContent = '도판 출처 · ' + w.image_credit;
+        pl.parentNode.insertBefore(cr, pl.nextSibling);
+      }
     } else {
       if (pl) pl.innerHTML =
         '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
@@ -107,6 +128,70 @@
           : '') + '</div>';
       if (cap) cap.style.display = 'none';
     }
+  }
+
+  /* ── 전시 이력 ──
+     ★★ 2026-08-23 · 클리블랜드가 <b>날짜까지 나뉜</b> 전시 이력을
+       줍니다. 담아 두고 화면에 안 내고 있었습니다.
+         「Korean Art in Early Chosön, 1400-1600 (2009-03-17)」
+     ★ 아직 전시DB 가 없으므로 <b>글 그대로</b> 보여 줍니다.
+       전시DB 가 생기면 이 글을 쪼개 이어 붙입니다. */
+  function exhibitions(w) {
+    var sec = $('sec-exh');
+    if (!sec) return;
+    var t = String(w.exhibition_history || '').trim();
+    if (!t) { hide('sec-exh'); return; }
+
+    var lines = t.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!lines.length) { hide('sec-exh'); return; }
+
+    var sub = sec.querySelector('.sec-sub');
+    if (sub) sub.innerHTML = '<b style="color:var(--accent)">' + lines.length + '</b>회';
+    var more = sec.querySelector('.sec-more');
+    if (more) more.remove();          /* 전시DB 가 없으니 갈 곳이 없습니다 */
+
+    var box = sec.querySelector('.exh');
+    if (!box) return;
+    box.innerHTML = lines.map(function (L) {
+      /* 「제목 (2009-03-17)」 꼴에서 해를 떼어 냅니다 */
+      var m = /^(.*?)\s*[(（]\s*((?:1[89]|20)\d\d)[-.\/]?\d*[-.\/]?\d*\s*[)）]\s*$/.exec(L);
+      var yr = m ? m[2] : '';
+      var ti = m ? m[1].trim() : L;
+      return '<div class="exh-r" style="cursor:default">'
+        + '<span class="exh-y">' + esc(yr) + '</span>'
+        + '<span><span class="exh-t"><em>' + esc(ti) + '</em></span></span>'
+        + '<span></span></div>';
+    }).join('');
+    sec.style.display = '';
+  }
+
+  /* ── 소장 내력 ──
+     ★ 「누가 갖고 있다가 누구에게 갔는가」는 작품의 이력 그 자체입니다.
+       미술 아카이브에서 값진 자료라 받아 두었는데 안 보이고 있었습니다. */
+  function provenance(w) {
+    var sec = $('sec-hold');
+    if (!sec) return;
+    var t = String(w.provenance || '').trim();
+    if (!t) { hide('sec-hold'); return; }
+    var hd = sec.querySelector('.dhd .dt');
+    if (hd) hd.textContent = '소장 내력';
+    var en = sec.querySelector('.dhd .dt-en');
+    if (en) en.textContent = 'Provenance';
+    var sub = sec.querySelector('.sec-sub'); if (sub) sub.remove();
+    var mo = sec.querySelector('.sec-more'); if (mo) mo.remove();
+
+    var body = sec.querySelector('.exh') || sec.querySelector('div:last-child');
+    if (!body) return;
+    body.innerHTML = t.split(/\r?\n/).map(function (x) { return x.trim(); })
+      .filter(Boolean)
+      .map(function (L) {
+        return '<div style="font-size:13px;line-height:1.9;padding:7px 0;'
+             + 'border-bottom:1px solid var(--rule-2)">' + esc(L) + '</div>';
+      }).join('')
+      + (w.credit_line
+         ? '<div class="artcap" style="margin-top:12px">' + esc(w.credit_line) + '</div>'
+         : '');
+    sec.style.display = '';
   }
 
   /* 같은 작가의 다른 작품 */
@@ -140,6 +225,8 @@
       var rows = await get(OF.SB_URL + '/rest/v1/artworks?select=*&id=eq.' + id + '&hidden=not.is.true&limit=1');
       if (!rows.length) { notFound(); return; }
       paint(rows[0]);
+      exhibitions(rows[0]);
+      provenance(rows[0]);
       await more(rows[0]);
     } catch (e) { notFound('자료를 불러오지 못했습니다 · ' + e.message); }
   }
