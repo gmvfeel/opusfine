@@ -176,7 +176,8 @@
 
     return get(url).then(function (rows) {
       if (!rows.length) { calm(faces); return; }
-      rows.forEach(function (a) { a._alt = (a.name_ko || '') + ' 초상'; });
+      rows.forEach(function (a) { a._alt = (a.name_ko || '') + ' 도판'; });
+      rows.sort(function (x, y) { return faceScore(y) - faceScore(x); });
 
       /* ★ 카드 수를 <b>열의 배수</b>로 맞춥니다 (격자가 6·4·3열).
            12 는 셋 모두의 배수이고, 모자라면 6 으로 내립니다.
@@ -201,6 +202,44 @@
     });
   }
 
+  /* ── 얼굴다움 점수 ──
+     ★★ 2026-08-23 · 이암 자리에 <b>모견도(母犬圖)</b>가 떴습니다
+       (파트너 확인). 잘못이 아니라 <b>위키데이터의 성질</b>입니다 —
+       P18 은 「초상」이 아니라 「대표 이미지」라서, 초상이 없는 옛
+       화가는 <b>자기 작품</b>이 대신 들어옵니다.
+
+     ★ 처음에는 카드마다 「작품」이라 <b>적어 주려</b> 했습니다.
+       그런데 초상인지 작품인지 <b>확실히 가릴 방법이 없습니다.</b>
+       강세황의 진짜 초상에 「작품」이라 잘못 붙는 쪽이, 아무 말도
+       안 하는 쪽보다 나쁩니다. → <b>적지 않습니다.</b>
+
+     ▶ 대신 <b>차례만 바꿉니다.</b> 얼굴로 보이는 것을 앞에 세우면
+       열두 자리는 얼굴로 차고, 작품은 뒤로 밀려 안 나옵니다.
+       틀려도 <b>순서가 흔들릴 뿐</b> 거짓말이 되지 않습니다.
+
+     ★ 파일 이름으로 봅니다. 커먼즈 주소에 이름이 그대로 들어 있어
+       따로 물어볼 것이 없습니다. */
+  function faceScore(a) {
+    var u = String(a.image_url || '');
+    var m = /Special:FilePath\/([^?]+)/.exec(u);
+    var f = m ? decodeURIComponent(m[1]).replace(/_/g, ' ') : u;
+    var lo = f.toLowerCase();
+    var sc = 0;
+
+    /* 대놓고 초상이라 적힌 것 */
+    if (/portrait|초상|자화상|肖像|眞影|진영|影幀|영정/i.test(f)) sc += 4;
+    /* 사람 사진 */
+    if (/photo|photograph|사진/i.test(lo)) sc += 2;
+    /* 파일 이름이 <b>작가 이름 그대로</b> — 인물 사진일 때가 많습니다 */
+    var base = f.replace(/\.[a-z0-9]+$/i, '').trim();
+    if (a.name_ko && base.indexOf(a.name_ko) === 0) sc += 2;
+    if (a.name_en && base.toLowerCase().indexOf(String(a.name_en).toLowerCase()) === 0) sc += 2;
+    /* 그림 제목으로 보이는 것 — 뒤로 미룹니다 */
+    if (/圖|도\b|畵|畫|그림|painting|paysage|landscape|scroll|screen|album|folio/i.test(f)) sc -= 3;
+
+    return sc;
+  }
+
   /* ★ 얼굴만 갈아 끼우고 이름을 그대로 두면 <b>얼굴은 진짜, 이름은
        가짜</b>가 됩니다. 이름·생몰년·링크를 함께 바꿉니다. */
   function artistCard(el, a) {
@@ -222,7 +261,9 @@
 
   /* ★ 커먼즈 도판은 <b>출처를 밝혀야</b> 하는 것이 섞여 있습니다
        (CC BY-SA 등). 카드마다 붙이면 어수선하므로 격자 아래
-       <b>한 줄로</b> 답니다. */
+       <b>한 줄로</b> 답니다.
+     ★ 「초상 도판」이라 못박지 않습니다 — 초상이 없는 옛 화가는
+       <b>대표작</b>이 실립니다. 한 줄에 그것까지 밝힙니다. */
   function credit() {
     var grid = document.querySelector('.grid-ar');
     if (!grid || grid.dataset.credited) return;
@@ -230,7 +271,7 @@
     var n = document.createElement('div');
     n.className = 'artcap';
     n.style.marginTop = '2px';
-    n.textContent = '초상 도판 · 위키미디어 커먼즈';
+    n.textContent = '작가 도판 · 위키미디어 커먼즈 — 초상이 없는 경우 대표작이 실립니다';
     grid.parentNode.insertBefore(n, grid.nextSibling);
   }
 
