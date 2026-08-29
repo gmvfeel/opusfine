@@ -498,32 +498,76 @@ function detailOf(j) {
   return null;
 }
 
-/* 채울 것만 골라 냅니다 — 빈 칸만 */
+/* ── 채울 것 고르기 ──────────────────────────────────────────────
+   ★★ 2026-08-23 · <b>300건을 잘못 채웠습니다.</b> 제 잘못입니다.
+     상세를 불러 보니 우리가 원한 넷이 <b>전부 빈 값</b>이었습니다.
+       orginCrtDt(연도) · orginSize(크기)
+       orginMatrlTech(재료) · orginPosesn(소장처)
+     그런데 다른 칸에 엉뚱한 값이 있어 그것이 들어갔습니다.
+       wrtDc(작품 설명) = 「안중식(安中植)」  ← 설명이 아니라 <b>작가 이름</b>
+       crtDt            = 「1918-01-01」     ← 제작 연도가 아니라 등록용 날짜
+     《괴석》의 <b>소장 내력</b>에 「안중식(安中植)」이 적혔습니다.
+
+   ★ 무엇이 잘못이었나 — 정의서에 적힌 <b>칸 이름만 믿고</b>
+     실제로 값이 오는지 보지 않았습니다. 「첫 건이 주는 칸」을 찍게
+     만들어 놓고도 <b>그것을 보기 전에</b> 채우게 한 것이 실수였습니다.
+
+   ▶ 이제 <b>값이 그럴듯할 때만</b> 넣습니다.
+     · 연도  — 「1918-01-01」 같은 <b>날짜 꼴은 안 씁니다.</b>
+               사람이 적은 「19세기」·「1918년경」만 씁니다.
+     · 설명  — 작가 이름 한 줄짜리는 <b>설명이 아닙니다.</b>
+               길이가 짧거나 작가 이름과 같으면 버립니다.
+     · 나머지 — 빈 값이면 애초에 안 들어갑니다.
+   ★ 그리고 --fill 은 이제 <b>--dry 를 먼저 보라</b>고 일러 줍니다. */
+
+/* 사람이 적은 연도인가 — 「1918-01-01」은 아닙니다 */
+function looksLikeYear(v) {
+  const t = String(v || '').trim();
+  if (!t) return false;
+  if (/^\d{4}-\d{2}-\d{2}/.test(t)) return false;       /* 등록용 날짜 */
+  if (/^\d{4}[-.\/]\d{1,2}/.test(t)) return false;
+  return /\d{2,4}|세기|년/.test(t);
+}
+
+/* 설명다운 글인가 — 작가 이름 한 줄은 설명이 아닙니다 */
+function looksLikeText(v, w) {
+  let t = String(v || '').replace(/<[^>]*>/g, '').trim();
+  if (!t) return false;
+  if (t.length < 25) return false;                       /* 너무 짧음 */
+  const bare = t.replace(/\s*[(（][^)）]*[)）]\s*/g, '').trim();
+  if (w.artist_name && bare === String(w.artist_name).trim()) return false;
+  if (w.title && bare === String(w.title).trim()) return false;
+  return true;
+}
+
 function patchOf(o, w) {
   const p = {};
-  const put = (k, v) => {
+  const put = (k, v, ok) => {
     const t = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
-    if (t && !w[k]) p[k] = t;
+    if (!t || w[k]) return;
+    if (ok && !ok(t)) return;
+    p[k] = t;
   };
-  put('year_text',  o.orginCrtDt || o.crtDt);
+
+  /* ★ 상세에만 있는 것 — 값이 오면 그대로 씁니다 */
   put('medium',     o.orginMatrlTech);
   put('dimensions', o.orginSize);
-  put('holder',     o.orginPosesn || o.srcTrgetInttNm);
+  put('holder',     o.orginPosesn);
   put('genre',      o.clNm);
 
-  /* 설명 — 있으면 살립니다. 미술 자료에서 값진 글입니다. */
+  /* ★ 연도 — orginCrtDt(원작 창작일자)만 봅니다.
+       crtDt 는 <b>등록용 날짜</b>라 안 씁니다. */
+  put('year_text',  o.orginCrtDt, looksLikeYear);
+
+  /* ★ 설명 — 글다울 때만 */
   const dc = String(o.wrtDc || o.aditDc || '').replace(/<[^>]*>/g, '').trim();
-  if (dc && !w.provenance) p.provenance = dc.slice(0, 1200);
+  if (dc && !w.provenance && looksLikeText(dc, w)) p.provenance = dc.slice(0, 1200);
 
-  /* 원문 제목이 다르면 한자 제목으로 챙깁니다 */
+  /* 원문 제목이 한자면 챙깁니다 */
   const alt = String(o.altrtvNm || '').trim();
-  if (alt && !w.title_han && /[\u4E00-\u9FFF]/.test(alt)) p.title_han = alt;
+  if (alt && !w.title_han && /[\u4E00-\u9FFF]/.test(alt) && alt !== w.title) p.title_han = alt;
 
-  /* 소장처를 얻었으면 충실도가 오릅니다 */
-  if (Object.keys(p).length) {
-    const merged = Object.assign({}, w, p);
-    p.quality = quality(merged);
-  }
+  if (Object.keys(p).length) p.quality = quality(Object.assign({}, w, p));
   return p;
 }
 
@@ -542,7 +586,11 @@ async function patch(id, p) {
 
 async function fill() {
   console.log('▶ 공유마당 상세로 <빈 칸> 채우기'
-    + (DRY ? ' · 세어만 봅니다' : '') + ` · ${LIMIT}건까지\n`);
+    + (DRY ? ' · 세어만 봅니다' : '') + ` · ${LIMIT}건까지`);
+  /* ★ 2026-08-23 · 잘못 채운 일을 겪었으므로 일러 둡니다 */
+  if (!DRY) console.log('  ★ 처음 돌릴 때는 <담지 않고 세어만 보기>를 켜서'
+                      + ' 「이 건에 채울 것」을 먼저 보십시오.');
+  console.log('');
 
   /* ★ 아직 안 채워진 것만 부릅니다 — medium 이 빈 것을 기준으로 봅니다.
        다시 돌려도 이어서 갑니다. */
@@ -584,6 +632,16 @@ async function fill() {
       for (const k of Object.keys(o).slice(0, 26))
         console.log('     ' + k.padEnd(20)
           + String(o[k] === null || o[k] === '' ? '(빈 값)' : o[k]).slice(0, 60).replace(/\s+/g, ' '));
+
+      /* ★★ 첫 건이 <b>무엇을 채우게 될지</b>를 함께 보여 줍니다.
+           2026-08-23 · 칸 이름만 믿고 300건을 잘못 채웠습니다.
+           「첫 건이 주는 칸」을 찍게 해 놓고도 <b>보기 전에</b>
+           채우게 한 것이 실수였습니다. 이제 미리 보입니다. */
+      const pv = patchOf(o, w);
+      console.log('\n  ※ 이 건에 채울 것 —');
+      if (!Object.keys(pv).length) console.log('     (없습니다)');
+      else for (const [k, v] of Object.entries(pv))
+        console.log('     ' + k.padEnd(14) + String(v).slice(0, 70));
       console.log('');
     }
 
