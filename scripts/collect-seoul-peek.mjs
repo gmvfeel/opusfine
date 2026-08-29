@@ -43,18 +43,19 @@ if (!KEY) {
 /* ★ 두드려 볼 서비스 이름 — 서울시가 쓰는 이름 규칙에서 짚이는 것들.
      맞는 것 하나를 고르는 것이 아니라 <b>어느 것이 답하는지</b> 봅니다. */
 const NAMES = [
-  /* 전시 */
+  /* ★ 전시 — 2026-08-24 <b>확인됨</b> · 878건 */
   'ListExhibitionOfSeoulMOAInfo',
-  'ListExhibitionOfSeoulMOA',
-  'SemaExhibitionKor',
-  'ListSeoulMuseumExhibition',
-  'ListExhibitionOfSeoulMOAKor',
-  'SebcExhibitInfoKor',
-  /* 소장품 */
+  /* ★ 소장품 — 아직 못 찾았습니다. 전시가 「…OfSeoulMOAInfo」였으니
+       같은 규칙으로 짚어 봅니다. 짐작이지만 <b>두드려 보고</b> 고릅니다. */
   'ListCollectionOfSeoulMOAInfo',
-  'ListCollectionOfSeoulMOA',
-  'SemaCollectionKor',
-  'ListSeoulMuseumCollection'
+  'ListArtCollectionOfSeoulMOAInfo',
+  'ListSeoulMOACollectionInfo',
+  'ListCollectionOfSeoulMOAKorInfo',
+  'ListSemaCollectionInfo',
+  'ListArtOfSeoulMOAInfo',
+  'ListWorksOfSeoulMOAInfo',
+  /* 교육 — 규칙이 맞는지 견주어 보려는 것입니다 */
+  'ListEducationOfSeoulMOAInfo'
 ];
 
 function url(name, a, b, type) {
@@ -148,28 +149,96 @@ const IMGISH = /img|image|thumb|photo|poster|사진|url|link|file/i;
       ? '★ 도판·주소로 보이는 칸: ' + imgs.join(', ')
       : '✕ 도판·주소로 보이는 칸이 <b>없습니다</b>'));
 
-    /* 도판이 있으면 <b>실제로 뜨는지</b> 불러 봅니다 */
-    for (const k of imgs.slice(0, 3)) {
-      const v = String(o[k]);
-      if (!/^https?:\/\//.test(v)) { console.log(`     ${k} — 주소 꼴이 아닙니다`); continue; }
-      let s = '?';
-      try {
-        const rr = await fetch(v, { headers: { 'User-Agent': UA } });
-        const ct = rr.headers.get('content-type') || '';
-        const b = await rr.arrayBuffer();
-        s = (rr.ok && /image/.test(ct) && b.byteLength > 3000)
-          ? `뜸 ✔ ${(b.byteLength / 1024).toFixed(0)}KB`
-          : `안 뜸 ✕ HTTP ${rr.status} ${ct.split(';')[0]}`;
-      } catch (e) { s = '✕ ' + String(e.message).slice(0, 40); }
-      console.log(`     [${s}] ${k}`);
+    /* ── 도판이 <b>실제로 뜨는지</b> ──
+       ★★ 2026-08-24 · 첫 판에서 DP_MAIN_IMG 가 「HTTP 200 인데
+         그림이 아님」으로 나왔습니다. 까닭이 여럿일 수 있습니다.
+           · 주소가 잘렸다        → <b>온전히 찍어</b> 봅니다
+           · 참조 검사(referer)   → 머리를 붙여 다시 불러 봅니다
+           · http 라서 막혔다     → https 로 바꿔 봅니다
+           · 정말 그림이 없다     → 답이 무엇인지 앞부분을 찍습니다
+         <b>어느 것인지 알아야</b> 고칠 수 있습니다. */
+    for (const k of imgs.slice(0, 2)) {
+      const v0 = String(o[k]);
+      console.log(`\n     ── ${k}`);
+      console.log('     온전한 주소:');
+      console.log('       ' + v0);
+      if (!/^https?:\/\//.test(v0)) { console.log('     (주소 꼴이 아닙니다)'); continue; }
+
+      const tries = [
+        ['그냥',        v0, { 'User-Agent': UA }],
+        ['https 로',    v0.replace(/^http:/, 'https:'), { 'User-Agent': UA }],
+        ['참조 붙여',   v0, { 'User-Agent': UA, Referer: 'https://sema.seoul.go.kr/' }],
+        ['브라우저인 척', v0, {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                      + ' (KHTML, like Gecko) Chrome/126 Safari/537.36',
+          Referer: 'https://sema.seoul.go.kr/',
+          Accept: 'image/avif,image/webp,image/*,*/*;q=0.8'
+        }]
+      ];
+      for (const [nm, u, hd] of tries) {
+        let msg = '?';
+        try {
+          const rr = await fetch(u, { headers: hd, redirect: 'follow' });
+          const ct = rr.headers.get('content-type') || '';
+          const ab = await rr.arrayBuffer();
+          const n = ab.byteLength;
+          const ok = rr.ok && /image/.test(ct) && n > 3000;
+          msg = ok ? `뜸 ✔ ${ct.split(';')[0]} ${(n / 1024).toFixed(0)}KB`
+                   : `✕ HTTP ${rr.status} · ${ct.split(';')[0] || '(형식 없음)'} · ${n}바이트`;
+          /* 그림이 아니면 <b>무엇이 왔는지</b> 봅니다 */
+          if (!ok && n && n < 4000) {
+            const t = Buffer.from(ab).toString('utf8').replace(/\s+/g, ' ').slice(0, 150);
+            if (t.trim()) msg += '\n         답: ' + t;
+          }
+        } catch (e) { msg = '✕ ' + String(e.message).slice(0, 60); }
+        console.log(`       ${nm.padEnd(12)} ${msg}`);
+      }
     }
 
     /* 두어 줄 더 — 무엇이 들었는지 감을 잡습니다 */
     console.log('\n   보기 몇 줄');
     for (const r of a.u.rows.slice(0, 3)) {
-      const bits = Object.keys(r).slice(0, 4)
-        .map((k) => String(r[k] || '').replace(/\s+/g, ' ').slice(0, 26));
-      console.log('     ' + bits.join(' · '));
+      console.log('     ' + [r.DP_NAME || r.TITLE || Object.values(r)[2],
+                             r.DP_PLACE || '', r.DP_START || '', r.DP_END || '']
+        .map((x) => String(x || '').replace(/\s+/g, ' ').slice(0, 30)).join(' · '));
+    }
+  }
+
+  /* ── ⑥ 「지금 열리는 전시」가 몇 건인가 ──
+     ★★ 히어로에 걸 것은 <b>지난 전시가 아니라 지금 하는 전시</b>입니다.
+       878건 가운데 오늘 기준으로 열려 있는 것이 <b>몇 건인지</b> 봐야
+       히어로를 되돌릴 수 있는지 판단이 섭니다.
+     ★ 한 번에 1,000건까지 주므로 878건을 <b>한 번에</b> 받아 셉니다. */
+  const ex = alive.find((a) => /Exhibition/i.test(a.nm));
+  if (ex) {
+    console.log('\n── ⑥ 지금 열리는 전시가 몇 건인가');
+    let rows = [];
+    try {
+      const r = await raw(url(ex.nm, 1, 1000));
+      const u = unwrap(JSON.parse(r.body));
+      rows = (u && u.rows) || [];
+    } catch (e) { console.log('   (못 셈 — ' + String(e.message).slice(0, 50) + ')'); }
+
+    if (rows.length) {
+      const today = new Date().toISOString().slice(0, 10);
+      const now = rows.filter((r) => (r.DP_START || '') <= today && today <= (r.DP_END || ''));
+      const soon = rows.filter((r) => (r.DP_START || '') > today);
+      const past = rows.filter((r) => (r.DP_END || '9999') < today);
+      const img = rows.filter((r) => r.DP_MAIN_IMG);
+      const info = rows.filter((r) => String(r.DP_INFO || '').trim());
+
+      console.log(`   받은 것        ${rows.length}건`);
+      console.log(`   ★ 지금 열림    ${now.length}건`);
+      console.log(`   앞으로 열림    ${soon.length}건`);
+      console.log(`   지난 것        ${past.length}건`);
+      console.log(`   포스터 주소 있음 ${img.length}건 · 설명 있음 ${info.length}건`);
+
+      console.log('\n   지금 열리는 전시 (열까지)');
+      for (const r of now.slice(0, 10))
+        console.log(`     ${String(r.DP_START).slice(0, 10)} ~ ${String(r.DP_END).slice(0, 10)}`
+                  + `  ${String(r.DP_NAME || '').replace(/\s+/g, ' ').slice(0, 40)}`
+                  + `  · ${String(r.DP_PLACE || '').slice(0, 20)}`);
+      if (!now.length) console.log('     (없습니다)');
     }
   }
 
