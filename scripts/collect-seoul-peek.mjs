@@ -82,6 +82,24 @@ function unwrap(j) {
 
 const IMGISH = /img|image|thumb|photo|poster|사진|url|link|file/i;
 
+/* ── 그림인지 <b>내용으로</b> 알아내기 ──────────────────────────
+   ★★ 2026-08-24 · 서울시립미술관 서버는 <b>Content-Type 을 안 보냅니다.</b>
+     형식표만 믿으면 65KB 짜리 진짜 그림을 「그림이 아님」으로 봅니다.
+     브라우저가 하는 대로 <b>앞머리 바이트</b>를 봅니다.
+   ★ 이것은 앞으로 다른 자료원에도 씁니다 — 국내 공공 서버는
+     형식표를 빠뜨리는 곳이 드물지 않습니다. */
+function sniff(ab) {
+  const b = new Uint8Array(ab.slice(0, 12));
+  if (b.length < 4) return null;
+  if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return 'JPEG';
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return 'PNG';
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'GIF';
+  if (b[0] === 0x42 && b[1] === 0x4D) return 'BMP';
+  if (b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45) return 'WEBP';
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return 'HEIC/AVIF';
+  return null;
+}
+
 (async () => {
   console.log('▶ 서울 열린데이터광장 탐색 — <b>담지 않습니다</b>\n');
   console.log('  열쇠: ' + KEY.slice(0, 8) + '…\n');
@@ -182,10 +200,18 @@ const IMGISH = /img|image|thumb|photo|poster|사진|url|link|file/i;
           const ct = rr.headers.get('content-type') || '';
           const ab = await rr.arrayBuffer();
           const n = ab.byteLength;
-          const ok = rr.ok && /image/.test(ct) && n > 3000;
-          msg = ok ? `뜸 ✔ ${ct.split(';')[0]} ${(n / 1024).toFixed(0)}KB`
-                   : `✕ HTTP ${rr.status} · ${ct.split(';')[0] || '(형식 없음)'} · ${n}바이트`;
-          /* 그림이 아니면 <b>무엇이 왔는지</b> 봅니다 */
+          const kind = sniff(ab);
+          /* ★★ 2026-08-24 · 앞 판에서 「HTTP 200 인데 그림이 아님」이라
+               잘못 판정했습니다. 65KB 가 왔는데도요.
+               까닭 — 서울시립미술관 서버가 <b>Content-Type 을 안 보냅니다.</b>
+               브라우저는 <b>내용을 보고</b> 알아서 그립니다.
+             ▶ 형식표를 믿지 말고 <b>바이트 앞머리</b>를 봅니다.
+               JPEG 는 FF D8 FF · PNG 는 89 50 4E 47 로 시작합니다. */
+          const ok = rr.ok && kind && n > 3000;
+          msg = ok
+            ? `뜸 ✔ ${kind} ${(n / 1024).toFixed(0)}KB`
+              + (ct ? '' : ' (형식표는 안 옵니다 — 내용으로 알아냈습니다)')
+            : `✕ HTTP ${rr.status} · ${kind || '그림 아님'} · ${n}바이트`;
           if (!ok && n && n < 4000) {
             const t = Buffer.from(ab).toString('utf8').replace(/\s+/g, ' ').slice(0, 150);
             if (t.trim()) msg += '\n         답: ' + t;
