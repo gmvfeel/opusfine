@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -71,6 +71,16 @@ jobs:
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
           #   도판이 뜨는 것을 눈으로 확인한 자료원입니다.
           case "${IN_SRC:-cma}" in
+            gongu-fill)
+              # ★ 이미 담긴 공유마당 작품의 <빈 칸>을 상세로 채웁니다.
+              #   재료·연도·크기·소장처 — 캡션의 아래 두 줄입니다.
+              # ★ 건마다 한 번씩 물으므로 느립니다. 조금씩 나누어
+              #   여러 번 돌리십시오 — 이미 채운 것은 건너뜁니다.
+              ARGS="--fill --limit ${IN_LIMIT:-800}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-gongu.mjs $ARGS"
+              eval node scripts/collect-works-gongu.mjs $ARGS
+              ;;
             gongu)
               # ★ 공유마당 — <만료(97)>만 받습니다.
               #   200줄씩 세어 보니 97 은 100% 가 한국 고전미술이고

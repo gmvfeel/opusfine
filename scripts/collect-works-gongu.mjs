@@ -5,6 +5,7 @@
    쓰는 법
      node scripts/collect-works-gongu.mjs --peek
      node scripts/collect-works-gongu.mjs --lic 97,98 --dry
+     node scripts/collect-works-gongu.mjs --fill --limit 500
      node scripts/collect-works-gongu.mjs --limit 500 --dry
      node scripts/collect-works-gongu.mjs
 
@@ -40,6 +41,15 @@ const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
 const KEY    = process.env.GONGU_KEY;
 
 const API = 'https://gongu.copyright.or.kr/gongu/wrt/wrtApi/search.json';
+/* ★★ 2026-08-23 · <b>상세</b> API — 정의서에서 확인했습니다.
+     목록은 제목·작가·도판까지만 줍니다. 재료·연도·소장처는
+     여기서만 옵니다. 우리 시그니처 캡션의 <b>아래 두 줄</b>입니다.
+       작가
+       《작품명》, 연도
+       재료          ← 여기
+       소장처        ← 여기
+   ★ 건마다 한 번씩 물어야 하므로 <b>느립니다.</b> 그래서 따로 돌립니다. */
+const DETAIL = 'https://gongu.copyright.or.kr/gongu/wrt/wrtApi/searchDetail.json';
 const UA  = 'OpusfineBot/1.0 (https://opusfine.com; cser@wixon.co.kr)';
 
 /* 정의서 코드표 — 짐작이 아니라 <b>받아 적은 것</b>입니다 */
@@ -100,6 +110,7 @@ const getJSON = makeGetJSON({
 });
 
 const PEEK  = argv.includes('--peek');
+const FILL  = argv.includes('--fill');   /* 상세로 빈 칸 채우기 */
 const DRY   = argv.includes('--dry');
 const LIMIT = Number(arg('limit', 5000));
 const PAGE  = 100;
@@ -455,9 +466,156 @@ async function peek() {
   console.log('  지금은 담지 않았습니다.');
 }
 
+/* ══ 상세로 빈 칸 채우기 ═════════════════════════════════════════
+   ★★ 2026-08-23 · 목록만으로 6,829점을 담았습니다. 그런데 캡션이
+     <b>「작가 / 《작품명》」 두 줄</b>뿐입니다. 재료·연도·소장처가
+     비어 있습니다 — 목록 응답에 그 칸이 없기 때문입니다.
+
+   ▶ 상세 API 로 <b>한 건씩</b> 물어 채웁니다.
+     ★ 6,829번을 물어야 합니다. 상대 서버에 부담이므로
+       <b>한 번에 다 하지 않습니다.</b> 조금씩 나누어 돌립니다.
+     ★ <b>이미 채워진 것은 건너뜁니다.</b> 다시 돌려도 이어서 갑니다 —
+       중간에 끊겨도 처음부터 하지 않습니다.
+
+   ★ 덮어쓰지 않고 <b>빈 칸만</b> 채웁니다. 목록에서 얻은 값이
+     상세보다 나은 경우가 있어 지우면 손해입니다.
+   ══════════════════════════════════════════════════════════════ */
+function detailUrl(sn) {
+  return DETAIL + '?wrtSn=' + encodeURIComponent(sn)
+       + '&apiKey=' + encodeURIComponent(KEY);
+}
+
+/* 상세 응답에서 줄 하나 꺼내기 */
+function detailOf(j) {
+  if (!j) return null;
+  if (j.wrtSn || j.orginSj) return j;
+  const rows = rowsOf(j);
+  if (rows.length) return rows[0];
+  for (const k of Object.keys(j)) {
+    const v = j[k];
+    if (v && typeof v === 'object' && !Array.isArray(v) && (v.wrtSn || v.orginSj)) return v;
+  }
+  return null;
+}
+
+/* 채울 것만 골라 냅니다 — 빈 칸만 */
+function patchOf(o, w) {
+  const p = {};
+  const put = (k, v) => {
+    const t = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    if (t && !w[k]) p[k] = t;
+  };
+  put('year_text',  o.orginCrtDt || o.crtDt);
+  put('medium',     o.orginMatrlTech);
+  put('dimensions', o.orginSize);
+  put('holder',     o.orginPosesn || o.srcTrgetInttNm);
+  put('genre',      o.clNm);
+
+  /* 설명 — 있으면 살립니다. 미술 자료에서 값진 글입니다. */
+  const dc = String(o.wrtDc || o.aditDc || '').replace(/<[^>]*>/g, '').trim();
+  if (dc && !w.provenance) p.provenance = dc.slice(0, 1200);
+
+  /* 원문 제목이 다르면 한자 제목으로 챙깁니다 */
+  const alt = String(o.altrtvNm || '').trim();
+  if (alt && !w.title_han && /[\u4E00-\u9FFF]/.test(alt)) p.title_han = alt;
+
+  /* 소장처를 얻었으면 충실도가 오릅니다 */
+  if (Object.keys(p).length) {
+    const merged = Object.assign({}, w, p);
+    p.quality = quality(merged);
+  }
+  return p;
+}
+
+async function patch(id, p) {
+  const r = await fetch(SB_URL + '/rest/v1/artworks?id=eq.' + id, {
+    method: 'PATCH',
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(p)
+  });
+  if (!r.ok) return (await r.text()).slice(0, 200);
+  return '';
+}
+
+async function fill() {
+  console.log('▶ 공유마당 상세로 <빈 칸> 채우기'
+    + (DRY ? ' · 세어만 봅니다' : '') + ` · ${LIMIT}건까지\n`);
+
+  /* ★ 아직 안 채워진 것만 부릅니다 — medium 이 빈 것을 기준으로 봅니다.
+       다시 돌려도 이어서 갑니다. */
+  const url = SB_URL + '/rest/v1/artworks'
+    + '?select=id,gongu_sn,title,title_han,year_text,medium,dimensions,holder,genre,'
+    + 'provenance,image_url,artist_name,artist_id,link_source'
+    + '&gongu_sn=not.is.null&medium=is.null&hidden=not.is.true'
+    + '&order=quality.desc,id.asc&limit=' + LIMIT;
+
+  let rows = [];
+  try {
+    const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    rows = r.ok ? await r.json() : [];
+  } catch (e) { }
+  if (!rows.length) { console.log('  채울 것이 없습니다.'); return; }
+  console.log(`  채울 것 ${rows.length}건\n`);
+
+  let done = 0, got = 0, empty = 0, fail = 0, first = true;
+  const errs = [];
+  for (const w of rows) {
+    let j = null;
+    try { j = await getJSON(detailUrl(w.gongu_sn)); }
+    catch (e) {
+      if (isStop(e)) { console.log('  ■ 멈춥니다 — ' + stopReason(e)); break; }
+      fail++; if (fail > 20) { console.log('  ■ 실패가 잦아 멈춥니다'); break; }
+      continue;
+    }
+    const o = detailOf(j);
+    if (!o) {
+      empty++;
+      /* ★ 첫 건은 <b>무엇이 왔는지</b> 찍어 둡니다 — 응답 모양이
+           정의서와 다를 수 있습니다. 모르고 넘어가면 안 됩니다. */
+      if (first) { first = false; console.log('  ※ 첫 응답 — ' + JSON.stringify(j).slice(0, 400)); }
+      continue;
+    }
+    if (first) {
+      first = false;
+      console.log('  ※ 첫 건이 주는 칸 —');
+      for (const k of Object.keys(o).slice(0, 26))
+        console.log('     ' + k.padEnd(20)
+          + String(o[k] === null || o[k] === '' ? '(빈 값)' : o[k]).slice(0, 60).replace(/\s+/g, ' '));
+      console.log('');
+    }
+
+    const p = patchOf(o, w);
+    if (!Object.keys(p).length) { empty++; continue; }
+    got++;
+    if (!DRY) {
+      const msg = await patch(w.id, p);
+      if (msg) { errs.push(msg); if (errs.length > 5) break; }
+      else done++;
+    }
+    if (got % 50 === 0)
+      console.log(`  ${got}/${rows.length} · 채움 ${done}`);
+  }
+
+  console.log('──────────────────────────────');
+  console.log(`  물어본 것        ${rows.length}`);
+  console.log(`  채울 것이 있었음  ${got}`);
+  console.log(`  줄 것이 없었음   ${empty}`);
+  console.log(`  못 받음          ${fail}`);
+  if (!DRY) console.log(`  실제로 채움      ${done}`);
+  if (errs.length) {
+    console.log(`  ★ 문제 ${errs.length}건`);
+    errs.slice(0, 3).forEach((m) => console.log('     · ' + m));
+  }
+  console.log('\n★ 남은 것이 있으면 다시 돌리십시오 — 이어서 갑니다.');
+}
+
 /* ══ 돌리기 ══════════════════════════════════════════════════════ */
 (async () => {
   if (PEEK) { await peek(); return; }
+  if (FILL) { await fill(); return; }
 
   console.log(`▶ 공유마당 수집 · 미술·이미지 · 라이선스 ${USE.join(',')}`
     + ` · limit=${LIMIT}${DRY ? ' · 세어만 봅니다' : ''}`);
