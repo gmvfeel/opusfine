@@ -68,14 +68,50 @@ function unwrap(j) {
    ★ DP_INFO 가 <b>HTML 덩이</b>로 옵니다. 태그를 걷어 내고 씁니다.
      그대로 담으면 화면에 태그가 그대로 보이거나, 남의 스타일이
      우리 화면을 흔듭니다. */
+/* ★★ 2026-08-24 · 실체 문자를 <b>낱개로 적다가 놓쳤습니다</b>.
+     「오윤(1946&ndash;1986)」— &ndash; 가 그대로 남았습니다.
+     &mdash; &rsquo; &hellip; &middot; … 이런 것이 끝없이 있습니다.
+   ▶ 낱개로 적지 않고 <b>규칙으로</b> 풉니다.
+       · 숫자 실체 &#8211; · &#x2013; — 코드 그대로 글자로
+       · 이름 실체 &ndash;          — 표를 두고 찾아 바꿉니다
+     ★ 표에 없는 이름은 <b>그대로 둡니다.</b> 지우면 뜻이 사라집니다. */
+const ENT = {
+  nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
+  ndash: '–', mdash: '—', minus: '−', hellip: '…', middot: '·',
+  lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201C', rdquo: '\u201D',
+  laquo: '«', raquo: '»', times: '×', divide: '÷', deg: '°',
+  copy: '©', reg: '®', trade: '™', bull: '•', prime: '′', Prime: '″',
+  larr: '←', rarr: '→', uarr: '↑', darr: '↓', harr: '↔',
+  ensp: ' ', emsp: ' ', thinsp: ' ', shy: '', zwnj: '', zwj: ''
+};
+
+function unent(t) {
+  return String(t || '')
+    /* 숫자 실체 — &#8211; · &#x2013; */
+    .replace(/&#x([0-9a-f]+);/gi, (m, h) => {
+      const n = parseInt(h, 16);
+      return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m;
+    })
+    .replace(/&#(\d+);/g, (m, d) => {
+      const n = Number(d);
+      return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m;
+    })
+    /* 이름 실체 — 표에 있는 것만. 없으면 그대로 둡니다 */
+    .replace(/&([a-zA-Z][a-zA-Z0-9]{1,9});/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(ENT, k) ? ENT[k] : m);
+}
+
 function plain(html) {
-  return String(html || '')
+  let t = String(html || '')
     .replace(/<\s*br\s*\/?>/gi, '\n')
-    .replace(/<\/\s*p\s*>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, '\n')
+    .replace(/<[^>]*>/g, '');
+  t = unent(t);
+  /* ★ &amp;lt; 처럼 <b>두 번 싸인</b> 것이 섞입니다. 한 번 더 풉니다.
+       다만 두 번까지만 — 끝없이 풀면 원문의 &amp; 까지 사라집니다. */
+  if (/&[a-zA-Z#]/.test(t)) t = unent(t);
+  return t
+    .replace(/\u00A0/g, ' ')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -94,6 +130,31 @@ function summarize(t) {
 function dateOf(v) {
   const m = /^(\d{4})[-.\/]?(\d{2})[-.\/]?(\d{2})/.exec(String(v || '').trim());
   return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+}
+
+/* ── 겹낫표 벗기기 ────────────────────────────────────────────
+   ★★ 2026-08-24 · <b>반만 벗겨져 짝이 깨졌습니다.</b>
+       「2026 타이틀 매치 《오인환 vs. 장서영》」
+        → 《2026 타이틀 매치 《오인환 vs. 장서영》   ← 앞이 안 벗겨짐
+     낫표가 <b>가운데</b> 있는 제목이 많습니다. 맨 앞뒤만 보고
+     벗기면 뒤쪽만 떨어져 짝이 깨집니다.
+   ▶ <b>앞뒤가 짝일 때만</b> 벗깁니다. 「2026 타이틀 매치 《…》」처럼
+     앞에 다른 글이 있으면 <b>손대지 않습니다</b> — 그것이 온전한
+     제목이기 때문입니다. */
+function stripBrackets(t) {
+  let s2 = String(t || '').trim();
+  for (let i = 0; i < 3; i++) {
+    const m = /^([《<「『])\s*(.+?)\s*([》>」』])$/.exec(s2);
+    if (!m) break;
+    const pair = { '《': '》', '<': '>', '「': '」', '『': '』' };
+    if (pair[m[1]] !== m[3]) break;          /* 짝이 아니면 그만둡니다 */
+    const inner = m[2];
+    /* ★ 안쪽에 여는 낫표가 또 있으면 <b>겉이 짝이 아닙니다.</b>
+         「《가》와 《나》」 같은 것 — 벗기면 뜻이 깨집니다. */
+    if (/[《「『]/.test(inner)) break;
+    s2 = inner.trim();
+  }
+  return s2 || String(t || '').trim();
 }
 
 function quality(e) {
@@ -120,8 +181,8 @@ function build(r) {
     source:      SRC,
     source_id:   id,
     /* ★ 제목이 「《오윤》」처럼 겹낫표째 옵니다. 우리 화면이 낫표를
-         따로 붙이므로 <b>여기서 벗깁니다</b> — 안 그러면 《《오윤》》. */
-    title:       title.replace(/^[《<]\s*/, '').replace(/\s*[》>]$/, '').trim() || title,
+         따로 붙이므로 여기서 벗깁니다 — 안 그러면 《《오윤》》. */
+    title:       stripBrackets(title),
     subtitle:    String(r.DP_SUBNAME || '').trim() || null,
     venue:       String(r.DP_PLACE || '').trim() || null,
     venue_dept:  null,
