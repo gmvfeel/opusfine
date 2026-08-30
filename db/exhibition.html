@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전시 — OPUSFINE</title>
+<meta name="description" content="지금 열리는 전시와 지난 전시를 한자리에서 봅니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   전시 목록 · 2026-08-24
+   ------------------------------------------------------------------
+   ★★ 878건을 담아 놓고 <b>볼 곳이 없었습니다.</b> 머리 메뉴의 「전시」가
+     눌러도 갈 데가 없었고, 히어로의 「전시 자세히」는 우리 화면이 아니라
+     주최 기관으로 곧장 나갔습니다.
+
+   ★ 작품 목록과 <b>다르게</b> 짭니다
+     · 작품은 <b>도판이 주인공</b>이라 벽돌 쌓기(column-count)입니다.
+       세로로 긴 것과 가로로 넓은 것이 섞이므로 높이를 그림이 정합니다.
+     · 전시는 <b>포스터가 대개 세로</b>이고 크기가 고릅니다. 그리고
+       제목·기간·장소를 <b>나란히 견주며</b> 보게 됩니다.
+       → 격자(grid)로 줄을 맞춥니다.
+
+   ★ <b>지금 열리는 것</b>을 앞세웁니다. 전시는 <b>때가 있는 자료</b>라
+     지난 것을 먼저 보이면 소용이 없습니다.
+   ★ 끝나는 날이 가까운 것에 <b>D-일</b>을 답니다. 아카이브가 아니라
+     <b>가서 볼 수 있는 곳</b>이라는 것을 알리는 자리입니다.
+   ══════════════════════════════════════════════════════════════════ */
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+.lt{padding:30px 0 26px}
+.lt h1{font-family:var(--serif);font-weight:200;font-size:clamp(30px,3.8vw,44px);
+  letter-spacing:-.03em;margin:12px 0 0}
+.lt h1 b{font-weight:400}
+.lt p{margin:14px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9}
+.lt .cnt{margin-top:18px;font-size:13px;color:var(--ink-2)}
+.lt .cnt b{font-family:var(--serif);font-size:19px;color:var(--accent);font-weight:500;
+  font-variant-numeric:tabular-nums}
+
+/* ── 추리개 ── */
+.filters{padding:18px 0;border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);position:sticky;top:66px;z-index:40;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px)}
+.frow{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.fgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fgrp .fl{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase;margin-right:2px}
+.chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule-2);
+  background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.fright{margin-left:auto;display:flex;gap:14px;align-items:center}
+.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
+  color:var(--ink);width:180px;outline:none}
+.srch input::placeholder{color:var(--ink-3)}
+
+/* ── 전시 격자 ──
+   ★ 포스터 비율이 제각각입니다(세로 A2 부터 가로 띠까지).
+     자르지 않고 <b>가로만 맞춥니다</b> — 작품 도판과 같은 원칙입니다.
+     다만 줄은 맞춰야 견주기 쉬우므로 격자로 두고 그림만 흐르게 합니다. */
+.exgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:36px 28px;padding:36px 0 30px}
+.ex{display:block;min-width:0}
+.ex .po{display:block;position:relative;border:1px solid var(--rule-2);padding:12px;
+  background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 9px,#F4F3EF 9px,#F4F3EF 18px);
+  transition:border-color .24s,box-shadow .24s,transform .24s}
+.ex:hover .po{transform:translateY(-3px);border-color:var(--rule);
+  box-shadow:0 18px 36px -24px rgba(23,23,26,.32)}
+.ex .po img{display:block;width:100%;height:auto}
+/* 포스터가 아직 안 온 자리 */
+.ex .po .none{display:flex;align-items:center;justify-content:center;height:250px;
+  font-size:12px;color:var(--ink-3)}
+
+/* ★ 지금 열리는지 · 곧 끝나는지 — <b>포스터 위에</b> 답니다.
+     목록을 훑을 때 가장 먼저 알아야 할 것입니다. */
+.ex .flag{position:absolute;left:12px;top:12px;display:inline-flex;align-items:center;
+  gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  padding:4px 9px;background:#fff;border:1px solid var(--rule)}
+.ex .flag.live{color:var(--accent);border-color:var(--accent)}
+.ex .flag.soon{color:var(--ink-2)}
+.ex .flag.dday{color:var(--accent-2);border-color:var(--accent-2)}
+.ex .flag.past{color:var(--ink-3)}
+
+.ex .tx{display:block;margin-top:14px}
+.ex .tt{display:block;font-family:var(--serif);font-size:16px;font-weight:500;
+  line-height:1.5;letter-spacing:-.01em}
+.ex:hover .tt{color:var(--accent)}
+.ex .dt{display:block;font-size:11.5px;color:var(--ink-3);margin-top:5px;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.ex .vn{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.ex .ar{display:block;font-size:11.5px;color:var(--ink-3);margin-top:5px;
+  padding-top:6px;border-top:1px solid var(--rule-2)}
+
+.more{display:flex;justify-content:center;padding:6px 0 20px}
+.more button{font-family:inherit;font-size:13.5px;font-weight:600;padding:14px 40px;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.more button:hover{background:var(--ink);color:#fff}
+.more button[disabled]{opacity:.4;cursor:default}
+
+.empty{padding:70px 0;text-align:center;font-size:13.5px;color:var(--ink-3);line-height:2}
+
+@media(max-width:1180px){ .exgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media(max-width:860px){ .exgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 20px} }
+@media(max-width:520px){ .exgrid{grid-template-columns:1fr} }
+
+html[data-theme="dark"] .filters{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .ex .po{background:repeating-linear-gradient(135deg,
+  #1A1A1D,#1A1A1D 9px,#212125 9px,#212125 18px)}
+html[data-theme="dark"] .ex .flag{background:var(--paper)}
+html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--paper)}
+</style>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap lt">
+  <div class="bc" style="padding:0"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / 전시</div>
+  <div class="label" style="margin-top:14px">Exhibitions</div>
+  <h1>전시 <b>아카이브</b></h1>
+  <p>
+    미술관이 공개한 전시 정보입니다. <b>지금 열리는 전시</b>를 앞에 두고,
+    지난 전시는 기록으로 남깁니다. 자세한 내용과 관람 안내는 주최 기관 쪽으로 잇습니다.
+  </p>
+  <div class="cnt" id="cnt">불러오는 중…</div>
+</div>
+
+<div class="filters">
+  <div class="wrap frow">
+    <div class="fgrp" id="fWhen">
+      <span class="fl">때</span>
+      <button class="chip on" data-w="live">지금 열림</button>
+      <button class="chip" data-w="soon">곧 열림</button>
+      <button class="chip" data-w="past">지난 전시</button>
+      <button class="chip" data-w="all">전체</button>
+    </div>
+    <div class="fgrp" id="fVenue">
+      <span class="fl">장소</span>
+      <button class="chip on" data-v="">전체</button>
+    </div>
+    <div class="fright">
+      <div class="srch">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
+        </svg>
+        <input type="search" id="q" placeholder="전시명·작가로 찾기">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note" style="margin-top:22px" id="note">
+    지금은 <b>서울시립미술관</b>이 공개한 전시 정보입니다 (공공누리 제1유형) ·
+    앞으로 다른 미술관 전시가 더해집니다
+  </p>
+
+  <!-- ★ 전시는 assets/exhibition-list.js 가 DB 에서 받아 채웁니다.
+       손으로 적은 견본을 두지 않습니다 — 어제 작가·작품 화면에서
+       견본이 그대로 거짓이 되는 일을 겪었습니다. -->
+  <div class="exgrid" id="grid"></div>
+
+  <div class="more"><button id="more" hidden>더 보기</button></div>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/exhibition-list.js"></script>
+</body>
+</html>

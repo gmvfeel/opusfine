@@ -57,7 +57,9 @@
             </span>
             <span class="dd-col">
               <span class="dd-h">자리와 기관</span>
-              <a class="off">전시 <i>준비 중</i></a>
+              <!-- ★ 2026-08-24 · 전시DB 878건이 붙어 <b>열었습니다</b>.
+                   수는 nav.js 가 채웁니다 — 손으로 적지 않습니다. -->
+              <a href="/db/exhibition.html">전시<b data-nav-count="exhibitions">···</b></a>
               <a class="off">전시공간 <i>준비 중</i></a>
               <a class="off">미술학교 <i>준비 중</i></a>
               <a class="off">미술단체 <i>준비 중</i></a>
@@ -77,11 +79,11 @@
       </span>
 
       <span class="mi">
-        <a href="/index.html#ex">전시</a>
+        <a href="/db/exhibition.html">전시</a>
         <span class="dd">
-          <a class="off">지금 열리는 전시 <i>준비 중</i></a>
-          <a class="off">곧 끝나는 전시 <i>준비 중</i></a>
-          <a class="off">전시 아카이브 <i>준비 중</i></a>
+          <a href="/db/exhibition.html?when=live">지금 열리는 전시</a>
+          <a href="/db/exhibition.html?when=soon">곧 열리는 전시</a>
+          <a href="/db/exhibition.html?when=all">전시 아카이브</a>
           <span class="sep"></span>
           <a class="off">전시공간 찾기 <i>준비 중</i></a>
         </span>
@@ -177,7 +179,7 @@
       <div class="fm-grid">
         <div class="fm-col">
           <h4>아카이브</h4>
-          <a href="/db/artist.html">작가</a><a href="/db/work.html">작품</a><a href="#">전시</a><a href="#">전시공간</a>
+          <a href="/db/artist.html">작가</a><a href="/db/work.html">작품</a><a href="/db/exhibition.html">전시</a><a href="#">전시공간</a>
           <a href="#">미술학교</a><a href="#">미술단체</a><a href="#">기관·재단</a>
           <a href="#">학술</a><a href="#">현대미술</a><a href="#">용어사전</a>
         </div>
@@ -189,7 +191,7 @@
         </div>
         <div class="fm-col">
           <h4>정보SPOT</h4>
-          <a href="#">전시정보</a><a href="#">국내 공모전</a><a href="#">해외 비엔날레</a>
+          <a href="/db/exhibition.html">전시정보</a><a href="#">국내 공모전</a><a href="#">해외 비엔날레</a>
           <a href="#">아트페어</a><a href="#">레지던시</a><a href="#">창작지원금</a>
           <a href="#">수상 아카이브</a><a href="#">관련 사이트</a>
         </div>

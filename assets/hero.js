@@ -140,9 +140,10 @@
         e.artists ? esc(String(e.artists).split(',').slice(0, 3).join(', ')) : null,
         e.genre ? esc(String(e.genre).slice(0, 30)) : null
       ].filter(Boolean),
-      /* ★ 전시 상세 화면은 <b>아직 없습니다.</b> 만들기 전까지는
-           주최 기관 쪽으로 곧장 보냅니다 — 없는 곳으로 보내지 않습니다. */
-      href: e.link_source || '/db/work.html',
+      /* ★ 2026-08-24 · 전시 상세 화면이 <b>생겼습니다.</b>
+           우리 화면으로 받고, 더 깊은 것은 거기서 주최 기관으로 잇습니다.
+           (그 전에는 주최 기관으로 곧장 보냈습니다) */
+      href: '/db/exhibition-view.html?id=' + e.id,
       cta: '전시 자세히',
       tTxt: e.title,
       venue: e.venue || '',

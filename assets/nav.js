@@ -14,7 +14,10 @@
 (function () {
   'use strict';
 
-  var TABLE = { artists: 'artists', artworks: 'artworks' };
+  /* ★ 2026-08-24 · <b>exhibitions</b> 를 더했습니다. 전시DB 878건이
+       붙어 큰 판에도 수를 보입니다. */
+  var TABLE = { artists: 'artists', artworks: 'artworks',
+                exhibitions: 'exhibitions' };
   var done = false;
 
   function esc(s) {
