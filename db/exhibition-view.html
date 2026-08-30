@@ -70,9 +70,25 @@
 .xv-dhd{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
 .xv-dhd .xv-dt{font-family:var(--serif);font-size:20px;font-weight:500}
 .xv-dhd .xv-dt-en{font-size:10px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase}
-.xv-body{font-size:14.5px;line-height:2.05;color:var(--ink-2);max-width:46em;
-  white-space:pre-wrap;word-break:keep-all}
+/* ── 전시 소개 ──────────────────────────────────────────────
+   ★★ 2026-08-24 · 글이 <b>왼쪽 절반에만</b> 흐르고 오른쪽이 통째로
+     비었습니다 (파트너 지적). max-width:46em 을 걸어 둔 탓입니다.
+     한 줄이 너무 길면 읽기 어려워 넣은 것인데, 그렇게 크게 비면
+     오히려 어색합니다.
+   ▶ <b>두 칸</b>으로 나눕니다. 남는 자리가 없어지고 한 줄 길이도
+     알맞게 유지됩니다. 도록과 전시 팸플릿이 대개 이렇게 짭니다.
+   ★ 문단이 칸 사이에서 <b>끊기지 않게</b> 합니다(break-inside).
+     한 문단이 두 칸에 걸치면 눈이 위아래로 튑니다.
+   ★ 작은 화면에서는 <b>한 칸</b>으로 돌립니다. 좁은 화면에서
+     두 칸은 한 줄에 서너 낱말밖에 못 담습니다. */
+/* ★ pre-wrap 을 뺐습니다 — 이제 문단을 <p> 로 세우고 줄바꿈은 <br> 로
+     넣으므로, 빈칸까지 그대로 살리면 들여쓰기가 제멋대로 남습니다. */
+.xv-body{font-size:14.5px;line-height:2.05;color:var(--ink-2);
+  column-count:2;column-gap:46px;word-break:keep-all}
 .xv-body b{color:var(--ink)}
+.xv-body p{margin:0 0 1.5em;break-inside:avoid}
+.xv-body p:last-child{margin-bottom:0}
+@media(max-width:900px){ .xv-body{column-count:1} }
 
 /* 같은 곳의 다른 전시 */
 .xv-more{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px 20px}

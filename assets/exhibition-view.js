@@ -175,7 +175,14 @@
     var body = String(e.body || '').trim();
     var sm = String(e.summary || '').trim();
     if (body && body.length > sm.length + 40) {
-      $('body').textContent = body;
+      /* ★★ 2026-08-24 · 두 칸으로 나누면서 <b>문단을 만들어</b> 넣습니다.
+           textContent 로 넣으면 글이 한 덩이라 문단이 칸 사이에서
+           아무 데서나 끊깁니다. 빈 줄로 갈라 <p> 로 세웁니다. */
+      $('body').innerHTML = body.split(/\n\s*\n/)
+        .map(function (x) { return x.trim(); })
+        .filter(Boolean)
+        .map(function (x) { return '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>'; })
+        .join('');
       var bn = $('bodynote');
       var who = e.venue || '주최 기관';
       if (bn) bn.innerHTML = '이 글은 <b>' + esc(who) + '</b>'
