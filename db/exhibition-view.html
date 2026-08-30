@@ -83,8 +83,20 @@
      두 칸은 한 줄에 서너 낱말밖에 못 담습니다. */
 /* ★ pre-wrap 을 뺐습니다 — 이제 문단을 <p> 로 세우고 줄바꿈은 <br> 로
      넣으므로, 빈칸까지 그대로 살리면 들여쓰기가 제멋대로 남습니다. */
+/* ★★ 2026-08-24 · 문단 <b>오른쪽 끝을 맞춥니다</b> (파트너 지적).
+     두 칸으로 나누니 끝이 삐죽삐죽한 것이 눈에 띄었습니다.
+   ★ 한글은 그냥 justify 를 걸면 <b>낱말 사이가 벌어져 성깁니다.</b>
+     낱말이 짧고 조사가 붙어 영문처럼 매끄럽게 안 펴집니다.
+     ▶ inter-character 를 함께 걸어 <b>글자 사이도</b> 조금씩 늘립니다.
+       빈틈이 한군데 몰리지 않고 고르게 퍼집니다.
+   ★ 이 글에는 「〈레몬〉(2026)」·「5,841장」처럼 영문·숫자가 섞여 있어
+     그것들이 한 덩이로 움직입니다. hyphens 로 어색함을 줄입니다.
+   ★ word-break:keep-all 은 그대로 둡니다 — 한글 낱말이 줄 끝에서
+     쪼개지면 읽기가 나빠집니다. */
 .xv-body{font-size:14.5px;line-height:2.05;color:var(--ink-2);
-  column-count:2;column-gap:46px;word-break:keep-all}
+  column-count:2;column-gap:46px;word-break:keep-all;
+  text-align:justify;text-justify:inter-character;
+  hyphens:auto;-webkit-hyphens:auto}
 .xv-body b{color:var(--ink)}
 .xv-body p{margin:0 0 1.5em;break-inside:avoid}
 .xv-body p:last-child{margin-bottom:0}
