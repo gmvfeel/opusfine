@@ -13,6 +13,11 @@
        김규진 305 · 김준근 249 · 이인성 184 · 오세창 175 · 한락연 163 …
      한국 근대 서화가들이 통째로 빠져 있습니다.
 
+   ★★ 2026-08-24 · <b>전시</b>도 봅니다. 전시 878건의 참여작가 가운데
+     4,911개가 작가DB 에 없습니다 — 이번엔 <b>한국 현대</b>입니다.
+       이우성 13 · 양아치 12 · 강홍구 11 · 주명덕 11 · 임흥순 9 · 유근택 8
+     작가DB 가 조선·근대에 치우쳐 현대가 비어 있었습니다.
+
    ▶ <b>거꾸로 갑니다.</b> 위키데이터에서 작가를 긁어 오는 것이 아니라,
      <b>우리 작품이 부르는 이름</b>을 모아 그 사람을 찾아 채웁니다.
      채우는 즉시 그 사람의 작품이 이어집니다 — 헛일이 없습니다.
@@ -72,27 +77,57 @@ function isKoreanName(nm) {
   return true;
 }
 
-/* ── 우리 작품이 부르는 이름 모으기 ── */
+/* ── 우리 자료가 부르는 이름 모으기 ──
+   ★★ 2026-08-24 · <b>전시</b>도 봅니다.
+     그동안 작품만 보았습니다. 그런데 전시 878건에 참여작가가
+     적혀 있고, 그 가운데 <b>4,911개가 작가DB 에 없습니다.</b>
+       이우성 13 · 양아치 12 · 강홍구 11 · 주명덕 11 · 임흥순 9 …
+     우리 작가DB 745명이 <b>조선·근대에 치우쳐</b> 있어 한국 현대가
+     통째로 비어 있습니다. 전시 쪽이 그 자리를 채워 줍니다.
+
+   ★ 전시는 exhibition_artists 표를 봅니다. 이름을 이미 갈라 담아
+     두었으므로 여기서 또 가를 일이 없습니다. */
 async function wanted() {
   const cnt = new Map();
-  let from = 0;
-  for (;;) {
-    const r = await fetch(
-      SB_URL + '/rest/v1/artworks?select=artist_name'
-      + '&hidden=not.is.true&artist_id=is.null&artist_name=not.is.null'
-      + '&limit=1000&offset=' + from,
-      { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
-    if (!r.ok) break;
-    const rows = await r.json();
-    if (!rows.length) break;                       /* ★ 0줄일 때 끝냅니다 */
-    for (const x of rows) {
-      const nm = String(x.artist_name || '')
-        .replace(/\s*[(（][^)）]*[)）]\s*/g, '').trim();
-      if (!nm) continue;
-      cnt.set(nm, (cnt.get(nm) || 0) + 1);
+
+  const add = function (raw) {
+    const nm = String(raw || '')
+      .replace(/\s*[(（][^)）]*[)）]\s*/g, '')
+      .replace(/\s*외\s*\d*\s*(인|명|팀)?\s*$/, '')
+      .trim();
+    if (!nm) return;
+    cnt.set(nm, (cnt.get(nm) || 0) + 1);
+  };
+
+  const sweep = async function (path, pick) {
+    let from = 0;
+    for (;;) {
+      const r = await fetch(SB_URL + path + '&limit=1000&offset=' + from,
+        { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+      if (!r.ok) break;
+      const rows = await r.json();
+      if (!rows.length) break;                     /* ★ 0줄일 때 끝냅니다 */
+      for (const x of rows) add(pick(x));
+      from += rows.length;
     }
-    from += rows.length;
+  };
+
+  /* ① 작품이 부르는 이름 */
+  await sweep('/rest/v1/artworks?select=artist_name'
+    + '&hidden=not.is.true&artist_id=is.null&artist_name=not.is.null',
+    function (x) { return x.artist_name; });
+
+  /* ② 전시가 부르는 이름 — 아직 안 이어진 것만 */
+  try {
+    await sweep('/rest/v1/exhibition_artists?select=artist_name'
+      + '&artist_id=is.null',
+      function (x) { return x.artist_name; });
+  } catch (e) {
+    /* ★ 표가 아직 없어도 <b>작품 쪽은 그대로 돕니다.</b>
+         한쪽이 없다고 전체가 멈추면 안 됩니다. */
+    console.log('  (전시 표를 못 읽어 작품 쪽만 봅니다)');
   }
+
   return cnt;
 }
 
@@ -321,5 +356,10 @@ async function insertBare(rows) {
     console.log(`  ★ 문제 ${errs.length}건`);
     errs.slice(0, 3).forEach((m) => console.log('     · ' + m));
   }
-  console.log('\n★ 이어 붙이려면 sql/artist-16-B-apply.sql 을 다시 돌리십시오.');
+  /* ★★ 2026-08-24 · 채운 것으로 <b>끝이 아닙니다.</b>
+       작가를 담아도 작품·전시가 저절로 붙지는 않습니다.
+       이어 붙이는 SQL 을 <b>둘 다</b> 돌려야 합니다. */
+  console.log('\n★ 이어 붙이려면 SQL 을 <b>둘 다</b> 돌리십시오 —');
+  console.log('    sql/artist-16-B-apply.sql   작품 ↔ 작가');
+  console.log('    sql/exh-26-B-apply.sql      전시 ↔ 작가');
 })();
