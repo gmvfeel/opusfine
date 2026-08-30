@@ -89,8 +89,8 @@
     var rows = [];
     var add = function (k, v) {
       if (v == null || String(v).trim() === '') return;
-      rows.push('<div class="fact"><span class="k">' + esc(k) + '</span>'
-              + '<span class="v">' + v + '</span></div>');
+      rows.push('<div class="xv-fact"><span class="xv-k">' + esc(k) + '</span>'
+              + '<span class="xv-v">' + v + '</span></div>');
     };
     add('기간', esc(period(e.start_date, e.end_date)));
     add('장소', esc(e.venue) + (e.venue_dept ? ' · ' + esc(e.venue_dept) : ''));
@@ -121,7 +121,8 @@
 
     var f = flagOf(e);
     var fl = $('flag');
-    if (fl) { fl.className = 'flag ' + f.cls; fl.textContent = f.txt; }
+    /* ★ 여기는 <b>문자열</b>이라 이름 바꾸기에서 빠졌습니다. 우리 것으로 못박습니다. */
+    if (fl) { fl.className = 'xv-flag xv-' + f.cls; fl.textContent = f.txt; }
 
     /* ★ 제목에 이미 낫표가 든 것이 많습니다 — 덧씌우지 않습니다 */
     var tt = $('tt');
@@ -138,7 +139,7 @@
       po.innerHTML = e.poster_url
         ? '<img src="' + esc(e.poster_url) + '" alt="' + esc(e.title) +
           '" referrerpolicy="no-referrer">'
-        : '<span class="none">포스터가 아직 없습니다</span>';
+        : '<span class="xv-none">포스터가 아직 없습니다</span>';
     }
     /* ★★ 출처 표시 — 공공누리 제1유형은 <b>밝혀야</b> 씁니다.
          담아 두고 화면에 안 내면 지키지 않은 것이 됩니다. */
@@ -154,18 +155,26 @@
       if (e.link_source)
         b.push('<a href="' + esc(e.link_source) + '" target="_blank" rel="noopener">'
              + '주최 기관에서 보기 →</a>');
-      b.push('<a class="ghost" href="/db/exhibition.html">전시 목록</a>');
+      b.push('<a class="xv-ghost" href="/db/exhibition.html">전시 목록</a>');
       if (e.artists)
-        b.push('<a class="ghost" href="/db/artist.html?q='
+        b.push('<a class="xv-ghost" href="/db/artist.html?q='
              + encodeURIComponent(String(e.artists).split(',')[0].trim()) + '">'
              + '참여작가 찾기</a>');
       acts.innerHTML = b.join('');
     }
 
-    /* 전시 소개 원문 — 짧은 소개와 <b>같으면 안 보입니다</b>.
-       같은 글을 두 번 읽히지 않습니다. */
+    /* ★★ 2026-08-24 · 여기서 <b>두 가지</b>가 어긋났습니다.
+       ① 이름 바꾸기가 <b>DB 칸 이름까지</b> 건드렸습니다 —
+          e.body 가 e.xv-body 가 되어 늘 빈 값이었습니다.
+          클래스 이름과 DB 칸 이름이 <b>둘 다 body</b> 였던 탓입니다.
+          ▶ 앞으로 클래스는 접두사를 붙이되, <b>점 뒤에 오는 것</b>은
+            건드리지 않습니다.
+       ② 「요약과 같으면 감춘다」로는 못 걸렀습니다. 요약은 원문의
+          <b>앞부분을 잘라 만든 것</b>이라 같을 수가 없습니다.
+          ▶ 원문이 요약보다 <b>뚜렷하게 길 때만</b> 보입니다. */
     var body = String(e.body || '').trim();
-    if (body && body !== String(e.summary || '').trim()) {
+    var sm = String(e.summary || '').trim();
+    if (body && body.length > sm.length + 40) {
       $('body').textContent = body;
       var bn = $('bodynote');
       var who = e.venue || '주최 기관';
@@ -213,12 +222,12 @@
       var pic = r.poster_url
         ? '<img src="' + esc(r.poster_url) + '" alt="' + esc(r.title) +
           '" referrerpolicy="no-referrer" loading="lazy">'
-        : '<span class="none"></span>';
+        : '<span class="xv-none"></span>';
       var ti = /[《》]/.test(r.title) ? esc(r.title) : '《' + esc(r.title) + '》';
-      return '<a class="mx" href="/db/exhibition-view.html?id=' + r.id + '">'
-        + '<span class="f">' + pic + '</span>'
-        + '<span class="n">' + ti + '</span>'
-        + '<span class="d">' + esc(period(r.start_date, r.end_date)) + '</span></a>';
+      return '<a class="xv-mx" href="/db/exhibition-view.html?id=' + r.id + '">'
+        + '<span class="xv-f">' + pic + '</span>'
+        + '<span class="xv-n">' + ti + '</span>'
+        + '<span class="xv-d">' + esc(period(r.start_date, r.end_date)) + '</span></a>';
     }).join('');
     show('sec-more', true);
   }

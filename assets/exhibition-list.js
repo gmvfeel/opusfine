@@ -114,18 +114,20 @@
     var pic = e.poster_url
       ? '<img src="' + esc(e.poster_url) + '" alt="' + esc(e.title) +
         '" referrerpolicy="no-referrer" loading="lazy">'
-      : '<span class="none">포스터가 아직 없습니다</span>';
+      : '<span class="xl-none">포스터가 아직 없습니다</span>';
     /* ★ 제목에 이미 낫표가 든 것이 많습니다 — 덧씌우지 않습니다 */
     var t = /[《》]/.test(e.title) ? esc(e.title) : '《' + esc(e.title) + '》';
-    return '<a class="ex" href="/db/exhibition-view.html?id=' + e.id + '">'
-      + '<span class="po"><span class="flag ' + f.cls + '">' + f.txt + '</span>' + pic + '</span>'
-      + '<span class="tx">'
-      +   '<span class="tt">' + t
+    return '<a class="xl-ex" href="/db/exhibition-view.html?id=' + e.id + '">'
+      /* ★ 깃발 빛깔 — cls 는 문자열이라 이름 바꾸기에서 빠졌습니다.
+           우리 것으로 못박습니다(xl-live · xl-dday · xl-soon · xl-past). */
+      + '<span class="xl-po"><span class="xl-flag xl-' + f.cls + '">' + f.txt + '</span>' + pic + '</span>'
+      + '<span class="xl-tx">'
+      +   '<span class="xl-tt">' + t
       +     (e.subtitle ? ' <i style="font-style:normal;font-size:12.5px;color:var(--ink-3)">'
                           + esc(e.subtitle) + '</i>' : '') + '</span>'
-      +   '<span class="dt">' + esc(period(e.start_date, e.end_date)) + '</span>'
-      +   (e.venue ? '<span class="vn">' + esc(e.venue) + '</span>' : '')
-      +   (e.artists ? '<span class="ar">' +
+      +   '<span class="xl-dt">' + esc(period(e.start_date, e.end_date)) + '</span>'
+      +   (e.venue ? '<span class="xl-vn">' + esc(e.venue) + '</span>' : '')
+      +   (e.artists ? '<span class="xl-ar">' +
           esc(String(e.artists).split(',').slice(0, 4).join(', ')) + '</span>' : '')
       + '</span></a>';
   }
@@ -150,7 +152,7 @@
       .slice(0, 6)
       .forEach(function (v) {
         var b = document.createElement('button');
-        b.className = 'chip';
+        b.className = 'xl-chip';   /* ★ 문자열이라 이름 바꾸기에서 빠졌던 곳 */
         b.dataset.v = v;
         b.textContent = v.replace(/^서울시립\s*/, '').replace(/미술관$/, '') || v;
         b.title = v;
@@ -170,7 +172,7 @@
     var rows = [];
     try { rows = await get(query()); }
     catch (e) {
-      grid.innerHTML = '<div class="empty">전시를 불러오지 못했습니다.<br>'
+      grid.innerHTML = '<div class="xl-empty">전시를 불러오지 못했습니다.<br>'
         + '잠시 뒤 다시 열어 주세요.</div>';
       busy = false;
       if (moreBtn) moreBtn.hidden = true;
@@ -178,7 +180,7 @@
     }
 
     if (!rows.length && state.from === 0) {
-      grid.innerHTML = '<div class="empty">'
+      grid.innerHTML = '<div class="xl-empty">'
         + (state.q ? '「' + esc(state.q) + '」에 맞는 전시가 없습니다.'
                    : '해당하는 전시가 없습니다.')
         + '<br>위 추리개를 바꿔 보세요.</div>';
@@ -212,16 +214,16 @@
   function bind() {
     var when = $('fWhen'), venue = $('fVenue'), q = $('q');
     if (when) when.addEventListener('click', function (e) {
-      var b = e.target.closest('.chip'); if (!b) return;
-      Array.prototype.forEach.call(when.querySelectorAll('.chip'),
-        function (x) { x.classList.toggle('on', x === b); });
+      var b = e.target.closest('.xl-chip'); if (!b) return;
+      Array.prototype.forEach.call(when.querySelectorAll('.xl-chip'),
+        function (x) { x.classList.toggle('xl-on', x === b); });
       state.when = b.dataset.w || 'all';
       load(true);
     });
     if (venue) venue.addEventListener('click', function (e) {
-      var b = e.target.closest('.chip'); if (!b) return;
-      Array.prototype.forEach.call(venue.querySelectorAll('.chip'),
-        function (x) { x.classList.toggle('on', x === b); });
+      var b = e.target.closest('.xl-chip'); if (!b) return;
+      Array.prototype.forEach.call(venue.querySelectorAll('.xl-chip'),
+        function (x) { x.classList.toggle('xl-on', x === b); });
       state.venue = b.dataset.v || '';
       load(true);
     });
@@ -252,7 +254,7 @@
       /* ★ 지금 열리는 것이 없으면 <b>지난 전시로</b> 물러섭니다.
            빈 화면을 보이는 것보다 낫습니다. */
       if (state.when === 'live' && state.from === 0) {
-        var b = document.querySelector('#fWhen .chip[data-w="past"]');
+        var b = document.querySelector('#fWhen .xl-chip[data-w="past"]');
         if (b) b.click();
       }
     });
