@@ -204,7 +204,11 @@ function build(r) {
     link_source: String(r.DP_LNK || r.DP_HOMEPAGE || '').trim() || null,
     /* ★ 공공누리 제1유형 — 출처표시만 하면 상업적 이용·변경 가능 */
     rights:      'public',
-    hidden:      false
+    hidden:      false,
+    /* ★★ 2026-08-24 · <b>언제 받은 것인지</b> 적습니다.
+         날마다 도는데 이것이 없으면 「이 전시 정보가 언제 것인지」를
+         알 길이 없습니다. 자료원이 조용히 멈춰도 모릅니다. */
+    updated_at:  new Date().toISOString()
   };
   e.quality = quality(e);
   /* 이름과 날짜조차 없으면 담지 않습니다 */
@@ -298,11 +302,37 @@ async function upsert(rows) {
     console.log(`  담는 중 ${put}/${out.length}`);
   }
 
+  /* ── 자료원에서 <b>사라진 것</b>이 있나 ──
+     ★★ 날마다 도는데 이걸 안 보면, 주최 쪽이 내린 전시가
+       우리 화면에 <b>영영 남습니다.</b> 지우지는 않습니다 —
+       실수로 빠졌을 수도 있으니 <b>알리기만</b> 합니다.
+     ★ 인계문서 규칙 — 「삭제 전 목록을 눈으로 · 지우지 말고 감추기」 */
+  try {
+    var r2 = await fetch(SB_URL + '/rest/v1/exhibitions'
+      + '?select=id,source_id,title&source=eq.' + SRC + '&hidden=not.is.true&limit=2000',
+      { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    if (r2.ok) {
+      var mine = await r2.json();
+      var live = new Set(out.map(function (e) { return String(e.source_id); }));
+      var gone = mine.filter(function (x) { return !live.has(String(x.source_id)); });
+      if (gone.length) {
+        console.log(`\n  ※ 자료원에 없어진 전시 ${gone.length}건 (지우지 않았습니다)`);
+        gone.slice(0, 10).forEach(function (x) {
+          console.log(`     ${x.source_id}  ${String(x.title).slice(0, 40)}`);
+        });
+        console.log('     → 정말 내린 것이면 hidden 을 켜십시오.');
+      }
+    }
+  } catch (e) { }
+
   console.log('──────────────────────────────');
   console.log(`  실제로 담음     ${put}건`);
   if (errs.length) {
     console.log(`  ★ 문제 ${errs.length}건`);
     errs.slice(0, 3).forEach((m) => console.log('     · ' + m));
   }
-  console.log('\n★ 다음 — 대문 히어로를 전시 자리로 되돌립니다.');
+  /* ★ 2026-08-24 · 히어로는 이미 되돌렸고 전시 화면도 생겼습니다.
+       안내를 지금 할 일로 바꿉니다 — 낡은 안내는 헷갈리게 합니다. */
+  console.log('\n★ 날마다 새벽 5시 10분에 저절로 돕니다 (collect-exh.yml).');
+  console.log('  화면 — /db/exhibition.html');
 })();

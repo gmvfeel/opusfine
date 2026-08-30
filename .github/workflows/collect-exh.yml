@@ -1,0 +1,128 @@
+name: 전시 수집
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 전시 수집
+#  ------------------------------------------------------------------
+#  ★★ 전시는 <b>때가 있는 자료</b>입니다.
+#     작품과 작가는 한 번 담으면 그대로지만, 전시는 오늘 열리는 것이
+#     내일 지난 것이 됩니다. 이것이 멈추면 대문 히어로의
+#     「지금 열리는 전시」가 곧 거짓이 됩니다.
+#     ▶ 그래서 <b>날마다</b> 돕니다.
+#
+#  ★ 작품 수집에 얹지 않고 <b>따로 둡니다.</b>
+#    하나가 실패할 때 다른 것도 못 도는 일을 막습니다.
+#    돌아가는 시간도 어긋나게 두어 서로 부딪히지 않습니다.
+#      작가 03:20 · 작품 04:40 · 전시 05:10 (한국 시간)
+#
+#  ★★ 오퍼스클램에서 값을 치르고 배운 것 (그대로 유효)
+#    ① 예약 실행(schedule)일 때 inputs 는 <b>빈 값</b>으로 옵니다.
+#       ${{ ... || '기본값' }} 로 못박지 않으면 아무것도 안 합니다.
+#    ② 워크플로는 <b>Run 을 누른 시점의 코드</b>로 돕니다.
+#    ③ 실패하면 이슈를 열어 알립니다. 조용히 실패하면 몇 주가 지나도
+#       모릅니다.
+#
+#  ★ 전시는 <b>덮어씁니다</b>(merge). 기간이 늘거나 설명이 붙습니다.
+#    작품과 달리 최신이 맞습니다 — 수집기 안에서 그렇게 해 두었습니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  schedule:
+    - cron: '10 20 * * *'      # 한국 시간 새벽 5시 10분
+  workflow_dispatch:
+    inputs:
+      src:
+        description: '어디서 받을까요'
+        type: choice
+        default: seoul
+        options: [seoul, seoul-peek]
+      limit:
+        description: '몇 건까지'
+        default: '1000'
+      dry:
+        description: '담지 않고 세어만 보기'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: collect-exh
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 받아서 쌓기
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SEOUL_KEY:            ${{ secrets.SEOUL_KEY }}
+          # ★ 예약 실행 때는 inputs 가 비어 옵니다 — 기본값을 못박습니다
+          IN_SRC:   ${{ github.event.inputs.src   || 'seoul' }}
+          IN_LIMIT: ${{ github.event.inputs.limit || '1000' }}
+          IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
+        run: |
+          case "${IN_SRC:-seoul}" in
+            seoul-peek)
+              # ★ 담지 않고 무엇을 주는지만 봅니다.
+              #   자료원이 바뀌었는지 살필 때 씁니다.
+              echo "▶ 서울 열린데이터광장을 두드려 봅니다 (담지 않습니다)"
+              node scripts/collect-seoul-peek.mjs
+              ;;
+            seoul)
+              ARGS="--limit ${IN_LIMIT:-1000}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-exh-seoul.mjs $ARGS"
+              eval node scripts/collect-exh-seoul.mjs $ARGS
+              ;;
+            *)
+              echo "★ 모르는 갈래입니다: ${IN_SRC}"
+              exit 1
+              ;;
+          esac
+
+      - name: 실패하면 알리기
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '전시 수집이 실패했습니다';
+            const body  = [
+              '워크플로: `' + context.workflow + '`',
+              '실행: ' + context.serverUrl + '/' + context.repo.owner + '/' +
+                        context.repo.repo + '/actions/runs/' + context.runId,
+              '',
+              '기록을 열어 어디서 멈췄는지 보십시오.',
+              '',
+              '자주 있는 까닭 —',
+              '· 서울 열린데이터광장이 ERROR-500 을 냄 → 다음 회차에 다시 받습니다',
+              '· 인증키 한도(하루 1,000건) 넘음 → 활용사례를 등록하면 풀립니다',
+              '· 서비스 이름이 바뀜 → `seoul-peek` 로 돌려 어느 이름이 답하는지 봅니다'
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'collect-fail'
+            });
+            const same = open.find(i => i.title === title);
+            if (same) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: same.number, body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['collect-fail']
+              });
+            }
