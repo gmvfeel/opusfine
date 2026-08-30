@@ -94,7 +94,10 @@
     };
     add('기간', esc(period(e.start_date, e.end_date)));
     add('장소', esc(e.venue) + (e.venue_dept ? ' · ' + esc(e.venue_dept) : ''));
-    add('참여작가', esc(e.artists));
+    /* ★ 참여작가는 아래 paintArtists 가 <b>누를 수 있게</b> 다시 그립니다.
+         여기서는 자리만 잡아 둡니다 — 잇는 표를 못 읽어도
+         이름은 보여야 하니까요. */
+    add('참여작가', '<span id="xv-artists">' + esc(e.artists) + '</span>');
     add('갈래', esc(e.genre));
     if (e.work_count) add('출품작', '<b>' + Number(e.work_count).toLocaleString() + '</b>점');
     add('주최·후원', esc(e.organizer));
@@ -156,10 +159,9 @@
         b.push('<a href="' + esc(e.link_source) + '" target="_blank" rel="noopener">'
              + '주최 기관에서 보기 →</a>');
       b.push('<a class="xv-ghost" href="/db/exhibition.html">전시 목록</a>');
-      if (e.artists)
-        b.push('<a class="xv-ghost" href="/db/artist.html?q='
-             + encodeURIComponent(String(e.artists).split(',')[0].trim()) + '">'
-             + '참여작가 찾기</a>');
+      /* ★ 「참여작가 찾기」 단추를 뺐습니다 — 이제 사실 칸의
+           이름을 <b>바로 누를 수 있습니다.</b> 같은 일을 하는 길이
+           둘이면 헷갈립니다. */
       acts.innerHTML = b.join('');
     }
 
@@ -190,6 +192,34 @@
         + (e.poster_credit ? esc(e.poster_credit) : '공공누리 제1유형');
       show('sec-body', true);
     }
+  }
+
+  /* ── 참여작가 잇기 ──────────────────────────────────────────
+     ★★ 2026-08-24 · 참여작가가 <b>글자뿐</b>이었습니다. 이제
+       작가DB 에 있는 사람은 <b>눌러서 그 작가로</b> 갈 수 있습니다.
+       (전시 494건에 작가 820명이 이어졌습니다)
+     ★ 이어진 사람만 링크를 답니다. 없는 사람은 <b>글자 그대로</b> 둡니다 —
+       없는 곳으로 보내지 않습니다.
+     ★ 잇는 표를 못 읽으면 <b>아무것도 하지 않습니다.</b> 위에서 이미
+       이름을 적어 두었으므로 화면이 비지 않습니다. */
+  async function paintArtists(e) {
+    var box = $('xv-artists');
+    if (!box) return;
+    var rows = [];
+    try {
+      rows = await get(OF.SB_URL + '/rest/v1/exhibition_artists'
+        + '?select=artist_id,artist_name,sort_no'
+        + '&exhibition_id=eq.' + e.id + '&order=sort_no.asc&limit=200');
+    } catch (err) { return; }
+    if (!rows.length) return;
+
+    box.innerHTML = rows.map(function (r) {
+      var nm = esc(r.artist_name);
+      return r.artist_id
+        ? '<a href="/db/artist-view.html?id=' + r.artist_id + '"'
+          + ' style="border-bottom:1px solid var(--rule-2)">' + nm + '</a>'
+        : nm;
+    }).join(', ');
   }
 
   /* ── 같은 곳의 다른 전시 ──
@@ -253,6 +283,7 @@
 
     show('main', true);
     paint(rows[0]);
+    await paintArtists(rows[0]);
     await more(rows[0]);
   }
 

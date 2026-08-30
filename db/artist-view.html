@@ -300,29 +300,15 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   <section class="dsec" id="sec-exh">
     <div class="dhd">
       <span class="dt">전시 이력</span><span class="dt-en">Exhibitions</span>
-      <span class="sec-sub">개인전 <b style="color:var(--accent)">6</b> · 단체전 <b style="color:var(--accent)">32</b></span>
+      <span class="sec-sub"></span>
       <a class="sec-more" href="#">전체 →</a>
     </div>
-    <div class="exh">
-      <a class="exh-r" href="#"><span class="exh-y">2026</span>
-        <span><span class="exh-t"><em>《진경, 우리 산천》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
-        <span class="exh-k solo">개인전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2024</span>
-        <span><span class="exh-t"><em>《조선의 산수》</em></span><span class="exh-v">간송미술관, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2023</span>
-        <span><span class="exh-t"><em>《겸재와 그 시대》</em></span><span class="exh-v">삼성미술관 리움, 서울</span></span>
-        <span class="exh-k solo">개인전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2021</span>
-        <span><span class="exh-t"><em>《한국 회화 600년》</em></span><span class="exh-v">국립현대미술관 덕수궁, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2019</span>
-        <span><span class="exh-t"><em>《Korean Landscape Painting》</em></span><span class="exh-v">The Metropolitan Museum of Art, New York</span></span>
-        <span class="exh-k group">단체전</span></a>
-      <a class="exh-r" href="#"><span class="exh-y">2016</span>
-        <span><span class="exh-t"><em>《금강산, 그리다》</em></span><span class="exh-v">국립중앙박물관, 서울</span></span>
-        <span class="exh-k group">단체전</span></a>
-    </div>
+    <!-- ★★ 2026-08-24 · 손으로 적은 <b>견본 전시 여섯</b>을 지웠습니다.
+         (진경 우리 산천 · 조선의 산수 · 겸재와 그 시대…) 정선 것이었는데
+         누구를 열어도 그대로 떴습니다.
+         이제 assets/artist-view.js 의 paintExh 가 exhibition_artists 를
+         거쳐 그 작가의 전시를 불러 채웁니다. 없으면 구역을 감춥니다. -->
+    <div class="exh"></div>
   </section>
 
   <!-- ══ 소장처 ══ -->

@@ -31,6 +31,21 @@
   }
   function $(id) { return document.getElementById(id); }
   function hide(id) { var e = $(id); if (e) e.style.display = 'none'; }
+
+  /* ── 조사 고르기 ──
+     ★ 「작품·전시<b>은</b>」이 나왔습니다. 받침 없는 말에 「은」을
+       붙인 것입니다. 마지막 글자의 <b>받침</b>을 보고 고릅니다.
+     ★ 한글이 아니면 괄호로 둘 다 적습니다 — 억지로 고르면 틀립니다. */
+  function josa(word, withJong, without) {
+    var w = String(word || '').trim();
+    if (!w) return without;
+    var c = w.charCodeAt(w.length - 1);
+    if (c >= 0xAC00 && c <= 0xD7A3)
+      return ((c - 0xAC00) % 28) ? withJong : without;
+    if (c >= 0x30 && c <= 0x39)
+      return ('136780'.indexOf(w[w.length - 1]) >= 0) ? withJong : without;
+    return without + '(' + withJong + ')';
+  }
   function show(id) { var e = $(id); if (e) e.style.display = ''; }
 
   var head = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
@@ -254,24 +269,118 @@
              Prefer: 'count=exact', Range: '0-0' };
   }
 
+  /* ── 전시 이력 ──────────────────────────────────────────────
+     ★★ 2026-08-24 · <b>전시DB 가 붙었습니다.</b>
+       서울시립미술관 878건 가운데 494건에 작가가 이어졌고,
+       작가 820명이 전시를 갖게 되었습니다.
+       그동안 이 자리에는 <b>손으로 적은 정선 전시 여섯</b>이
+       누구를 열어도 그대로 떠 있었습니다.
+
+     ★ 잇는 표(exhibition_artists)를 거쳐 받습니다. 전시 하나에
+       작가가 여럿, 작가 하나가 전시 여럿이라 <b>여럿 대 여럿</b>입니다.
+     ★ PostgREST 의 <b>겹쳐 받기</b>로 한 번에 가져옵니다 —
+       exhibition_artists?select=exhibitions(...)
+       두 번 물으면 느리고, 전시가 많은 작가는 더 그렇습니다.
+
+     ★ <b>최근 것부터</b> 봅니다. 전시 이력은 연표라 최근이 위입니다.
+     ★ 「개인전 / 단체전」은 <b>참여작가 수</b>로 가릅니다 —
+       그 전시에 이어진 이름이 하나뿐이면 개인전입니다.
+       자료원이 알려 주지 않으므로 우리가 세는 수밖에 없습니다. */
+  async function paintExh(a) {
+    var sec = $('sec-exh');
+    if (!sec) return 0;
+
+    var rows = [];
+    try {
+      rows = await get(OF.SB_URL + '/rest/v1/exhibition_artists'
+        + '?select=exhibition_id,exhibitions(id,title,venue,start_date,end_date,poster_url)'
+        + '&artist_id=eq.' + a.id + '&limit=200');
+    } catch (e) { }
+
+    /* 전시가 지워졌거나 감춰졌으면 겹쳐 받기가 빈 값을 줍니다 */
+    var ex = rows.map(function (r) { return r.exhibitions; }).filter(Boolean);
+    if (!ex.length) { hide('sec-exh'); return 0; }
+
+    /* 최근 것부터 */
+    ex.sort(function (x, y) {
+      return String(y.start_date || '').localeCompare(String(x.start_date || ''));
+    });
+
+    /* ★ 개인전인지 세려면 <b>그 전시의 참여작가 수</b>가 필요합니다.
+         전시마다 따로 물으면 수십 번이 되므로 <b>한 번에</b> 묻습니다. */
+    var solo = {};
+    try {
+      var ids = ex.map(function (e) { return e.id; }).join(',');
+      var mates = await get(OF.SB_URL + '/rest/v1/exhibition_artists'
+        + '?select=exhibition_id&exhibition_id=in.(' + ids + ')&limit=2000');
+      var cnt = {};
+      mates.forEach(function (m) {
+        cnt[m.exhibition_id] = (cnt[m.exhibition_id] || 0) + 1;
+      });
+      ex.forEach(function (e) { solo[e.id] = cnt[e.id] === 1; });
+    } catch (e) { }
+
+    var nSolo = ex.filter(function (e) { return solo[e.id]; }).length;
+    var sub = sec.querySelector('.sec-sub');
+    if (sub) {
+      sub.innerHTML = (nSolo ? '개인전 <b style="color:var(--accent)">' + nSolo + '</b> · ' : '')
+        + '전시 <b style="color:var(--accent)">' + ex.length + '</b>';
+    }
+    var more = sec.querySelector('.sec-more');
+    if (more) more.href = '/db/exhibition.html?q=' + encodeURIComponent(a.name_ko || '');
+
+    var box = sec.querySelector('.exh');
+    if (!box) return 0;
+    box.innerHTML = ex.slice(0, 20).map(function (e) {
+      var yr = String(e.start_date || e.end_date || '').slice(0, 4);
+      /* ★ 제목에 이미 낫표가 든 것이 많습니다 — 덧씌우지 않습니다 */
+      var t = /[《》]/.test(e.title) ? esc(e.title) : '《' + esc(e.title) + '》';
+      var kind = solo[e.id] ? 'solo' : 'group';
+      return '<a class="exh-r" href="/db/exhibition-view.html?id=' + e.id + '">'
+        + '<span class="exh-y">' + esc(yr) + '</span>'
+        + '<span><span class="exh-t"><em>' + t + '</em></span>'
+        +   (e.venue ? '<span class="exh-v">' + esc(e.venue) + '</span>' : '') + '</span>'
+        + '<span class="exh-k ' + kind + '">' + (solo[e.id] ? '개인전' : '단체전') + '</span></a>';
+    }).join('');
+    show('sec-exh');
+    return ex.length;
+  }
+
   /* ── 아직 표가 없는 구역 ──
      ★ 견본을 남겨 두면 거짓이 됩니다. 통째로 감춥니다.
        표가 생기면 하나씩 되살립니다.
      ★ sec-works 는 <b>되살렸습니다</b> — 작품DB 가 붙었습니다. */
+  /* ★ sec-works · sec-exh 는 <b>되살렸습니다</b> — 표가 붙었습니다.
+       처음엔 감춰 두고, 자료가 있을 때만 되살립니다. */
   function hideEmpty() {
     ['sec-works', 'sec-exh', 'sec-hold', 'sec-rel', 'sec-paper'].forEach(hide);
   }
 
   /* ★ 「작품·전시·소장처·학술 자료는 아직 붙지 않았습니다」
        — 작품은 붙었으므로 문구를 고칩니다. 거짓을 남기지 않습니다. */
-  function fixNote(hasWorks) {
+  /* ★★ 2026-08-24 · <b>전시가 붙었는지</b>도 밝힙니다.
+       이 줄이 낡으면 그것도 거짓이 됩니다 — 어제 「전시 자료는
+       아직 붙지 않았습니다」가 붙은 뒤에도 그대로 떠 있었습니다.
+     ★ 무엇이 <b>아직 없는지</b>도 적습니다. 있는 것만 말하면
+       화면이 다 갖춘 것처럼 보입니다. */
+  function fixNote(hasWorks, hasExh) {
     var n = $('demo-note');
     if (!n) return;
+    var got = [];
+    if (hasWorks) got.push('작품');
+    if (hasExh)   got.push('전시');
+    var none = [];
+    if (!hasWorks) none.push('작품');
+    if (!hasExh)   none.push('전시');
+    none.push('소장처', '학술 자료');
+
     n.innerHTML = '작가 정보는 <b>위키데이터</b>에서 받은 것입니다 · '
       + '그림은 위키미디어 커먼즈 원본을 링크합니다'
-      + (hasWorks
-         ? ' · 작품은 <b>공개 자료에서 거둔 것</b>이라 전하는 것의 일부입니다'
-         : ' · 전시·소장처·학술 자료는 <b>아직 붙지 않았습니다</b>');
+      + (got.length
+         ? ' · ' + got.join('·') + josa(got[got.length - 1], '은', '는')
+           + ' <b>공개 자료에서 거둔 것</b>이라 전하는 것의 일부입니다' : '')
+      + ' · ' + none.join('·') + josa(none[none.length - 1], '은', '는')
+      + ' <b>아직 붙지 않았습니다</b>';
   }
 
   async function boot() {
@@ -286,7 +395,8 @@
       paintHead(a);
       paintBio(a);
       var n = await paintWorks(a);
-      fixNote(!!n);
+      var nx = await paintExh(a);
+      fixNote(!!n, !!nx);
       await paintMore(a);
     } catch (e) {
       notFound('자료를 불러오지 못했습니다 · ' + e.message);
