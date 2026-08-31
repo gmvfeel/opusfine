@@ -145,20 +145,13 @@
       if (box.tagName === 'A' && w.id) box.href = '/db/work-view.html?id=' + w.id;
     }
 
-    /* 전시 카드는 <b>전시 정보가 견본</b>이고 도판만 우리 것입니다.
-       그 사실을 한 줄로 밝힙니다 — 감추면 잘못 읽힙니다. */
-    if (kind === 'ex') {
-      var v = box.querySelector('.v');
-      if (v && !v.dataset.kept) {
-        v.dataset.kept = '1';
-        var n = document.createElement('div');
-        n.className = 'artcap';
-        n.textContent = '도판 ' + (w.artist_name ? w.artist_name + ', ' : '')
-                      + '《' + (w.title || '') + '》'
-                      + (w.holder ? ' · ' + w.holder : '');
-        v.parentNode.appendChild(n);
-      }
-    }
+    /* ★★ 2026-08-24 · <b>전시 카드(ex) 처리를 걷어 냈습니다.</b>
+         전시DB 878건이 붙어, 대문 전시 자리는 이제
+         <b>assets/home-exh.js</b> 가 진짜 전시로 채웁니다.
+         그전에는 「전시 정보는 견본이고 도판만 우리 것」이라
+         한 줄로 밝히며 작품 도판을 걸어 두었습니다.
+       ★ 견본을 지우면서 data-art="ex" 자리도 함께 사라졌으므로
+         이 코드는 이제 걸릴 일이 없습니다. */
   }
 
   /* ══ ② 작가 얼굴 자리 ═════════════════════════════════════════ */

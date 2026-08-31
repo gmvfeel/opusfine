@@ -197,6 +197,16 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
       <button class="chip on">전체</button><button class="chip">조선 이전</button>
       <button class="chip">조선</button><button class="chip">근대</button><button class="chip">현대</button>
     </div>
+    <!-- ★★ 2026-08-24 · <b>자료 있는 작가</b>만 보는 추리개입니다.
+         작가 4,600여 명 가운데 작품이나 전시가 붙은 사람은 일부입니다.
+         나머지는 이름과 생몰년뿐이라, 눌러 들어가도 볼 것이 없습니다.
+         ▶ 「작품 있음」 820명 · 「전시 있음」 820명을 <b>골라 볼 수</b> 있게 합니다. -->
+    <div class="fgrp" id="fHas">
+      <span class="fl">자료</span>
+      <button class="chip on" data-h="">전체</button>
+      <button class="chip" data-h="work">작품 있음</button>
+      <button class="chip" data-h="exh">전시 있음</button>
+    </div>
     <div class="fright">
       <div class="srch">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">

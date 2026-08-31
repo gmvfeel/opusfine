@@ -24,7 +24,7 @@
   var PAGE = 24;
 
   var today = new Date().toISOString().slice(0, 10);
-  var state = { when: 'live', venue: '', q: '', from: 0, done: false };
+  var state = { when: 'live', venue: '', q: '', qIds: [], from: 0, done: false };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -68,9 +68,18 @@
     if (state.venue) p.push('venue=eq.' + encodeURIComponent(state.venue));
     if (state.q) {
       /* ★ 제목과 참여작가를 함께 봅니다 — 「유영국」으로 찾으면
-           그 사람 전시가 나와야 합니다. */
+           그 사람 전시가 나와야 합니다.
+         ★★ 2026-08-24 · 잇는 표(exhibition_artists)로 찾은 번호를
+           <b>함께</b> 봅니다. artists 칸은 글자 덩이라
+           「이우환」이 「이우환컬렉션」에도 걸립니다. 잇는 표는
+           이름을 이미 갈라 담아 두어 <b>꼭 맞는 것</b>만 잡습니다.
+         ★ 둘을 or 로 잇습니다 — 잇는 표에 없는 사람은
+           글자로라도 찾아야 하니까요. */
       var k = encodeURIComponent('*' + state.q + '*');
-      p.push('or=(title.ilike.' + k + ',artists.ilike.' + k + ',subtitle.ilike.' + k + ')');
+      var byName = 'title.ilike.' + k + ',artists.ilike.' + k + ',subtitle.ilike.' + k;
+      if (state.qIds && state.qIds.length)
+        byName += ',id.in.(' + state.qIds.slice(0, 500).join(',') + ')';
+      p.push('or=(' + byName + ')');
     }
     p.push('limit=' + PAGE, 'offset=' + state.from);
     return OF.SB_URL + '/rest/v1/exhibitions?' + p.filter(Boolean).join('&');
@@ -130,6 +139,25 @@
       +   (e.artists ? '<span class="xl-ar">' +
           esc(String(e.artists).split(',').slice(0, 4).join(', ')) + '</span>' : '')
       + '</span></a>';
+  }
+
+  /* ── 이름으로 전시 번호 찾기 ──
+     ★ 잇는 표에서 <b>이름이 꼭 맞는</b> 줄을 찾아 전시 번호를 모읍니다.
+       「이우환」이 「이우환컬렉션」에 걸리는 일을 막습니다. */
+  async function idsByArtist(q) {
+    if (!q) return [];
+    try {
+      var rows = await get(OF.SB_URL + '/rest/v1/exhibition_artists'
+        + '?select=exhibition_id&artist_name=ilike.'
+        + encodeURIComponent('*' + q + '*') + '&limit=500');
+      var seen = {}, out = [];
+      rows.forEach(function (r) {
+        if (r.exhibition_id && !seen[r.exhibition_id]) {
+          seen[r.exhibition_id] = 1; out.push(r.exhibition_id);
+        }
+      });
+      return out;
+    } catch (e) { return []; }
   }
 
   /* ── 장소 추리개 — DB 에서 받아 만듭니다 ── */
@@ -232,7 +260,12 @@
       q.addEventListener('input', function () {
         clearTimeout(t);
         /* ★ 글자마다 묻지 않습니다 — 손을 멈춘 뒤에 한 번 */
-        t = setTimeout(function () { state.q = q.value.trim(); load(true); }, 320);
+        t = setTimeout(async function () {
+          state.q = q.value.trim();
+          /* ★ 이름으로 이어진 전시 번호를 <b>먼저</b> 받아 둡니다 */
+          state.qIds = state.q ? await idsByArtist(state.q) : [];
+          load(true);
+        }, 320);
       });
     }
     if (moreBtn) moreBtn.addEventListener('click', function () { load(false); });
@@ -245,7 +278,15 @@
     var p = new URLSearchParams(location.search);
     if (p.get('when')) state.when = p.get('when');
     if (p.get('venue')) state.venue = p.get('venue');
-    if (p.get('q')) { state.q = p.get('q'); if ($('q')) $('q').value = state.q; }
+    if (p.get('q')) {
+      state.q = p.get('q');
+      if ($('q')) $('q').value = state.q;
+      /* ★ 주소로 들어온 것도 이름으로 찾아 둡니다 —
+           작가 상세의 「전체 →」가 이리로 옵니다. */
+      idsByArtist(state.q).then(function (ids) {
+        if (ids.length) { state.qIds = ids; load(true); }
+      });
+    }
 
     bind();
     buildVenues();

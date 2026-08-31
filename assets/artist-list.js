@@ -24,7 +24,38 @@
   var PER = 24;
   var grid, cntBox, moreBtn;
   var page = 0, total = 0, busy = false;
-  var q = '', fField = '', fEra = '';
+  var q = '', fField = '', fEra = '', fHas = '';
+
+  /* ★★ 2026-08-24 · <b>자료 있는 작가</b>만 고르는 추리개.
+       작가 4,600여 명 가운데 볼 것이 있는 사람은 일부입니다.
+       나머지는 이름과 생몰년뿐이라 눌러 들어가도 빈 화면입니다.
+     ★ PostgREST 로는 「다른 표에 줄이 있는 작가」를 한 번에 못 고릅니다.
+       그래서 <b>번호를 먼저 받아</b> 두고 걸러 냅니다.
+       한 번만 받아 두고 다시 쓰므로 느려지지 않습니다. */
+  var HAS = { work: null, exh: null };
+
+  async function idsWith(kind) {
+    if (HAS[kind]) return HAS[kind];
+    var url = kind === 'work'
+      ? OF.SB_URL + '/rest/v1/artworks?select=artist_id'
+        + '&hidden=not.is.true&artist_id=not.is.null&limit=20000'
+      : OF.SB_URL + '/rest/v1/exhibition_artists?select=artist_id'
+        + '&artist_id=not.is.null&limit=20000';
+    var set = [];
+    try {
+      var r = await fetch(url, { headers: { apikey: OF.SB_KEY,
+        Authorization: 'Bearer ' + OF.SB_KEY } });
+      if (r.ok) {
+        var rows = await r.json();
+        var seen = {};
+        rows.forEach(function (x) {
+          if (x.artist_id && !seen[x.artist_id]) { seen[x.artist_id] = 1; set.push(x.artist_id); }
+        });
+      }
+    } catch (e) { }
+    HAS[kind] = set;
+    return set;
+  }
 
   /* ── 잣대 ──
      ★ 표에 담긴 <b>그 글자</b>로 거릅니다. 위키데이터가 준 직업 이름을
@@ -56,6 +87,11 @@
     var p = [];
     p.push('select=id,name_ko,name_en,name_han,art_name,field,genre,birth_year,death_year,life,nationality,image_url,is_oc,quality,rep_work');
     p.push('hidden=not.is.true');
+    /* ★ 자료 있는 작가만 — 번호 목록으로 좁힙니다.
+         목록이 길면 주소가 길어지므로 <b>앞 2,000명</b>만 씁니다.
+         그보다 많은 경우는 아직 없습니다(820명). */
+    if (fHas && HAS[fHas] && HAS[fHas].length)
+      p.push('id=in.(' + HAS[fHas].slice(0, 2000).join(',') + ')');
     p.push('order=quality.desc,sort_no.desc,id.desc');
 
     if (q) {
@@ -149,7 +185,7 @@
       }
       if (cntBox && page === 0) {
         cntBox.innerHTML = '<b>' + total.toLocaleString() + '</b>명'
-          + (q || fField || fEra ? ' · 추린 것' : '');
+          + (q || fField || fEra || fHas ? ' · 추린 것' : '');
       }
       if (!rows.length && page === 0) {
         grid.innerHTML = '<div class="demo-note" style="grid-column:1/-1">' +
@@ -185,6 +221,22 @@
     var groups = document.querySelectorAll('.filters .fgrp');
     if (groups[0]) chips(groups[0], function (v) { fField = v; });
     if (groups[1]) chips(groups[1], function (v) { fEra   = v; });
+
+    /* ★ 자료 추리개 — 누를 때 <b>번호를 먼저 받아</b> 두고 좁힙니다 */
+    var hasBox = document.getElementById('fHas');
+    if (hasBox) hasBox.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        hasBox.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        fHas = b.dataset.h || '';
+        if (fHas) {
+          b.textContent = '불러오는 중…';
+          await idsWith(fHas);
+          b.textContent = fHas === 'work' ? '작품 있음' : '전시 있음';
+        }
+        load(true);
+      });
+    });
 
     var input = document.querySelector('.srch input');
     if (input) {
