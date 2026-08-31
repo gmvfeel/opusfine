@@ -1,0 +1,54 @@
+name: 작가 · 한글 이름 채우기 (위키데이터)
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 작가 한글 이름 채우기
+#  ------------------------------------------------------------------
+#  ★ <b>기본이 「시늉만」입니다.</b> 그냥 돌리면 담지 않고 보여만 줍니다.
+#    담으려면 「시늉만」 칸을 false 로 바꿔 주십시오.
+#
+#  ★ 예약 실행이 없습니다. 손으로 누를 때만 돕니다.
+#    이름을 고치는 일은 눈으로 보고 나서 하는 것이 맞습니다.
+#
+#  ★ 오퍼스클램에서 배운 것
+#    ① 워크플로는 <b>Run 을 누른 시점의 코드</b>로 돕니다.
+#    ② 예약 실행이 없으므로 기본값 못박기는 필요 없으나,
+#       inputs 가 비어 올 때를 대비해 ${{ ... || '기본값' }} 를 씁니다.
+#    ③ <b>실패하면 조용히 지나가지 않게</b> 로그를 남깁니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: '시늉만 (담지 않고 보기)'
+        type: boolean
+        default: true
+      limit:
+        description: '몇 명까지'
+        default: '500'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fill-nameko
+  cancel-in-progress: false
+
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 한글 이름 채우기
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          NK_DRY:   ${{ (github.event.inputs.dry == 'false') && '0' || '1' }}
+          NK_LIMIT: ${{ github.event.inputs.limit || '500' }}
+        run: node scripts/fill-nameko-wd.mjs
