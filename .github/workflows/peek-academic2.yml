@@ -1,0 +1,37 @@
+name: 학술 · 미술 정찰 2차 (수동 · 담지 않음)
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 학술(미술) 정찰 2차
+#  ------------------------------------------------------------------
+#  ★ 1차가 그물을 헐겁게 던져 교육학·철학·고고학을 주워 왔습니다.
+#    이번에는 진짜 미술 subfield 셋만 놓고 그 안을 들여다봅니다.
+#
+#  ★ 여전히 <b>세기만 합니다.</b> DB 를 건드리지 않습니다.
+#    Supabase 열쇠를 쓰지 않고, 예약 실행도 없습니다.
+#
+#  ★ 워크플로는 Run 을 누른 시점의 코드로 돕니다. 올린 뒤에 누르십시오.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peek-academic2
+  cancel-in-progress: false
+
+jobs:
+  peek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 좁혀서 세어보기
+        run: node scripts/peek-academic-art2.mjs
