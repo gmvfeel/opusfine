@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>미술대학 — OPUSFINE</title>
+<meta name="description" content="미술대학 한 곳과 그곳을 거쳐 간 작가들.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   미술대학 상세 · 2026-08-31
+   ------------------------------------------------------------------
+   ★ 클래스 접두사 <b>sv-</b> (미술대학 상세)
+   ★ <b>견본을 두지 않습니다.</b> 자료가 없으면 「아직 없습니다」로
+     적습니다. 작품 상세 #more-ar 에 작가 견본 6개가 숨어 있다가
+     여태 안 보였던 일이 있었습니다 — 질의가 성공하면 갈리고
+     실패하면 감춰져서, 아무도 모르는 채 남아 있었습니다.
+   ★ 한글 justify 는 text-justify:inter-character 를 함께 씁니다.
+   ══════════════════════════════════════════════════════════════════ */
+
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+/* ── 머리 ── */
+.sv-top{padding:26px 0 0}
+.sv-hd{display:flex;align-items:flex-start;gap:26px;padding:22px 0 30px;
+  border-bottom:1px solid var(--rule-2)}
+.sv-logo{flex:0 0 92px;width:92px;height:92px;display:flex;align-items:center;
+  justify-content:center;border:1px solid var(--rule-2);background:#FCFBF9;overflow:hidden}
+.sv-logo img{max-width:80%;max-height:80%;display:block}
+.sv-logo.none{background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 7px,#F4F3EF 7px,#F4F3EF 14px)}
+.sv-hb{min-width:0;flex:1}
+.sv-cat{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase}
+.sv-nm{font-family:var(--serif);font-weight:300;font-size:clamp(25px,3.2vw,37px);
+  letter-spacing:-.025em;margin:9px 0 0;line-height:1.25}
+.sv-nm.roman{font-family:var(--sans);font-weight:600;font-size:clamp(21px,2.6vw,30px);
+  letter-spacing:-.015em}
+.sv-en{font-size:13px;color:var(--ink-3);margin-top:7px;line-height:1.6}
+.sv-meta{margin-top:15px;display:flex;gap:0;flex-wrap:wrap;font-size:12.5px;
+  color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sv-meta span{padding-right:15px;margin-right:15px;border-right:1px solid var(--rule-2)}
+.sv-meta span:last-child{border-right:0;margin-right:0;padding-right:0}
+.sv-links{margin-top:17px;display:flex;gap:10px;flex-wrap:wrap}
+.sv-links a{font-size:12px;padding:7px 15px;border:1px solid var(--rule-2);
+  color:var(--ink-2);transition:.16s}
+.sv-links a:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ── 몸 ── */
+.sv-sec{padding:34px 0;border-bottom:1px solid var(--rule-2)}
+.sv-sk{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
+  text-transform:uppercase;margin-bottom:16px}
+.sv-txt{font-size:14.5px;line-height:2.05;color:var(--ink-2);max-width:46em;
+  text-align:justify;text-justify:inter-character}
+.sv-txt p{margin:0 0 1.1em}
+.sv-txt p:last-child{margin-bottom:0}
+
+/* ── 동문 · 이 화면의 주인공 ── */
+.sv-al{display:flex;flex-wrap:wrap;gap:9px}
+.sv-al a,.sv-al span{font-size:13px;padding:9px 16px;border:1px solid var(--rule-2);
+  color:var(--ink-2);transition:.16s;line-height:1}
+.sv-al a:hover{border-color:var(--accent);color:var(--accent)}
+/* 작가DB 에 없는 이름 — 링크가 아니므로 옅게 둡니다 */
+.sv-al span{color:var(--ink-3);border-style:dashed}
+
+.sv-none{font-size:12.5px;color:var(--ink-3);line-height:1.85}
+
+.sv-back{padding:26px 0 40px}
+.sv-back a{font-size:13px;color:var(--ink-2)}
+.sv-back a:hover{color:var(--accent)}
+
+html[data-theme="dark"] .sv-logo{background:#1A1A1D}
+html[data-theme="dark"] .sv-logo.none{background:repeating-linear-gradient(135deg,#1A1A1D,#1A1A1D 7px,#212125 7px,#212125 14px)}
+
+@media(max-width:640px){
+  .sv-hd{flex-direction:column;gap:18px}
+  .sv-logo{flex:0 0 68px;width:68px;height:68px}
+}
+</style>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap sv-top">
+  <div class="bc" style="padding:0">
+    <a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> /
+    <a href="/db/school.html">미술대학</a> / <span id="svBc">…</span>
+  </div>
+</div>
+
+<div class="wrap" id="svMain">
+  <div class="sv-sec" style="border:0">
+    <div class="sv-none">불러오는 중…</div>
+  </div>
+</div>
+
+<div class="wrap sv-back">
+  <a href="/db/school.html">← 미술대학 목록으로</a>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/school-view.js"></script>
+</body>
+</html>

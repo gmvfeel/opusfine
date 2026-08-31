@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>미술대학 — OPUSFINE</title>
+<meta name="description" content="세계 미술대학과 그곳을 거쳐 간 작가들.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   미술대학 목록 · 2026-08-31
+   ------------------------------------------------------------------
+   ★ 작가 목록은 <b>도판 격자</b>입니다 — 대표작 한 점이 작가를 설명하니까요.
+     학교는 다릅니다. 로고가 절반(131/250)뿐이고, 로고를 크게 띄워도
+     알 수 있는 것이 없습니다.
+   ★ 학교에서 주인공은 <b>동문</b>입니다.
+     「안트베르펜 왕립미술원 — 빈센트 반 고흐」가 그 학교를 설명합니다.
+     ▶ 그래서 <b>글자가 주인공인 카드</b>로 갑니다.
+       오퍼스클램 인물 목록이 표였던 것과 같은 까닭입니다.
+
+   ★ 클래스 접두사 <b>sl-</b> (미술대학 목록)
+     of.css 와 부딪히지 않게 붙입니다. 전시가 xl-/xv- 를 쓰는 것과 같습니다.
+     ※ 점 뒤에 오는 것은 건드리지 않습니다 (e.body → e.sl-body 사고 방지)
+
+   ★ 자료 실태 (2026-08-31 담을 때 세어 본 것)
+       250곳 · 소재지 246 · 소개문 221 · 설립연도 218
+       위키링크 228 · 홈페이지 199 · 로고 131 · <b>동문 115</b>
+       한글 이름 <b>14곳뿐</b> — 나머지는 영문으로 보입니다
+       한국 미술대학 <b>0곳</b> — 음악학교 그물에 걸릴 이유가 없었습니다
+   ══════════════════════════════════════════════════════════════════ */
+
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+.sl-top{padding:30px 0 26px}
+.sl-top h1{font-family:var(--serif);font-weight:200;font-size:clamp(30px,3.8vw,44px);
+  letter-spacing:-.03em;margin:12px 0 0}
+.sl-top h1 b{font-weight:400}
+.sl-top p{margin:14px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9}
+.sl-cnt{margin-top:18px;font-size:13px;color:var(--ink-2)}
+.sl-cnt b{font-family:var(--serif);font-size:19px;color:var(--accent);font-weight:500;
+  font-variant-numeric:tabular-nums}
+
+/* ── 추리개 ── */
+.sl-filters{padding:18px 0;border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);position:sticky;top:66px;z-index:40;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px)}
+.sl-frow{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.sl-fgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sl-fgrp .sl-fl{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase;margin-right:2px}
+.sl-chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule-2);
+  background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
+.sl-chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.sl-chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.sl-fright{margin-left:auto;display:flex;gap:14px;align-items:center}
+.sl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.sl-srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
+  color:var(--ink);width:170px;outline:none}
+.sl-srch input::placeholder{color:var(--ink-3)}
+
+/* ── 카드 ──
+   ★ 벽돌 쌓기(column-count)를 쓰지 않습니다. 카드 높이가 고르므로
+     격자(grid)가 맞습니다. 전시가 격자인 것과 같습니다. */
+.sl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;padding:34px 0 20px}
+.sl-item{border-top:1px solid var(--rule-2);padding:24px 0;display:block;
+  transition:padding-left .2s}
+.sl-item:hover{padding-left:8px}
+.sl-head{display:flex;align-items:flex-start;gap:16px}
+.sl-logo{flex:0 0 46px;width:46px;height:46px;display:flex;align-items:center;
+  justify-content:center;border:1px solid var(--rule-2);background:#FCFBF9;overflow:hidden}
+.sl-logo img{max-width:82%;max-height:82%;display:block}
+/* 로고가 없는 곳 — 사선 무늬 · 견본 그림을 두지 않습니다 */
+.sl-logo.none{background:repeating-linear-gradient(135deg,#FDFCFA,#FDFCFA 6px,#F4F3EF 6px,#F4F3EF 12px)}
+.sl-body{min-width:0;flex:1}
+.sl-nm{display:block;font-family:var(--serif);font-size:17.5px;font-weight:500;
+  line-height:1.45;letter-spacing:-.01em}
+.sl-item:hover .sl-nm{color:var(--accent)}
+/* 한글 이름이 없어 영문이 그대로 보이는 것 — 감추지 않고 그대로 둡니다 */
+.sl-nm.roman{font-family:var(--sans);font-size:15.5px;font-weight:600}
+.sl-en{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+.sl-meta{display:block;font-size:12px;color:var(--ink-2);margin-top:7px;
+  font-variant-numeric:tabular-nums}
+.sl-meta i{font-style:normal;color:var(--ink-3);margin:0 6px}
+
+/* ── 동문 · 이 표의 값어치 ── */
+.sl-al{margin-top:12px;padding-top:11px;border-top:1px solid var(--rule-2);
+  font-size:12px;line-height:1.85;color:var(--ink-2)}
+.sl-al .sl-alk{display:block;font-size:9.5px;font-weight:700;letter-spacing:.16em;
+  color:var(--ink-3);text-transform:uppercase;margin-bottom:4px}
+.sl-al b{font-weight:500;color:var(--ink)}
+
+.sl-more{display:flex;justify-content:center;padding:10px 0 24px}
+.sl-more button{font-family:inherit;font-size:13.5px;font-weight:600;padding:14px 40px;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.sl-more button:hover{background:var(--ink);color:#fff}
+
+.sl-skel{border-top:1px solid var(--rule-2);padding:24px 0}
+.sl-skel span{display:block;height:12px;background:repeating-linear-gradient(135deg,#FBFAF8,#FBFAF8 8px,#F3F2EE 8px,#F3F2EE 16px);margin-bottom:8px}
+
+html[data-theme="dark"] .sl-filters{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .sl-logo{background:#1A1A1D}
+html[data-theme="dark"] .sl-logo.none{background:repeating-linear-gradient(135deg,#1A1A1D,#1A1A1D 6px,#212125 6px,#212125 12px)}
+html[data-theme="dark"] .sl-more button:hover{background:var(--ink);color:var(--paper)}
+
+@media(max-width:860px){
+  .sl-grid{grid-template-columns:1fr;gap:0}
+  .sl-filters{position:static}
+  .sl-fright{margin-left:0;width:100%}
+}
+</style>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap sl-top">
+  <div class="bc" style="padding:0"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / 미술대학</div>
+  <div class="label" style="margin-top:14px">Art Schools</div>
+  <h1>미술대학 <b>아카이브</b></h1>
+  <p>
+    미술관이 작품을 모으는 곳이라면, 미술대학은 작가가 만들어지는 곳입니다.
+    한 학교를 열면 그곳을 거쳐 간 작가들이 나옵니다. 빈센트 반 고흐가
+    안트베르펜에서 배웠다는 사실 하나가 그 학교를 설명합니다.
+  </p>
+  <div class="sl-cnt" id="slCnt">불러오는 중…</div>
+</div>
+
+<div class="sl-filters">
+  <div class="wrap sl-frow">
+    <div class="sl-fgrp" id="slFReg">
+      <span class="sl-fl">지역</span>
+      <button class="sl-chip on" data-r="">전체</button>
+      <button class="sl-chip" data-r="asia">아시아</button>
+      <button class="sl-chip" data-r="europe">유럽</button>
+      <button class="sl-chip" data-r="america">아메리카</button>
+      <button class="sl-chip" data-r="etc">그 밖</button>
+    </div>
+    <div class="sl-fgrp" id="slFHas">
+      <span class="sl-fl">자료</span>
+      <button class="sl-chip on" data-h="">전체</button>
+      <button class="sl-chip" data-h="alumni">동문 있음</button>
+      <button class="sl-chip" data-h="bio">소개문 있음</button>
+    </div>
+    <div class="sl-fright">
+      <div class="sl-srch">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
+        </svg>
+        <input type="search" placeholder="학교 이름으로 찾기" id="slQ">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note" style="margin-top:22px">
+    지금은 <b>세계 미술대학 250곳</b>이 나옵니다 · 한국 미술대학은 아직 담기지 않았습니다 ·
+    학교 이름이 영문으로 보이는 곳이 많습니다(한글 이름 14곳)
+  </p>
+
+  <div class="sl-grid" id="slGrid"></div>
+  <div class="sl-more" id="slMore" hidden><button>더 보기</button></div>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/school-list.js"></script>
+</body>
+</html>
