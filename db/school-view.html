@@ -13,13 +13,17 @@
 <link rel="stylesheet" href="/assets/of.css">
 <style>
 /* ══════════════════════════════════════════════════════════════════
-   미술대학 상세 · 2026-08-31
+   미술대학 상세 · 2026-08-31 · 고침판
    ------------------------------------------------------------------
+   ★★ 파트너 지적 — <b>오른쪽이 통째로 비었습니다.</b>
+     까닭: .sv-txt 에 max-width:46em 을 걸었는데 바깥 .sv-sec 은
+     화면 전체 폭이었습니다. 글줄이 길어지지 않게 묶은 것은 맞지만
+     <b>자리를 그렇게 비워두는 것은 다른 문제</b>였습니다.
+   ▶ <b>두 칸</b>으로 갑니다 — 왼쪽 소개문 · 오른쪽 자료 칸.
+     머리에 흩어져 있던 소재지·설립연도·링크를 오른쪽에 모읍니다.
+
    ★ 클래스 접두사 <b>sv-</b> (미술대학 상세)
-   ★ <b>견본을 두지 않습니다.</b> 자료가 없으면 「아직 없습니다」로
-     적습니다. 작품 상세 #more-ar 에 작가 견본 6개가 숨어 있다가
-     여태 안 보였던 일이 있었습니다 — 질의가 성공하면 갈리고
-     실패하면 감춰져서, 아무도 모르는 채 남아 있었습니다.
+   ★ 견본을 두지 않습니다. 없으면 「아직 없습니다」로 적습니다.
    ★ 한글 justify 는 text-justify:inter-character 를 함께 씁니다.
    ══════════════════════════════════════════════════════════════════ */
 
@@ -45,34 +49,58 @@
 .sv-nm.roman{font-family:var(--sans);font-weight:600;font-size:clamp(21px,2.6vw,30px);
   letter-spacing:-.015em}
 .sv-en{font-size:13px;color:var(--ink-3);margin-top:7px;line-height:1.6}
-.sv-meta{margin-top:15px;display:flex;gap:0;flex-wrap:wrap;font-size:12.5px;
-  color:var(--ink-2);font-variant-numeric:tabular-nums}
-.sv-meta span{padding-right:15px;margin-right:15px;border-right:1px solid var(--rule-2)}
-.sv-meta span:last-child{border-right:0;margin-right:0;padding-right:0}
-.sv-links{margin-top:17px;display:flex;gap:10px;flex-wrap:wrap}
-.sv-links a{font-size:12px;padding:7px 15px;border:1px solid var(--rule-2);
-  color:var(--ink-2);transition:.16s}
-.sv-links a:hover{border-color:var(--ink);color:var(--ink)}
+.sv-sub{margin-top:14px;font-size:12.5px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.sv-sub i{font-style:normal;color:var(--ink-3);margin:0 8px}
 
-/* ── 몸 ── */
+/* ── 동문 ── */
 .sv-sec{padding:34px 0;border-bottom:1px solid var(--rule-2)}
 .sv-sk{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
   text-transform:uppercase;margin-bottom:16px}
-.sv-txt{font-size:14.5px;line-height:2.05;color:var(--ink-2);max-width:46em;
-  text-align:justify;text-justify:inter-character}
-.sv-txt p{margin:0 0 1.1em}
-.sv-txt p:last-child{margin-bottom:0}
-
-/* ── 동문 · 이 화면의 주인공 ── */
 .sv-al{display:flex;flex-wrap:wrap;gap:9px}
 .sv-al a,.sv-al span{font-size:13px;padding:9px 16px;border:1px solid var(--rule-2);
   color:var(--ink-2);transition:.16s;line-height:1}
 .sv-al a:hover{border-color:var(--accent);color:var(--accent)}
-/* 작가DB 에 없는 이름 — 링크가 아니므로 옅게 둡니다 */
 .sv-al span{color:var(--ink-3);border-style:dashed}
 
-.sv-none{font-size:12.5px;color:var(--ink-3);line-height:1.85}
+/* ══ 두 칸 ══
+   ★ 왼쪽 소개문 · 오른쪽 자료 칸.
+     오른쪽은 붙어 따라옵니다(sticky) — 긴 글을 읽는 동안
+     학교 정보가 계속 보입니다. */
+.sv-cols{display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:0 54px;
+  padding:34px 0;border-bottom:1px solid var(--rule-2)}
+.sv-main{min-width:0}
+.sv-side{min-width:0}
+.sv-sidein{position:sticky;top:88px}
 
+.sv-txt{font-size:14.5px;line-height:2.05;color:var(--ink-2);
+  text-align:justify;text-justify:inter-character}
+.sv-txt p{margin:0 0 1.15em}
+.sv-txt p:last-child{margin-bottom:0}
+/* 위키백과의 == 제목 == 을 소제목으로 살립니다 */
+.sv-txt h3{font-family:var(--serif);font-size:15px;font-weight:500;color:var(--ink);
+  margin:1.9em 0 .7em;padding-top:.5em;border-top:1px solid var(--rule-2);
+  letter-spacing:-.01em}
+.sv-txt h3:first-child{margin-top:0;padding-top:0;border-top:0}
+/* 글이 잘린 자리 표시 */
+.sv-cut{font-size:11.5px;color:var(--ink-3);margin-top:14px;padding-top:12px;
+  border-top:1px dashed var(--rule-2);line-height:1.8}
+
+/* ── 오른쪽 자료 칸 ── */
+.sv-facts{border:1px solid var(--rule-2);padding:20px}
+.sv-fk{font-size:9.5px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
+  text-transform:uppercase;margin-bottom:14px}
+.sv-frow{padding:10px 0;border-top:1px solid var(--rule-2);display:block}
+.sv-frow:first-of-type{border-top:0;padding-top:0}
+.sv-frow .k{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.04em}
+.sv-frow .v{display:block;font-size:13px;color:var(--ink);margin-top:4px;
+  line-height:1.6;font-variant-numeric:tabular-nums}
+.sv-links{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.sv-links a{font-size:12px;padding:9px 13px;border:1px solid var(--rule-2);
+  color:var(--ink-2);transition:.16s;text-align:center}
+.sv-links a:hover{border-color:var(--ink);color:var(--ink)}
+
+.sv-none{font-size:12.5px;color:var(--ink-3);line-height:1.85}
 .sv-back{padding:26px 0 40px}
 .sv-back a{font-size:13px;color:var(--ink-2)}
 .sv-back a:hover{color:var(--accent)}
@@ -80,6 +108,12 @@
 html[data-theme="dark"] .sv-logo{background:#1A1A1D}
 html[data-theme="dark"] .sv-logo.none{background:repeating-linear-gradient(135deg,#1A1A1D,#1A1A1D 7px,#212125 7px,#212125 14px)}
 
+@media(max-width:960px){
+  .sv-cols{grid-template-columns:1fr;gap:30px 0}
+  .sv-sidein{position:static}
+  /* 좁은 화면에서는 자료 칸을 먼저 보여 줍니다 */
+  .sv-side{order:-1}
+}
 @media(max-width:640px){
   .sv-hd{flex-direction:column;gap:18px}
   .sv-logo{flex:0 0 68px;width:68px;height:68px}
