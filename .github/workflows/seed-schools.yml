@@ -1,0 +1,48 @@
+name: 미술대학 · 씨앗 담기 (수동)
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 미술대학 250곳 담기
+#  ------------------------------------------------------------------
+#  ★ <b>기본이 「시늉만」입니다.</b> 그냥 돌리면 담지 않고 보여만 줍니다.
+#    담으려면 「시늉만」 칸을 false 로 바꿔 주십시오.
+#
+#  ★ 예약 실행이 없습니다. 한 번 담으면 끝나는 일입니다.
+#
+#  ★ 되돌리려면 sql/C-undo-schools.sql 을 쓰십시오.
+#    또는 다시 돌려도 <위키번호로 알아보고> 겹쳐 담지 않습니다.
+#
+#  ★ 미리 할 일 — sql/B-apply-schools.sql 로 표를 만드셨어야 합니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: '시늉만 (담지 않고 보기)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seed-schools
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 씨앗 담기
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SEED_DRY: ${{ (github.event.inputs.dry == 'false') && '0' || '1' }}
+        run: node scripts/seed-schools.mjs
