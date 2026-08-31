@@ -15,9 +15,11 @@
   'use strict';
 
   /* ★ 2026-08-24 · <b>exhibitions</b> 를 더했습니다. 전시DB 878건이
-       붙어 큰 판에도 수를 보입니다. */
+       붙어 큰 판에도 수를 보입니다.
+     ★ 2026-08-31 · <b>schools</b> 를 더했습니다. 미술대학 250곳.
+       오퍼스클램에서 음악학교를 넓게 받다가 딸려 온 자료입니다. */
   var TABLE = { artists: 'artists', artworks: 'artworks',
-                exhibitions: 'exhibitions' };
+                exhibitions: 'exhibitions', schools: 'schools' };
   var done = false;
 
   function esc(s) {
