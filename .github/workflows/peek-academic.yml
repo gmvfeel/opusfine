@@ -1,0 +1,39 @@
+name: 학술 · 미술 정찰 (수동 · 담지 않음)
+
+# ══════════════════════════════════════════════════════════════════
+#  OPUSFINE · 학술(미술) 정찰
+#  ------------------------------------------------------------------
+#  ★ 이것은 <b>세기만 하는</b> 워크플로입니다.
+#    - DB 를 건드리지 않습니다 (Supabase 열쇠를 아예 안 씁니다)
+#    - 예약 실행이 없습니다. 손으로 누를 때만 돕니다
+#    - 그래서 되돌릴 일이 없습니다
+#
+#  ★ 오퍼스클램에서 배운 것
+#    ① 워크플로는 <b>Run 을 누른 시점의 코드</b>로 돕니다.
+#       파일을 올린 뒤에 누르셔야 합니다.
+#    ② 예약 실행이 없으므로 inputs 기본값을 못박을 필요가 없습니다.
+# ══════════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peek-academic
+  cancel-in-progress: false
+
+jobs:
+  peek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 세어만 보기
+        run: node scripts/peek-academic-art.mjs
