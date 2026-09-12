@@ -852,6 +852,28 @@ html[data-theme="dark"] .fm-head svg circle{fill:#6FA79E}
 html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 
 
+/* ══════════════════════════════════════════════════════════════════
+   ★★★ 2026-09-12 · 격자 칸이 자식 때문에 안 줄어드는 것
+   ------------------------------------------------------------------
+   grid-template-columns 의 <b>1fr 은 minmax(auto, 1fr)</b> 입니다.
+   그래서 칸이 <b>자식의 min-content 아래로 못 내려갑니다.</b>
+   안에 든 그림이 크면 칸이 통째로 그만큼 벌어집니다.
+
+   실제로 겪은 것 —
+     · 모바일(390px) — .plate 안 그림(원본 1229px)이 칸을 566px 로
+       밀어올려 <b>가로 스크롤</b>이 생겼습니다.
+     · <b>PC(2545px)</b> — .pickrow 가 1.15fr 1fr 인데 실제로는
+       <b>221px / 954px</b> 이 되어 왼쪽 「오늘의 소장품」이
+       <b>세로로 한 글자씩 찢어졌습니다.</b>
+       min-width:0 을 주니 629px / 547px 로 제 비율이 돌아왔습니다.
+
+   ★ <b>좁은 화면만의 일이 아닙니다.</b> 처음에 @media(max-width:900px)
+     안에만 넣었다가 PC 가 깨진 채로 남았습니다.
+     ▶ 폭과 상관없는 일이므로 <b>미디어쿼리 밖</b>에 둡니다.
+   ══════════════════════════════════════════════════════════════════ */
+.exrow>*,.pickrow>*,.callrow>*,.mkrow>*,.duo>*,.three>*,.jobrow>*,
+.cmrow>*,.prrow>*,.adrow>*,.exam>*,.job>*{min-width:0}
+
 @media(max-width:1180px){
   .quick{grid-template-columns:repeat(4,1fr)}
   .grid-ar{column-count:4}
@@ -864,12 +886,8 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
      390px 틀에 넣어 재니 문서 폭이 <b>586px</b> 이었습니다.
      다섯 화면을 다 재어 범인을 둘로 좁혔습니다 —
 
-     ① <b>격자 칸이 안 줄어듭니다.</b>
-        grid-template-columns:1fr 은 <b>minmax(auto,1fr)</b> 이라
-        자식의 min-content 아래로 못 내려갑니다.
-        .plate 안의 그림(원본 1229px)이 칸을 566px 로 밀어올렸습니다.
-        「1fr 로 접었으니 됐다」고 보면 <b>안 됩니다.</b>
-        ▶ min-width:0 을 줘야 비로소 331px 로 줄어듭니다.
+     ① 격자 칸이 안 줄어드는 것은 <b>폭과 상관없는 일</b>이라
+        이 블록 밖(모든 폭)으로 옮겼습니다. 위쪽 .grid-fix 참조.
 
      ② <b>맨 위 유틸바</b>가 모든 화면에서 145px 을 밀어냈습니다.
         .u-r 이 flex-wrap:nowrap 이라 이용안내·고객지원·로그인·
@@ -878,8 +896,6 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 
      ★ 고친 뒤 다섯 화면 모두 문서 폭 = 화면 폭이 되었습니다.
      ══════════════════════════════════════════════════════════════ */
-  .exrow>*,.pickrow>*,.callrow>*,.mkrow>*,.duo>*,.three>*,.jobrow>*,
-  .cmrow>*,.prrow>*,.adrow>*{min-width:0}
   .util .wrap{flex-wrap:wrap;height:auto;padding-top:6px;padding-bottom:6px;gap:8px 12px}
   .util .u-r{margin-left:0;flex-wrap:wrap;gap:8px 10px}
   .sec-hd{flex-wrap:wrap;gap:8px 12px}
