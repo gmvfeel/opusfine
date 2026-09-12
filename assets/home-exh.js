@@ -135,31 +135,20 @@
            + '&hidden=not.is.true&kind_final=eq.art'
            + '&start_date=lte.' + today + '&end_date=gte.' + today;
 
-  /* ── 오늘의 씨앗 ──
-     ★ 새로고침마다 바뀌면 어지럽습니다. <b>하루 단위로 고정</b>합니다 —
-       같은 날은 늘 같은 전시, 날이 바뀌면 달라집니다.
-     ★ 히어로(hero.js)는 들어올 때마다 섞습니다. 거기는 한 장씩
-       넘어가는 자리라 어울리고, 여기는 격자라 고정이 낫습니다. */
-  function seededShuffle(arr, seed) {
-    var a = arr.slice(), s = seed || 1;
+  /* ── 섞기 ──
+     ★★ 2026-09-12 · <b>들어올 때마다</b> 섞습니다 (파트너 요청).
+       처음에 「하루 단위 고정」으로 만들었는데, 원하신 것은
+       <b>접속할 때마다 바뀌는 것</b>이었습니다. 제가 좁혀 잡았습니다.
+     ★ 히어로(hero.js)도 Math.random 으로 들어올 때마다 섞습니다.
+       같은 결로 맞춥니다. */
+  function shuffle(arr) {
+    var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) {
-      s = (s * 1103515245 + 12345) & 0x7fffffff;      /* 늘 같은 차례를 내는 셈 */
-      var j = s % (i + 1);
-      var t = a[i]; a[i] = a[j]; a[j] = t;
+      var k = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[k]; a[k] = t;
     }
     return a;
   }
-  var daySeed = (function () {
-    /* ★ 날짜를 그대로 쓰면 <b>씨앗이 하루 1씩만</b> 바뀌어 비슷한 차례가
-         나옵니다. 400일을 돌려 보니 어떤 전시는 169번 서는데 어떤 것은
-         4번뿐이었습니다. ▶ 날짜를 한 번 <b>흩뜨려</b> 씁니다. */
-    var d = parseInt(today.replace(/-/g, ''), 10);     /* 20260912 */
-    var h = d;
-    h = (h ^ 0x5bf03635) >>> 0;
-    h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0;
-    h = Math.imul(h ^ (h >>> 13), 3266489909) >>> 0;
-    return ((h ^ (h >>> 16)) >>> 0) % 2147483647 || 1;
-  })();
 
   Promise.all([
     /* ★★ 2026-09-12 · <b>무작위로 섞어</b> 뽑습니다.
@@ -184,8 +173,7 @@
     pickSoon.forEach(function (e) { used[e.id] = 1; });
 
     /* ★ 섞은 <b>뒤에</b> 자릅니다. 자르고 섞으면 늘 같은 12개 안에서만 돕니다. */
-    var pickNow = seededShuffle(now.filter(function (e) { return !used[e.id]; }), daySeed)
-                    .slice(0, 12);
+    var pickNow = shuffle(now.filter(function (e) { return !used[e.id]; })).slice(0, 12);
 
     /* 지금 열리는 것이 적어 다 겹치면, 겹침을 허락합니다 —
        빈 자리를 남기는 것보다 낫습니다. */

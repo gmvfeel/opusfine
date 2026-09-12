@@ -125,9 +125,14 @@
     var base = OF.SB_URL + '/rest/v1/exhibitions?select=' + sel
              + '&hidden=not.is.true&kind_final=eq.art&poster_url=not.is.null';
 
-    /* 지금 열리는 것 */
+    /* 지금 열리는 것
+       ★★ 2026-09-12 · limit 30 → <b>200</b>.
+         quality 내림차순 30건만 받아 섞으니 <b>늘 같은 30개</b> 안에서만
+         돌았습니다. 히어로는 넉 장뿐이라 되풀이가 눈에 띕니다.
+         지금 열린 미술 전시가 259건이니 거의 다 받아 섞습니다.
+       ★ 대문 격자(home-exh.js)도 같은 병이 있어 120건으로 넓혔습니다. */
     var now = get(base + '&start_date=lte.' + today + '&end_date=gte.' + today
-                       + '&order=quality.desc&limit=30').catch(function () { return []; });
+                       + '&order=quality.desc&limit=200').catch(function () { return []; });
     /* 곧 열릴 것 */
     var soon = get(base + '&start_date=gt.' + today
                         + '&order=start_date.asc&limit=10').catch(function () { return []; });
