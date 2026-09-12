@@ -21,6 +21,30 @@
    ★ 자료가 얇은 학교도 감추지 않습니다. 그대로 보여 줍니다.
    ★ 한글 이름이 없어 영문이 보이는 곳도 감추지 않습니다 —
      그것이 지금 자료의 실태이고, 감추면 고칠 생각을 못 합니다.
+
+   ══════════════════════════════════════════════════════════════════
+   2026-09-13 고침 · 한국 학교 101곳이 들어오면서 셋을 고쳤습니다
+   ------------------------------------------------------------------
+   ★★ ① 차례 — <b>담아 놓고도 화면에 한 곳도 안 나왔습니다.</b>
+
+      order 가 `quality.desc, sort_no.desc, id.asc` 였습니다.
+      새로 담은 101곳은 quality·sort_no 가 0 이고 id 가 251부터라
+      <b>맨 뒤로 밀립니다.</b> 첫 쪽에 한 곳도 안 보였습니다.
+
+      ▶ 인계문서 7-6 그대로 —「차례를 잘못 잡으면 자료가 없는 줄 압니다」
+      ▶ <b>오퍼스클램은 「최신순」이 기본</b>입니다(차례 고르개 첫 칸).
+        그래서 저쪽은 새로 담은 것이 앞에 옵니다. 같이 갑니다.
+      ▶ id.asc → <b>id.desc</b>
+
+   ★ ② 지역 — <b>오퍼스클램은 「국내 · 국외」가 맨 앞</b>입니다.
+      아시아·유럽·아메리카만 있으면 한국 학교를 찾으려고
+      「아시아」를 눌러도 일본·중국에 묻힙니다. 실제로 그랬습니다.
+      ▶ 국내 · 국외를 앞에 둡니다.
+
+   ★ ③ 갈래 — 오퍼스클램에 <b>구분 고르개가 있습니다</b>
+      (예술중학교 · 예술고등학교 · 음악대학 · 음악원 …).
+      미술대학 67 · 예술고 27 · 예술중 7 이 한 목록에 섞였으니
+      같은 고르개가 필요합니다.
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -28,7 +52,7 @@
   var PER = 30;
   var grid, cntBox, moreBox, moreBtn;
   var page = 0, total = 0, busy = false;
-  var q = '', fReg = '', fHas = '';
+  var q = '', fReg = '', fHas = '', fCat = '';
 
   /* ── 지역 · 소재지 글자로 가립니다 ─────────────────────────
      ★ 소재지가 '핀란드 · 헬싱키' 꼴입니다. 앞쪽이 나라입니다.
@@ -47,6 +71,15 @@
     america: ['미국', '캐나다', '멕시코', '브라질', '아르헨티나', '칠레', '콜롬비아',
               '페루', '쿠바', '우루과이', '베네수엘라', '에콰도르']
   };
+
+  /* ── 국내 · 국외 ────────────────────────────────────────────
+     ★ 오퍼스클램 학교DB 의 나라 고르개가 「국내 · 국외 / 국내 / 국외 /
+       대한민국 / 독일 / …」 차례입니다. <b>국내·국외가 맨 앞</b>입니다.
+     ★ 이 둘은 나라 목록이 아니라 <b>질의에서 바로 거릅니다.</b>
+       kr   → location.ilike.대한민국*
+       intl → location=not.ilike.대한민국*
+     ★ 소재지가 「대한민국 · 서울」 꼴이라 앞머리로 맞으면 됩니다.     */
+  var KR_PREFIX = '대한민국';
 
 
   /* ── 다국어 도우미 ───────────────────────────────────────────
@@ -98,13 +131,37 @@
        ★ 아시아·유럽·아메리카는 나라 목록으로, '그 밖'은 세 목록에
          들지 않는 것이므로 <b>여기서 거르지 않고</b> 받아서 가립니다.
          PostgREST 로 '어느 목록에도 없음'을 적기가 지저분해집니다. */
-    if (REGION[fReg]) {
+    if (fReg === 'kr') {
+      p.push('location=ilike.' + KR_PREFIX + '*');
+    } else if (fReg === 'intl') {
+      /* ★★ `location=not.ilike.대한민국*` 만 쓰면 <b>소재지가 빈 4곳이
+         사라집니다.</b> SQL 에서 NULL 은 어느 쪽 비교에도 참이 아닙니다.
+         국내 101 + 국외 246 = 347 로 <b>네 곳이 증발했습니다.</b>
+         ▶ is.null 을 or 로 함께 물어 살립니다.                         */
+      p.push('or=(location.not.ilike.' + KR_PREFIX + '*,location.is.null)');
+    } else if (REGION[fReg]) {
       p.push('or=(' + REGION[fReg].map(function (n) {
         return 'location.ilike.' + n + '*';
       }).join(',') + ')');
     }
 
-    p.push('order=quality.desc,sort_no.desc,id.asc');
+    /* 갈래 — 미술대학 · 예술고등학교 · 예술중학교 … */
+    if (fCat) p.push('category=eq.' + encodeURIComponent(fCat));
+
+    /* ★★ 최신순이 기본입니다 — <b>quality 를 첫 열쇠에서 뺐습니다.</b>
+
+       전에는 `quality.desc, sort_no.desc, id.asc` 였습니다.
+       id 를 desc 로 뒤집어도 <b>소용이 없었습니다</b> — quality 가 앞에
+       있으니까요. 기존 250곳은 quality 가 1~13 인데 새로 담은 101곳은
+       0 이라, 한국 학교가 351곳 가운데 <b>뒤쪽 101칸</b>에 그대로
+       머물렀습니다.
+
+       ▶ 오퍼스클램 학교DB 는 quality 로 줄 세우지 않습니다.
+         차례 고르개의 첫 칸이 「최신순」입니다. 같이 갑니다.
+       ▶ sort_no 는 남깁니다 — 사람이 손으로 끌어올리는 자리입니다.
+       ★ quality 는 버리지 않았습니다. 나중에 차례 고르개를 만들 때
+         「자료 충실순」으로 살리면 됩니다.                              */
+    p.push('order=sort_no.desc,id.desc');
     return OF.SB_URL + '/rest/v1/schools?' + p.join('&');
   }
 
@@ -138,6 +195,10 @@
     var href = '/db/school-view.html?id=' + encodeURIComponent(s.id);
 
     var meta = [];
+    /* ★ 갈래를 앞에 둡니다. 오퍼스클램 학교 목록이 「학교명 · 구분 ·
+       소재지」 차례이고, 미술대학·예술고·예술중이 한 목록에 섞이므로
+       무엇인지 바로 보여야 합니다. */
+    if (s.category) meta.push(esc(s.category));
     if (s.location) meta.push(esc(s.location));
     /* ★ 숫자가 낀 글은 사전으로 못 바꿉니다. OFI18N.n() 으로 넘깁니다.
        사전에는 "{n} 설립": "Founded {n}" 을 둡니다. */
@@ -211,7 +272,7 @@
 
       if (total) {
         cntBox.innerHTML = N('<b>{n}</b>곳', total)
-          + (fReg || fHas || q ? ' ' + T('(추린 것)') : '');
+          + (fReg || fHas || fCat || q ? ' ' + T('(추린 것)') : '');
       }
       /* ★ 0줄일 때 끝냅니다. 요청보다 적게 왔다고 끝내지 않습니다. */
       moreBox.hidden = rows.length === 0 || (total && page * PER >= total);
@@ -247,6 +308,7 @@
 
     chips(document.getElementById('slFReg'), 'data-r', function (v) { fReg = v; });
     chips(document.getElementById('slFHas'), 'data-h', function (v) { fHas = v; });
+    chips(document.getElementById('slFCat'), 'data-c', function (v) { fCat = v; });
 
     var box = document.getElementById('slQ');
     if (box) {

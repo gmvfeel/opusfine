@@ -230,12 +230,24 @@
 
     h += '<div class="sv-side"><div class="sv-sidein"><div class="sv-facts">';
     h += '<div class="sv-fk">Information</div>';
+    /* ★★ 차례를 <b>오퍼스클램 「학교 정보 Profile」</b> 에 맞췄습니다.
+         구분 · 소재지 · 설립 · 설립구분 · 대표 학과 · 저명 동문 · 대표 특성
+
+       ▶ 2026-09-13 까지 <b>설립구분·대표 학과·대표 특성 세 줄이 빠져
+         있었습니다.</b> depts 와 founder_type 은 표에 담겨 있는데도
+         화면 어디서도 안 읽고 있었습니다. features 는 칸 자체가 없어
+         이날 만들었습니다(오퍼스클램과 같은 이름).
+       ▶ 한국 학교 101곳이 들어오면서 드러났습니다 — 담은 것의 절반이
+         화면에 안 뜨고 있었습니다.                                      */
     var facts = [];
-    if (s.category)    facts.push([T('갈래'), esc(s.category)]);
-    if (s.location)    facts.push([T('소재지'), esc(s.location)]);
-    if (s.founded)     facts.push([T('설립'), esc(s.founded)]);
+    if (s.category)     facts.push([T('갈래'), esc(s.category)]);
+    if (s.location)     facts.push([T('소재지'), esc(s.location)]);
+    if (s.founded)      facts.push([T('설립'), esc(s.founded)]);
+    if (s.founder_type) facts.push([T('설립구분'), esc(s.founder_type)]);
+    if (s.depts)        facts.push([T('대표 학과'), esc(s.depts)]);
     if (items && items.length) facts.push([T('담긴 동문'), N('{n}명', items.length)]);
-    if (s.wikidata_id) facts.push([T('위키데이터'), esc(s.wikidata_id)]);
+    if (s.features)     facts.push([T('대표 특성'), esc(s.features)]);
+    if (s.wikidata_id)  facts.push([T('위키데이터'), esc(s.wikidata_id)]);
     if (!facts.length) facts.push(['—', '자료가 아직 없습니다']);
     h += facts.map(function (f) {
       return '<div class="sv-frow"><span class="k">' + f[0] + '</span>'
@@ -252,10 +264,22 @@
     h += '</div></div></div>';
     h += '</div>';
 
-    /* 자료 출처 */
-    h += '<div class="sv-sec" style="border:0">'
-      + '<p class="demo-note">이 자료는 <b>위키데이터</b>와 <b>위키백과</b>에서 받았습니다 · '
-      + '로고는 위키미디어 커먼즈의 원본을 링크합니다';
+    /* ── 자료 출처 ──────────────────────────────────────────────
+       ★ 자료원마다 출처가 다릅니다. 한 문구로 뭉뚱그리면 거짓이 됩니다.
+         한국 101곳은 위키데이터가 아니라 <b>대학알리미</b>에서 왔습니다.  */
+    var isKr = String(s.source || '').indexOf('kr-art-schools') === 0;
+    h += '<div class="sv-sec" style="border:0">';
+    h += '<p class="demo-note">';
+    if (isKr) {
+      h += '이 자료는 <b>대학알리미</b>(한국대학교육협의회 대학정보공시)와 '
+        + '<b>전국대학별학과정보 표준데이터</b>에서 받았습니다';
+      if (s.category !== '미술대학') {
+        h += ' · 예술고·예술중은 <b>오퍼스클램 학교DB</b>에서 옮겨 왔습니다';
+      }
+    } else {
+      h += '이 자료는 <b>위키데이터</b>와 <b>위키백과</b>에서 받았습니다 · '
+        + '로고는 위키미디어 커먼즈의 원본을 링크합니다';
+    }
     if (roman) h += ' · 한글 이름이 아직 없어 영문으로 보입니다';
     h += '</p></div>';
 
