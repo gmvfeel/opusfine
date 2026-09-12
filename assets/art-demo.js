@@ -144,7 +144,10 @@
       '&met_id=not.is.null',
       '&commons_file=not.is.null'
     ];
-    var 몫 = Math.max(24, fill.length * 3);
+    /* ★ fill 은 대문에서 <b>13자리</b>입니다
+         (광고 견본 5 · 히어로 1 · 미니 4 · wk 3).
+         갈래마다 이 정도면 건너뛰며 나눠도 넉넉합니다. */
+    var 몫 = Math.max(24, fill.length * 2);
 
     return Promise.all(갈래.map(function (q) {
       return get(BASE + q + '&order=quality.desc,id.asc&limit=' + 몫)
@@ -165,9 +168,23 @@
       rows.forEach(function (w) {
         w._alt = (w.artist_name ? w.artist_name + ', ' : '') + (w.title || '작품');
       });
-      var per = Math.max(3, Math.floor(rows.length / fill.length));
+      /* ★★ 2026-09-12 · 여기가 <b>쏠림의 진짜 원인</b>이었습니다.
+           자료원을 번갈아 뽑아 rows 를
+             [서양, 동양, 공유마당, 메트, 커먼즈, 서양, 동양, …]
+           로 잘 섞어 놓고도, 아래에서 <b>연속한 덩어리</b>로 잘라
+           나눠 주고 있었습니다 —
+             자리0 → rows[0..23]   자리1 → rows[24..47] …
+           한 자리는 받은 덩어리의 <b>첫 장만</b> 씁니다(나머지는 죽은
+           주소일 때 넘어갈 예비). 그래서 자리0 은 늘 rows[0],
+           곧 <b>첫 갈래(서양)</b>가 됩니다.
+         ▶ <b>건너뛰며</b> 나눠 줍니다. 자리 i 는 i, i+5, i+10 …
+           그러면 첫 장이 자리마다 다른 자료원이 됩니다.
+         ★ 예비를 여럿 주는 쓸모는 그대로 살립니다. */
+      var 자리수 = fill.length;
       fill.forEach(function (el, i) {
-        put(el, rows.slice(i * per, i * per + per), 3, workCaption);
+        var 몫 = [];
+        for (var k = i; k < rows.length && 몫.length < 6; k += 자리수) 몫.push(rows[k]);
+        put(el, 몫, 3, workCaption);
       });
     });
   }
