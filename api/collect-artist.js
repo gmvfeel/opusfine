@@ -67,6 +67,32 @@ const ART_JOBS = new Set([
   'Q3391743'    /* visual artist */
 ]);
 
+/* ★ 뚜렷이 미술이 아닌 직업 — 하나라도 있으면 <b>물립니다.</b>
+   직업 목록에 「미술가」가 섞여 있어도 이쪽이 있으면 다른 사람입니다. */
+const NOT_ART_JOBS = new Set([
+  'Q937857',    /* association football player 축구선수 */
+  'Q2066131',   /* athlete 운동선수 */
+  'Q177220',    /* singer 가수 */
+  'Q33999',     /* actor 배우 */
+  'Q10798782',  /* television actor */
+  'Q10800557',  /* film actor */
+  'Q183945',    /* record producer */
+  'Q753110',    /* songwriter */
+  'Q2405480',   /* voice actor */
+  'Q17125263',  /* youtuber */
+  'Q82955',     /* politician 정치인 */
+  'Q1930187',   /* journalist 기자 */
+  'Q3665646',   /* basketball player */
+  'Q10871364',  /* baseball player */
+  'Q13141064',  /* badminton player */
+  'Q11513337',  /* athletics competitor */
+  'Q5716684',   /* dancer */
+  'Q2259451',   /* stage actor */
+  'Q4610556',   /* model 모델 */
+  'Q245068',    /* comedian */
+  'Q212980'     /* blogger 블로거 */
+]);
+
 async function j (url) {
   const c = new AbortController();
   const t = setTimeout(function () { c.abort(); }, TIMEOUT_MS);
@@ -127,8 +153,25 @@ async function lookup (name) {
     });
     if (!jobs.some(function (q) { return ART_JOBS.has(q); })) continue;
 
+    /* ★★ 2026-09-12 · 직업만으로는 <b>덜 막힙니다.</b>
+         미리보기에서 「Soi Park → Kenyan Internet blogger」가
+         통과했습니다. 직업에 「미술가」가 섞여 있었습니다.
+       ▶ <b>뚜렷이 아닌 직업</b>이 있으면 물립니다.
+         운동선수·가수·배우·유튜버·정치인 … 오늘 잘못 붙었던
+         박태홍(축구)·정수정(아이돌)이 여기 걸립니다. */
+    if (jobs.some(function (q) { return NOT_ART_JOBS.has(q); })) continue;
+
     const img = firstVal(C, 'P18');
     const desc = (e.descriptions && e.descriptions.en && e.descriptions.en.value) || null;
+
+    /* ★★ 2026-09-12 · 설명글로 한 번 더 거릅니다.
+         「Soi Park」은 직업이 <b>Q33231(사진가) 하나뿐</b>인데
+         설명은 「Kenyan Internet blogger」였습니다.
+         위키데이터가 그렇게 적어 두었으니 <b>직업 코드로는 못 막습니다.</b>
+       ▶ 설명글에 뚜렷이 다른 일이 적혀 있으면 물립니다.
+       ★ 그 사람은 초상도 없어 실제 피해는 없었지만,
+         막을 수 있는 자리는 막아 둡니다. */
+    if (desc && /\b(blogger|footballer|football player|singer|rapper|idol|actor|actress|youtuber|streamer|politician|athlete|boxer|wrestler|comedian|model|chef|journalist|broadcaster)\b/i.test(desc)) continue;
 
     return {
       wd: h.id,
@@ -198,7 +241,12 @@ export default async function handler (req, res) {
     people = await sbGet('artists?select=id,name_ko,name_en'
       + '&hidden=not.is.true&image_url=is.null'
       + (who === 'roman' ? '&name_ko=not.imatch.[가-힣]' : '')
-      + '&order=id.asc&offset=' + from + '&limit=' + (to - from));
+      /* ★★ 2026-09-12 · id.asc 는 <b>담긴 차례</b>라 오늘 담은
+           고야가 <b>맨 끝(756번째)</b>에 있었습니다. 앞 71명은
+           한국 작가의 로마자 표기라 위키데이터에 초상이 거의 없습니다.
+         ▶ <b>id.desc</b> — 늦게 담긴 클리블랜드 작가부터 봅니다.
+           이들은 작품이 다섯 점 이상이라 초상 있을 확률도 높습니다. */
+      + '&order=id.desc&offset=' + from + '&limit=' + (to - from));
   } catch (e) {
     res.status(500).json({ 오류: String(e.message || e) }); return;
   }
