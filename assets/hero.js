@@ -63,6 +63,29 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+
+  /* ── 다국어 도우미 ───────────────────────────────────────────
+     ★ T() 는 화면 글을 사전에 태웁니다.
+     ★ N() 은 <b>숫자가 낀 글</b>용입니다 — 「작품 13,799점」처럼
+       숫자와 낱말이 붙은 것은 사전 열쇠로 쓸 수 없습니다.
+       숫자가 바뀌면 열쇠가 달라지기 때문입니다.
+       그래서 「작품 {n}점」을 열쇠로 두고 값만 끼웁니다.
+     ★ i18n.js 가 아직 안 실렸으면 원문을 그대로 돌려주므로
+       한국어 화면은 그대로 돕니다. */
+  function T(s) { return (window.OFI18N && window.OFI18N.t) ? window.OFI18N.t(s) : s; }
+  function N(tpl) {
+    var args = [].slice.call(arguments);
+    if (window.OFI18N && window.OFI18N.n) return window.OFI18N.n.apply(null, args);
+    var vals = args.slice(1);
+    return String(tpl).replace(/\{(n|\d+)\}/g, function (m, k) {
+      var v = (k === 'n') ? vals[0] : vals[Number(k)];
+      if (v === undefined || v === null) return m;
+      if (typeof v !== 'number') return String(v);
+      if (v >= 1000 && v < 3000 && v === Math.floor(v)) return String(v);
+      return v.toLocaleString();
+    });
+  }
+
   var num = function (n) { return Number(n || 0).toLocaleString(); };
 
   /* ── 전시 고르기 ────────────────────────────────────────────
@@ -183,17 +206,17 @@
     var bio = String(a.bio || '').replace(/\s+/g, ' ').trim();
     if (bio.length > 130) bio = bio.slice(0, 128).replace(/[,·\s]+$/, '') + '…';
     return {
-      eb: '아카이브 · 작가',
+      eb: T('아카이브') + ' · ' + T('작가'),
       t: esc(a.name_ko || '')
         + (a.name_han ? ' <b>' + esc(a.name_han) + '</b>' : ''),
       s: bio || (a.field ? a.field + '. 오퍼스파인이 모은 작품을 한자리에서 봅니다.' : ''),
       m: [
-        '작품 <b>' + num(a._n) + '점</b>',
+        N('작품 <b>{n}점</b>', a._n),
         life ? esc(life) : null,
         a.field ? esc(a.field) : null
       ].filter(Boolean),
       href: '/db/artist-view.html?id=' + a.id,
-      cta: '작품 보기'
+      cta: T('작품 보기')
     };
   }
 
@@ -209,15 +232,14 @@
     ]).then(function (n) {
       return {
         eb: 'OPUSFINE',
-        t: '작품과 사람을<br><b>제대로 기록하는 곳</b>',
-        s: '흩어져 있던 미술 자료를 한자리에 모읍니다. '
-         + '저작권이 풀린 도판만 싣고, 출처를 밝힙니다.',
-        m: ['작품 <b>' + num(n[0]) + '</b>',
-            '도판 <b>' + num(n[1]) + '</b>',
-            '작가 <b>' + num(n[2]) + '</b>',
-            '전시 <b>' + num(n[4]) + '</b>'],
+        t: T('작품과 사람을<br><b>제대로 기록하는 곳</b>'),
+        s: T('흩어져 있던 미술 자료를 한자리에 모읍니다. 저작권이 풀린 도판만 싣고, 출처를 밝힙니다.'),
+        m: [N('작품 <b>{n}</b>', n[0]),
+            N('도판 <b>{n}</b>', n[1]),
+            N('작가 <b>{n}</b>', n[2]),
+            N('전시 <b>{n}</b>', n[4])],
         href: '/db/work.html',
-        cta: '아카이브 둘러보기'
+        cta: T('아카이브 둘러보기')
       };
     });
   }

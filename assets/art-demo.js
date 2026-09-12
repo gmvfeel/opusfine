@@ -46,6 +46,29 @@
   function calm(list) {
     (list || slots).forEach(function (el) { el.classList.remove('loading'); });
   }
+
+  /* ── 다국어 도우미 ───────────────────────────────────────────
+     ★ T() 는 화면 글을 사전에 태웁니다.
+     ★ N() 은 <b>숫자가 낀 글</b>용입니다 — 「작품 13,799점」처럼
+       숫자와 낱말이 붙은 것은 사전 열쇠로 쓸 수 없습니다.
+       숫자가 바뀌면 열쇠가 달라지기 때문입니다.
+       그래서 「작품 {n}점」을 열쇠로 두고 값만 끼웁니다.
+     ★ i18n.js 가 아직 안 실렸으면 원문을 그대로 돌려주므로
+       한국어 화면은 그대로 돕니다. */
+  function T(s) { return (window.OFI18N && window.OFI18N.t) ? window.OFI18N.t(s) : s; }
+  function N(tpl) {
+    var args = [].slice.call(arguments);
+    if (window.OFI18N && window.OFI18N.n) return window.OFI18N.n.apply(null, args);
+    var vals = args.slice(1);
+    return String(tpl).replace(/\{(n|\d+)\}/g, function (m, k) {
+      var v = (k === 'n') ? vals[0] : vals[Number(k)];
+      if (v === undefined || v === null) return m;
+      if (typeof v !== 'number') return String(v);
+      if (v >= 1000 && v < 3000 && v === Math.floor(v)) return String(v);
+      return v.toLocaleString();
+    });
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -284,8 +307,9 @@
                        Prefer: 'count=exact' } })
       .then(function (r) {
         var m = r.ok && /\/(\d+)$/.exec(r.headers.get('content-range') || '');
-        if (m) box.innerHTML = '어제보다 <b style="color:var(--accent)">+'
-                             + Number(m[1]).toLocaleString() + '명</b>';
+        /* ★ 숫자가 낀 글은 사전 열쇠가 될 수 없습니다. {n} 을 열쇠로 둡니다. */
+        if (m) box.innerHTML = N('어제보다 <b style="color:var(--accent)">+{n}명</b>',
+                                 Number(m[1]));
         else if (box.parentNode) box.parentNode.removeChild(box);
       })
       .catch(function () { if (box.parentNode) box.parentNode.removeChild(box); });
