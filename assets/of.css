@@ -858,6 +858,33 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
   .grid-db{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:900px){
+  /* ══════════════════════════════════════════════════════════════
+     ★★★ 2026-09-12 · 좁은 화면에서 <b>가로 스크롤</b>이 생기던 것
+     ------------------------------------------------------------------
+     390px 틀에 넣어 재니 문서 폭이 <b>586px</b> 이었습니다.
+     다섯 화면을 다 재어 범인을 둘로 좁혔습니다 —
+
+     ① <b>격자 칸이 안 줄어듭니다.</b>
+        grid-template-columns:1fr 은 <b>minmax(auto,1fr)</b> 이라
+        자식의 min-content 아래로 못 내려갑니다.
+        .plate 안의 그림(원본 1229px)이 칸을 566px 로 밀어올렸습니다.
+        「1fr 로 접었으니 됐다」고 보면 <b>안 됩니다.</b>
+        ▶ min-width:0 을 줘야 비로소 331px 로 줄어듭니다.
+
+     ② <b>맨 위 유틸바</b>가 모든 화면에서 145px 을 밀어냈습니다.
+        .u-r 이 flex-wrap:nowrap 이라 이용안내·고객지원·로그인·
+        회원가입·언어가 한 줄에 버팁니다(255px).
+        ▶ 대문뿐 아니라 전시·작품·작가·미술학교 <b>전부</b> 같았습니다.
+
+     ★ 고친 뒤 다섯 화면 모두 문서 폭 = 화면 폭이 되었습니다.
+     ══════════════════════════════════════════════════════════════ */
+  .exrow>*,.pickrow>*,.callrow>*,.mkrow>*,.duo>*,.three>*,.jobrow>*,
+  .cmrow>*,.prrow>*,.adrow>*{min-width:0}
+  .util .wrap{flex-wrap:wrap;height:auto;padding-top:6px;padding-bottom:6px;gap:8px 12px}
+  .util .u-r{margin-left:0;flex-wrap:wrap;gap:8px 10px}
+  .sec-hd{flex-wrap:wrap;gap:8px 12px}
+  .view{flex-wrap:wrap}
+
   .wrap{padding:0 20px}
   .hero{padding:46px 0 34px}
   .hero h1{min-height:0;letter-spacing:-.025em;font-weight:200}
