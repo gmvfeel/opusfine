@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>작품 수집 · 클리블랜드 · OPUSFINE</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   OPUSFINE · 클리블랜드 작품 수집 · tools/collect-art.html
+   ★ of.css 를 부르지 않습니다 (probe.html · collect.html 과 같은 판단)
+   ★ 이름 앞에 ca- 를 붙여 무엇과도 안 겹치게 했습니다
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.ca-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.ca-h1{font-size:26px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.ca-lead{color:#5C5C60;font-size:14px;margin:0 0 8px}
+.ca-warn{font-size:13px;color:#1F4B47;border:1px solid #CFDDD9;background:#F6FAF9;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.ca-h2{font-size:17px;font-weight:600;margin:34px 0 6px;
+  padding-top:18px;border-top:1px solid #E6E4DE}
+.ca-note{font-size:13px;color:#7A7A7E;margin:0 0 14px;line-height:1.75}
+.ca-note b{color:#8C3A2E}
+.ca-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.ca-btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;
+  border:1px solid #17171A;background:#17171A;color:#fff;cursor:pointer;transition:.15s}
+.ca-btn:hover{opacity:.82}
+.ca-btn.ca-gh{background:transparent;color:#17171A}
+.ca-btn.ca-rd{background:transparent;color:#8C3A2E;border-color:#8C3A2E}
+.ca-btn:disabled{opacity:.35;cursor:default}
+.ca-in{font:inherit;font-size:13px;padding:8px 11px;border:1px solid #D8D6D0;min-width:110px}
+.ca-in.ca-wide{min-width:320px}
+.ca-lab{font-size:12px;color:#7A7A7E}
+.ca-bar{height:6px;background:#EEECE6;margin:10px 0 4px;overflow:hidden}
+.ca-bar i{display:block;height:100%;width:0;background:#17171A;transition:width .2s}
+.ca-out{margin-top:12px;border:1px solid #E6E4DE;background:#FCFBF9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-all;
+  padding:14px 16px;max-height:460px;overflow:auto}
+.ca-out:empty{display:none}
+.ca-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 0}
+.ca-tbl th,.ca-tbl td{border-bottom:1px solid #EEECE6;padding:7px 9px;text-align:left}
+.ca-tbl th{font-weight:600;color:#7A7A7E;font-size:12px}
+.ca-num{text-align:right;font-variant-numeric:tabular-nums}
+.ca-done{color:#1F4B47;font-weight:600}
+</style>
+</head>
+<body>
+<div class="ca-wrap">
+
+  <h1 class="ca-h1">작품 수집 · 클리블랜드</h1>
+  <p class="ca-lead">안 받은 부서를 담아 <b>동서양 균형</b>을 맞춥니다.</p>
+
+  <div class="ca-warn">
+    지금은 <b>일본·중국·한국 세 부서만</b> 받았습니다(6,160점).
+    안 받은 부서에 <b>35,257점</b>이 있습니다 — 모두 CC0 이고 도판이 있습니다.
+    겹침은 소장번호 300개로 재어 <b>0건</b>이었습니다.
+  </div>
+
+  <div class="ca-warn" style="border-color:#E4CFCB;background:#FDF7F6;color:#8C3A2E">
+    <b>시카고 4,139점은 담지 않습니다.</b>
+    세잔·모네·르누아르가 들어 있지만 <code>artic.edu</code> 가
+    <b>봇 차단</b>을 걸어 두어 도판이 안 뜹니다.
+    저쪽이 막아 둔 것을 뚫지 않습니다.
+  </div>
+
+  <h2 class="ca-h2">자물쇠</h2>
+  <p class="ca-note">Vercel 환경변수 <b>COLLECT_TOKEN</b> · 전시 수집과 같은 것입니다.</p>
+  <div class="ca-row">
+    <input id="tok" class="ca-in ca-wide" type="password" placeholder="COLLECT_TOKEN" autocomplete="off">
+    <span class="ca-lab" id="tokmsg"></span>
+  </div>
+
+  <h2 class="ca-h2">부서별로 담기</h2>
+  <p class="ca-note">
+    <b>미리보기</b>로 먼저 보시고 <b>담기</b>를 누르십시오.
+    한 번 누르면 그 부서를 <b>끝까지</b> 담습니다(1,200건씩 끊어 부릅니다).
+    <b>되돌리기</b>는 그 부서만 통째로 지웁니다 — 원래 있던 세 부서는 안 건드립니다.
+  </p>
+  <div class="ca-row">
+    <button class="ca-btn ca-gh" id="allPrev">모든 부서 미리보기</button>
+    <button class="ca-btn" id="allApply">모든 부서 담기</button>
+    <span class="ca-lab">— 하나씩 하시려면 아래 표에서</span>
+  </div>
+  <div class="ca-bar"><i id="bar"></i></div>
+  <table class="ca-tbl" id="tbl">
+    <tr><th>부서</th><th class="ca-num">있는 수</th><th class="ca-num">담긴 수</th><th>하기</th></tr>
+  </table>
+  <div class="ca-out" id="out"></div>
+
+  <h2 class="ca-h2">지금 담긴 것</h2>
+  <div class="ca-row"><button class="ca-btn ca-gh" id="stat">헤아리기</button></div>
+  <div id="s_out"></div>
+
+</div>
+
+<script>
+var SB_URL = 'https://jmankqdbvyrnyhxjmqsa.supabase.co';
+var SB_KEY = 'sb_publishable_q8y3AUDpoQrT86HmZMLBHA_dn9-CJ3x';
+
+/* 부서와 있는 수 — 2026-09-12 에 잰 값입니다 */
+var DEPTS = [
+  ['Prints', 10523], ['Medieval Art', 4810], ['Textiles', 4657],
+  ['Indian and Southeast Asian Art', 3377], ['Decorative Art and Design', 3136],
+  ['Drawings', 2625], ['Photography', 1262],
+  ['Egyptian and Ancient Near Eastern Art', 1066], ['Art of the Americas', 947],
+  ['European Painting and Sculpture', 724], ['Greek and Roman Art', 669],
+  ['Modern European Painting and Sculpture', 486], ['African Art', 384],
+  ['American Painting and Sculpture', 297], ['Islamic Art', 294]
+];
+var SPAN = 1200;   /* 한 번 부를 때 훑는 수 — api/collect-art.js 의 MAX_SPAN 과 같아야 합니다 */
+
+function $(id){ return document.getElementById(id); }
+function add(s){ var o=$('out'); o.textContent += s; o.scrollTop = o.scrollHeight; }
+
+var tok = $('tok');
+try{ var t0 = sessionStorage.getItem('of_collect_tok'); if(t0) tok.value = t0; }catch(e){}
+tok.addEventListener('input', function(){
+  try{ sessionStorage.setItem('of_collect_tok', tok.value); }catch(e){}
+  $('tokmsg').textContent = tok.value ? '넣으셨습니다' : '';
+});
+if(tok.value) $('tokmsg').textContent = '넣으셨습니다';
+
+/* ── 표 그리기 ── */
+(function(){
+  var t = $('tbl');
+  DEPTS.forEach(function(d, i){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+d[0]+'</td>'
+      + '<td class="ca-num">'+d[1].toLocaleString()+'</td>'
+      + '<td class="ca-num" id="got'+i+'">—</td>'
+      + '<td>'
+      + '<button class="ca-btn ca-gh" data-i="'+i+'" data-m="preview">미리보기</button> '
+      + '<button class="ca-btn" data-i="'+i+'" data-m="apply">담기</button> '
+      + '<button class="ca-btn ca-rd" data-i="'+i+'" data-m="undo">되돌리기</button>'
+      + '</td>';
+    t.appendChild(tr);
+  });
+  t.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-i]'); if(!b) return;
+    run(+b.dataset.i, b.dataset.m);
+  });
+})();
+
+function lock(on){
+  document.querySelectorAll('button').forEach(function(b){ b.disabled = on; });
+}
+
+async function run(i, mode){
+  if(!tok.value){ add('자물쇠를 먼저 넣어 주십시오.\n'); return; }
+  var dep = DEPTS[i][0], 전체 = DEPTS[i][1];
+
+  if(mode === 'undo'){
+    if(!confirm(dep + ' 부서로 담은 것을 모두 지웁니다. 하시겠습니까?')) return;
+    lock(true); add('\n['+dep+'] 지우는 중…\n');
+    try{
+      var r = await fetch('/api/collect-art?token='+encodeURIComponent(tok.value)
+              +'&mode=undo&dep='+encodeURIComponent(dep));
+      add('  ' + JSON.stringify(await r.json()) + '\n');
+    }catch(e){ add('  오류 · '+e+'\n'); }
+    lock(false); count(); return;
+  }
+
+  lock(true);
+  var 끝 = (mode === 'apply') ? 전체 : 400;   /* 미리보기는 앞 400건만 */
+  add('\n['+dep+'] '+(mode==='apply'?'담는':'미리보는')+' 중 · 0~'+끝+'\n');
+
+  var 합 = {받은줄:0, 담을줄:0, 거른줄:0, 작가있음:0};
+  for(var s = 0; s < 끝; s += SPAN){
+    var e2 = Math.min(s + SPAN, 끝);
+    try{
+      var res = await fetch('/api/collect-art?token='+encodeURIComponent(tok.value)
+             +'&dep='+encodeURIComponent(dep)+'&mode='+mode+'&from='+s+'&to='+e2);
+      var j = await res.json();
+      if(!res.ok){ add('  '+s+'~'+e2+' · 막힘 · '+JSON.stringify(j).slice(0,180)+'\n'); }
+      else{
+        합.받은줄 += j.받은줄||0; 합.담을줄 += j.담을줄||0;
+        합.거른줄 += j.거른줄||0; 합.작가있음 += j.작가있음||0;
+        add('  '+s+'~'+e2+' · 받은줄 '+(j.받은줄||0)+' · 쓸것 '+(j.담을줄||0)
+            + (j.한일?' · '+j.한일:'') + '\n');
+        if(mode!=='apply' && j.맛보기 && s===0){
+          add('\n    ── 맛보기 ──\n');
+          j.맛보기.forEach(function(x){ add('    '+x+'\n'); });
+          add('\n');
+        }
+        if((j.받은줄||0) === 0) break;
+      }
+    }catch(err){ add('  '+s+'~'+e2+' · 오류 · '+err+'\n'); }
+    $('bar').style.width = Math.round(e2/끝*100)+'%';
+  }
+  add('  ══ '+dep+' 끝 ══ '+JSON.stringify(합)+'\n');
+  lock(false);
+  if(mode === 'apply') count();
+}
+
+/* ── 모든 부서 ── */
+$('allPrev').addEventListener('click', async function(){
+  for(var i=0;i<DEPTS.length;i++) await run(i,'preview');
+});
+$('allApply').addEventListener('click', async function(){
+  if(!confirm('열다섯 부서를 모두 담습니다. 35,000점이 넘고 시간이 꽤 걸립니다. 하시겠습니까?')) return;
+  for(var i=0;i<DEPTS.length;i++) await run(i,'apply');
+  add('\n★ 모든 부서 끝났습니다.\n');
+});
+
+/* ── 헤아리기 ── */
+$('stat').addEventListener('click', count);
+
+async function count(){
+  var box = $('s_out');
+  box.innerHTML = '<div class="ca-out">헤아리는 중…</div>';
+  async function n(qs){
+    var r = await fetch(SB_URL + '/rest/v1/artworks?' + qs, {
+      headers:{ apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, Prefer:'count=exact', Range:'0-0' }});
+    var m = (r.headers.get('content-range')||'').match(/\/(\d+)$/);
+    return m ? parseInt(m[1],10) : 0;
+  }
+  try{
+    var rows = [['작품 모두', await n('select=id')],
+                ['보이는 것', await n('select=id&hidden=not.is.true')],
+                ['클리블랜드', await n('select=id&cma_id=not.is.null')]];
+    for(var i=0;i<DEPTS.length;i++){
+      var c = await n('select=id&cma_id=not.is.null&holder_dept=eq.'+encodeURIComponent(DEPTS[i][0]));
+      var cell = $('got'+i);
+      if(cell){ cell.textContent = c ? c.toLocaleString() : '—';
+                if(c >= DEPTS[i][1]) cell.className = 'ca-num ca-done'; }
+    }
+    var h = '<table class="ca-tbl"><tr><th>갈래</th><th class="ca-num">건수</th></tr>';
+    rows.forEach(function(r){ h += '<tr><td>'+r[0]+'</td><td class="ca-num">'+r[1].toLocaleString()+'</td></tr>'; });
+    h += '</table>';
+    box.innerHTML = h;
+  }catch(e){ box.innerHTML = '<div class="ca-out">오류 · '+e+'</div>'; }
+}
+</script>
+</body>
+</html>
