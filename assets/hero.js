@@ -58,6 +58,20 @@
         return m ? Number(m[1]) : 0;
       }).catch(function () { return 0; });
   }
+  /* ── 히어로에 찍을 자리 이름 ──
+     ★ 자료원마다 어디에 들었는지가 다릅니다 —
+       예술의전당은 organizer 만, 서울시립은 venue 만 옵니다.
+     ▶ 둘을 겹치지 않게 잇습니다. 「기타」는 버립니다. */
+  function heroPlace(e) {
+    var o = String(e.organizer || '').trim();
+    var v = String(e.venue || '').trim();
+    if (v === '기타') v = '';
+    if (!o) return v;
+    if (!v) return o;
+    if (v.indexOf(o) >= 0 || o.indexOf(v) >= 0) return v.length >= o.length ? v : o;
+    return o + ' · ' + v;
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -102,10 +116,14 @@
 
   function pickExhibitions() {
     var today = new Date().toISOString().slice(0, 10);
-    var sel = 'id,title,subtitle,venue,start_date,end_date,artists,genre,'
+    /* ★ 2026-09-12 · organizer 를 더했습니다 —
+         예술의전당 832건은 venue 가 비어 있고 기관만 있습니다. */
+    var sel = 'id,title,subtitle,venue,organizer,start_date,end_date,artists,genre,'
             + 'summary,poster_url,poster_credit,link_source';
+    /* ★★ 2026-09-12 · <b>kind=art 만 겁니다.</b>
+         대문 얼굴에 박물관·역사 전시가 걸리지 않게 합니다. */
     var base = OF.SB_URL + '/rest/v1/exhibitions?select=' + sel
-             + '&hidden=not.is.true&poster_url=not.is.null';
+             + '&hidden=not.is.true&kind_final=eq.art&poster_url=not.is.null';
 
     /* 지금 열리는 것 */
     var now = get(base + '&start_date=lte.' + today + '&end_date=gte.' + today
@@ -157,7 +175,7 @@
     return {
       /* ★ 지금 하는지 곧 하는지 <b>한눈에</b> 보이게 합니다 */
       eb: (e._live ? '지금 열리는 전시' : (e._soon ? '곧 열리는 전시' : '지난 전시'))
-        + (e.venue ? ' · ' + e.venue : ''),
+        + (heroPlace(e) ? ' · ' + heroPlace(e) : ''),
       /* ★★ 2026-08-24 · 낫표가 겹쳤습니다.
              「2026년 한국 근대 거장전 《유영국》」 → 《…《유영국》》
            제목 안에 <b>이미 낫표가 있는 것</b>이 많습니다. 그런 것에는
@@ -177,7 +195,7 @@
       href: '/db/exhibition-view.html?id=' + e.id,
       cta: '전시 자세히',
       tTxt: e.title,
-      venue: e.venue || '',
+      venue: heroPlace(e),
       /* 히어로 그림 — 포스터 */
       img: e.poster_url,
       credit: e.poster_credit,

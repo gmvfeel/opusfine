@@ -24,7 +24,7 @@
          있습니다. venue 만 보면 카드에 자리 이름이 안 찍힙니다.
        · region    — 거르개를 「장소」에서 <b>「지역」</b>으로 바꿉니다.
        · kind      — 미술 아닌 것(박물·역사·영화)을 가립니다. */
-  var SEL = 'id,title,subtitle,venue,organizer,region,kind,'
+  var SEL = 'id,title,subtitle,venue,organizer,region,kind_final,'
           + 'start_date,end_date,artists,genre,'
           + 'summary,poster_url,link_source,quality';
   var PAGE = 24;
@@ -50,7 +50,7 @@
   async function count(cond) {
     try {
       var r = await fetch(OF.SB_URL + '/rest/v1/exhibitions?select=id&hidden=not.is.true'
-        + '&kind=eq.art'
+        + '&kind_final=eq.art'
         + (cond || '') + '&limit=1',
         { headers: { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY,
                      Prefer: 'count=exact', Range: '0-0' } });
@@ -78,7 +78,7 @@
     /* ★ 오퍼스파인은 <b>미술</b> 아카이브입니다. 박물·역사·영화 전시는
          담아 두되 여기 걸지 않습니다. 자료는 DB 에 그대로 있어
          판정(kind)을 고치면 다시 받지 않고 살아납니다. */
-    p.push('kind=eq.art');
+    p.push('kind_final=eq.art');
     if (state.region) p.push('region=eq.' + encodeURIComponent(state.region));
     if (state.q) {
       /* ★ 제목과 참여작가를 함께 봅니다 — 「유영국」으로 찾으면
@@ -186,7 +186,7 @@
     var rows = [];
     try {
       rows = await get(OF.SB_URL + '/rest/v1/exhibitions'
-        + '?select=region&hidden=not.is.true&kind=eq.art'
+        + '?select=region&hidden=not.is.true&kind_final=eq.art'
         + '&region=not.is.null&limit=4000');
     } catch (e) { return; }
     var cnt = {};
@@ -201,7 +201,7 @@
         b.className = 'xl-chip';   /* ★ 문자열이라 이름 바꾸기에서 빠졌던 곳 */
         b.dataset.r = v;
         b.textContent = v;
-        b.title = v + ' \u00b7 ' + cnt[v] + '건';
+        b.title = v + ' · ' + cnt[v] + '건';
         box.appendChild(b);
       });
   }
@@ -219,7 +219,7 @@
     if (!o) return v;
     if (!v) return o;
     if (v.indexOf(o) >= 0 || o.indexOf(v) >= 0) return v.length >= o.length ? v : o;
-    return o + ' \u00b7 ' + v;
+    return o + ' · ' + v;
   }
 
   /* ── 그리기 ── */

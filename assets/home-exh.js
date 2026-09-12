@@ -28,7 +28,22 @@
 
   var head = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
   var today = new Date().toISOString().slice(0, 10);
-  var SEL = 'id,title,venue,start_date,end_date,poster_url';
+  /* ★ 2026-09-12 · organizer 를 더했습니다 —
+       예술의전당 832건은 <b>venue 가 비어 있고</b> 기관만 있습니다. */
+  var SEL = 'id,title,venue,organizer,start_date,end_date,poster_url';
+
+  /* ── 카드에 찍을 자리 이름 ──
+     자료원마다 어디에 들었는지가 달라 둘을 겹치지 않게 잇습니다.
+     「기타」는 뜻이 없어 버립니다. */
+  function place(e) {
+    var o = String(e.organizer || '').trim();
+    var v = String(e.venue || '').trim();
+    if (v === '기타') v = '';
+    if (!o) return v;
+    if (!v) return o;
+    if (v.indexOf(o) >= 0 || o.indexOf(v) >= 0) return v.length >= o.length ? v : o;
+    return o + ' · ' + v;
+  }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -79,7 +94,7 @@
         + '<div class="th">' + pic + '</div>'
         + '<div class="when">' + esc(when(e.start_date, e.end_date)) + '</div>'
         + '<div class="t">' + title(e.title) + '</div>'
-        + (e.venue ? '<div class="v">' + esc(e.venue) + '</div>' : '')
+        + (place(e) ? '<div class="v">' + esc(place(e)) + '</div>' : '')
         + '</a>';
     }).join('');
 
@@ -110,8 +125,15 @@
   }
 
   /* ── 받기 ── */
+  /* ★★ 2026-09-12 · <b>kind=art 만 겁니다.</b>
+       전국 자료가 들어오면서 대문 얼굴에
+       「국립광주박물관 도자문화관 개관」·「어진박물관 실감콘텐츠 체험관」이
+       걸렸습니다. 오퍼스파인은 <b>미술</b> 아카이브입니다.
+       ▶ 자료는 DB 에 그대로 있습니다. 갈래 판정을 고치면
+         다시 받지 않고 살아납니다. */
   var base = OF.SB_URL + '/rest/v1/exhibitions?select=' + SEL
-           + '&hidden=not.is.true&start_date=lte.' + today + '&end_date=gte.' + today;
+           + '&hidden=not.is.true&kind_final=eq.art'
+           + '&start_date=lte.' + today + '&end_date=gte.' + today;
 
   Promise.all([
     /* 한동안 볼 수 있는 것 — 포스터가 있는 것만 (대문은 그림이 반입니다) */
