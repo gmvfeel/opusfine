@@ -75,13 +75,34 @@ const MAX_PAGES  = 12;          /* 한 번에 부를 수 있는 쪽 수 */
    ★ Node 에는 브라우저의 DOMParser 가 없습니다. 자료가 단순한
      <item><TITLE>…</TITLE></item> 꼴이라 이만큼이면 됩니다.
    ══════════════════════════════════════════════════════════════════ */
+/* ★★ 2026-09-12 · 이 함수가 모자라 화면에 「이성륙&middot;최가효」가 찍혔습니다.
+     까닭 둘 —
+     ① 자료원이 <b>두 겹으로 쌉니다</b> (&amp;lt; 꼴).
+        한 번만 풀면 &lt; 가 남습니다. ▶ <b>세 번 되풀이</b>합니다.
+     ② &middot; &rsquo; &times; 같은 <b>이름 있는 기호</b>가 많습니다.
+        &lt; &gt; &amp; 넷만 풀면 나머지가 글자로 남습니다.
+     ★ &amp; 는 <b>맨 마지막</b>에 풀어야 두 겹이 벗겨집니다. */
+const ENT = {
+  '&lt;':'<', '&gt;':'>', '&quot;':'"', '&apos;':"'",
+  '&nbsp;':' ', '&shy;':'',
+  '&middot;':'·', '&bull;':'•', '&times;':'×', '&divide;':'÷',
+  '&lsquo;':'\u2018', '&rsquo;':'\u2019', '&ldquo;':'\u201C', '&rdquo;':'\u201D',
+  '&ndash;':'\u2013', '&mdash;':'\u2014', '&hellip;':'…', '&deg;':'°',
+  '&ouml;':'ö', '&uuml;':'ü', '&auml;':'ä', '&eacute;':'é'
+};
 function unescapeXml (s) {
-  return String(s || '')
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
-    .replace(/&#(\d+);/g, function (_, n) { return String.fromCharCode(+n); })
-    .replace(/&amp;/g, '&');
+  let o = String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1');
+  for (let i = 0; i < 3; i++) {
+    o = o.replace(/&#(\d{1,7});/g, function (_, n) {
+      const c = parseInt(n, 10);
+      return (c > 0 && c < 0x110000) ? String.fromCodePoint(c) : _;
+    });
+    o = o.replace(/&[a-zA-Z]+;/g, function (m) {
+      return Object.prototype.hasOwnProperty.call(ENT, m) ? ENT[m] : m;
+    });
+    o = o.replace(/&amp;/g, '&');   /* ★ 맨 마지막 */
+  }
+  return o;
 }
 
 /* 한 덩이 안에서 <태그>값</태그> 를 뽑습니다 */
@@ -226,6 +247,17 @@ function rowFromCulture (c) {
   if (!title || !seq) return null;
 
   const place = pick(c, 'place');
+
+  /* ★★ 2026-09-12 · <b>thumbnail 칸이 있습니다.</b>
+       인계문서 5장 표에 「포스터 : 없음」이라 적혀 있어 그대로 믿었는데,
+       실제로 두드려 보니 <b>304건 전부(100%)</b> 있었습니다.
+       ▶ 규칙 7-3 그대로입니다 — <b>적힌 말이 아니라 잰 값</b>을 봅니다.
+       ▶ 목록(realm2)에 이미 있습니다. 상세(detail2)까지 갈 것도 없었습니다.
+     ★ 주소가 http 로 옵니다. 우리 사이트는 https 라 <b>섞이면 막힙니다</b>.
+       https 로 바꿔 담습니다 (저쪽도 https 로 잘 열립니다 · 500×800). */
+  let poster = pick(c, 'thumbnail');
+  if (poster) poster = poster.replace(/^http:\/\//i, 'https://');
+
   /* ★ serviceName 을 믿지 마십시오. 「공연」으로 표시된 11건이
        전부 미술 전시였습니다 (이응노·유영국·반 고흐 …).
        그래서 거르지 않고 <b>304건 전부</b> 담습니다. */
@@ -234,6 +266,7 @@ function rowFromCulture (c) {
     source_id: seq,
     title: title,
     venue: place || null,
+    venue_dept: pick(c, 'sigungu') || null,   /* ★ 시군구까지 옵니다 */
     organizer: null,
     start_date: oneDate(pick(c, 'startDate')),
     end_date: oneDate(pick(c, 'endDate')),
@@ -241,8 +274,8 @@ function rowFromCulture (c) {
     open_time: null,
     charge: null,
     body: null,
-    poster_url: null,
-    poster_credit: null,
+    poster_url: poster || null,
+    poster_credit: '한국문화정보원',
     link_source: null,
     genre: pick(c, 'realmName') || null,
     kind: judgeKind(title, place, ''),

@@ -19,12 +19,18 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var head = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
-  var SEL = 'id,title,subtitle,venue,start_date,end_date,artists,genre,'
+  /* ★ 2026-09-12 · organizer·region·kind 를 더했습니다.
+       · organizer — 예술의전당 832건은 <b>venue 가 비어 있고</b> 기관만
+         있습니다. venue 만 보면 카드에 자리 이름이 안 찍힙니다.
+       · region    — 거르개를 「장소」에서 <b>「지역」</b>으로 바꿉니다.
+       · kind      — 미술 아닌 것(박물·역사·영화)을 가립니다. */
+  var SEL = 'id,title,subtitle,venue,organizer,region,kind,'
+          + 'start_date,end_date,artists,genre,'
           + 'summary,poster_url,link_source,quality';
   var PAGE = 24;
 
   var today = new Date().toISOString().slice(0, 10);
-  var state = { when: 'live', venue: '', q: '', qIds: [], from: 0, done: false };
+  var state = { when: 'live', region: '', q: '', qIds: [], from: 0, done: false };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -38,9 +44,13 @@
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return await r.json();
   }
+  /* ★ 2026-09-12 · 세는 것과 <b>거는 것</b>이 같아야 합니다.
+       kind=art 로 걸면서 머릿수는 전부 세면
+       「3,365건」이라 해놓고 3,265건만 나옵니다. */
   async function count(cond) {
     try {
       var r = await fetch(OF.SB_URL + '/rest/v1/exhibitions?select=id&hidden=not.is.true'
+        + '&kind=eq.art'
         + (cond || '') + '&limit=1',
         { headers: { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY,
                      Prefer: 'count=exact', Range: '0-0' } });
@@ -65,7 +75,11 @@
     } else {
       p.push('order=end_date.desc');
     }
-    if (state.venue) p.push('venue=eq.' + encodeURIComponent(state.venue));
+    /* ★ 오퍼스파인은 <b>미술</b> 아카이브입니다. 박물·역사·영화 전시는
+         담아 두되 여기 걸지 않습니다. 자료는 DB 에 그대로 있어
+         판정(kind)을 고치면 다시 받지 않고 살아납니다. */
+    p.push('kind=eq.art');
+    if (state.region) p.push('region=eq.' + encodeURIComponent(state.region));
     if (state.q) {
       /* ★ 제목과 참여작가를 함께 봅니다 — 「유영국」으로 찾으면
            그 사람 전시가 나와야 합니다.
@@ -135,7 +149,7 @@
       +     (e.subtitle ? ' <i style="font-style:normal;font-size:12.5px;color:var(--ink-3)">'
                           + esc(e.subtitle) + '</i>' : '') + '</span>'
       +   '<span class="xl-dt">' + esc(period(e.start_date, e.end_date)) + '</span>'
-      +   (e.venue ? '<span class="xl-vn">' + esc(e.venue) + '</span>' : '')
+      +   (place(e) ? '<span class="xl-vn">' + esc(place(e)) + '</span>' : '')
       +   (e.artists ? '<span class="xl-ar">' +
           esc(String(e.artists).split(',').slice(0, 4).join(', ')) + '</span>' : '')
       + '</span></a>';
@@ -160,32 +174,52 @@
     } catch (e) { return []; }
   }
 
-  /* ── 장소 추리개 — DB 에서 받아 만듭니다 ── */
-  async function buildVenues() {
-    var box = $('fVenue');
+  /* ── 지역 추리개 — DB 에서 받아 만듭니다 ──
+     ★ 2026-09-12 · 「장소」에서 <b>「지역」</b>으로 바꿨습니다.
+       장소로 가르면 서울시립 지점(서소문·북서울·남서울…)만 위에 올라와
+       전국 16곳이 들어온 뜻이 사라집니다.
+     ★ 미술(kind=art)만 세어 만듭니다. 화면에 거는 것과 셈이 같아야
+       눌렀을 때 0건이 나오지 않습니다. */
+  async function buildRegions() {
+    var box = $('fRegion') || $('fVenue');
     if (!box) return;
     var rows = [];
     try {
       rows = await get(OF.SB_URL + '/rest/v1/exhibitions'
-        + '?select=venue&hidden=not.is.true&venue=not.is.null&limit=1000');
+        + '?select=region&hidden=not.is.true&kind=eq.art'
+        + '&region=not.is.null&limit=4000');
     } catch (e) { return; }
     var cnt = {};
     rows.forEach(function (r) {
-      var v = String(r.venue || '').trim();
+      var v = String(r.region || '').trim();
       if (v) cnt[v] = (cnt[v] || 0) + 1;
     });
-    /* ★ 많은 곳 여섯만. 「기타」처럼 뜻 없는 것은 뒤로 갑니다 */
     Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; })
-      .filter(function (v) { return v !== '기타'; })
-      .slice(0, 6)
+      .slice(0, 8)
       .forEach(function (v) {
         var b = document.createElement('button');
         b.className = 'xl-chip';   /* ★ 문자열이라 이름 바꾸기에서 빠졌던 곳 */
-        b.dataset.v = v;
-        b.textContent = v.replace(/^서울시립\s*/, '').replace(/미술관$/, '') || v;
-        b.title = v;
+        b.dataset.r = v;
+        b.textContent = v;
+        b.title = v + ' \u00b7 ' + cnt[v] + '건';
         box.appendChild(b);
       });
+  }
+
+  /* ── 카드에 찍을 자리 이름 ──
+     ★ 자료원마다 어디에 들었는지가 다릅니다 —
+       · 예술의전당     : organizer 만 (venue 없음)
+       · 국립현대미술관 : organizer + venue(과천·덕수궁·청주…)
+       · 서울시립      : venue 만 (「서울시립미술관 서소문본관」)
+     ▶ 둘을 겹치지 않게 이어 붙입니다. 「기타」는 뜻이 없어 버립니다. */
+  function place(e) {
+    var o = String(e.organizer || '').trim();
+    var v = String(e.venue || '').trim();
+    if (v === '기타') v = '';
+    if (!o) return v;
+    if (!v) return o;
+    if (v.indexOf(o) >= 0 || o.indexOf(v) >= 0) return v.length >= o.length ? v : o;
+    return o + ' \u00b7 ' + v;
   }
 
   /* ── 그리기 ── */
@@ -240,7 +274,7 @@
   }
 
   function bind() {
-    var when = $('fWhen'), venue = $('fVenue'), q = $('q');
+    var when = $('fWhen'), region = $('fRegion') || $('fVenue'), q = $('q');
     if (when) when.addEventListener('click', function (e) {
       var b = e.target.closest('.xl-chip'); if (!b) return;
       Array.prototype.forEach.call(when.querySelectorAll('.xl-chip'),
@@ -248,11 +282,11 @@
       state.when = b.dataset.w || 'all';
       load(true);
     });
-    if (venue) venue.addEventListener('click', function (e) {
+    if (region) region.addEventListener('click', function (e) {
       var b = e.target.closest('.xl-chip'); if (!b) return;
-      Array.prototype.forEach.call(venue.querySelectorAll('.xl-chip'),
+      Array.prototype.forEach.call(region.querySelectorAll('.xl-chip'),
         function (x) { x.classList.toggle('xl-on', x === b); });
-      state.venue = b.dataset.v || '';
+      state.region = b.dataset.r || '';
       load(true);
     });
     if (q) {
@@ -274,10 +308,11 @@
   function boot() {
     grid = $('grid'); moreBtn = $('more');
     if (!grid) return;
-    /* 주소에 ?venue= 나 ?q= 가 있으면 받습니다 */
+    /* 주소에 ?region= 나 ?q= 가 있으면 받습니다 */
     var p = new URLSearchParams(location.search);
     if (p.get('when')) state.when = p.get('when');
-    if (p.get('venue')) state.venue = p.get('venue');
+    if (p.get('region')) state.region = p.get('region');
+    if (p.get('venue'))  state.region = p.get('venue');   /* 옛 주소도 받습니다 */
     if (p.get('q')) {
       state.q = p.get('q');
       if ($('q')) $('q').value = state.q;
@@ -289,7 +324,7 @@
     }
 
     bind();
-    buildVenues();
+    buildRegions();
     paintCount();
     load(true).then(function () {
       /* ★ 지금 열리는 것이 없으면 <b>지난 전시로</b> 물러섭니다.

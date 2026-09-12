@@ -147,9 +147,12 @@ html[data-theme="dark"] .xl-more button:hover{background:var(--ink);color:var(--
       <button class="xl-chip" data-w="past">지난 전시</button>
       <button class="xl-chip" data-w="all">전체</button>
     </div>
-    <div class="xl-fgrp" id="fVenue">
-      <span class="xl-fl">장소</span>
-      <button class="xl-chip xl-on" data-v="">전체</button>
+    <!-- ★ 2026-09-12 · 「장소」에서 「지역」으로 바꿨습니다.
+         전국 16곳이 들어왔는데 장소로 가르면 서울시립 지점만 보입니다.
+         칩은 assets/exhibition-list.js 가 DB 에서 세어 만듭니다. -->
+    <div class="xl-fgrp" id="fRegion">
+      <span class="xl-fl">지역</span>
+      <button class="xl-chip xl-on" data-r="">전체</button>
     </div>
     <div class="xl-fright">
       <div class="xl-srch">
@@ -164,8 +167,9 @@ html[data-theme="dark"] .xl-more button:hover{background:var(--ink);color:var(--
 
 <div class="wrap">
   <p class="xl-note" style="margin-top:22px" id="note">
-    지금은 <b>서울시립미술관</b>이 공개한 전시 정보입니다 (공공누리 제1유형) ·
-    앞으로 다른 미술관 전시가 더해집니다
+    <b>서울시립미술관</b> · <b>국립현대미술관</b> · <b>예술의전당</b> 과
+    <b>한눈에보는문화정보</b>(전국)가 공개한 전시 정보입니다 (공공누리 제1유형) ·
+    앞으로 더 많은 기관이 더해집니다
   </p>
 
   <!-- ★ 전시는 assets/exhibition-list.js 가 DB 에서 받아 채웁니다.
