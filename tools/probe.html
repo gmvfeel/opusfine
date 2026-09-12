@@ -92,10 +92,26 @@ body{margin:0;background:#fff;color:#17171A;
     서버가 살아났다는 뜻이라 <b>진짜 열쇠로 두드려 볼 차례</b>입니다.
   </p>
   <div class="pb-row">
-    <button class="pb-btn pb-gh" data-act="kcisa-nokey">열쇠 없이 (403 이 나오면 정상)</button>
-    <button class="pb-btn" data-act="kcisa-key">열쇠로 두드리기</button>
+    <button class="pb-btn pb-gh" data-act="kcisa-nokey">열쇠 없이 (401·403 이면 서버는 살아 있음)</button>
+    <button class="pb-btn" data-act="kcisa-key">12개 기관 전시정보</button>
     <span class="pb-lab">몇 건</span>
     <input class="pb-in" id="pbRows" value="5" size="4">
+  </div>
+  <p class="pb-note" style="margin-top:16px">
+    <b>★ 2026-09-11 에 알게 된 것</b> — 이 문은 <b>문화포털 열쇠</b>로 엽니다.
+    공공데이터포털 열쇠(DATA_GO_KR_KEY)를 내밀었더니 403 이 났는데,
+    만료도 권한 문제도 아니고 <b>애초에 다른 열쇠</b>였습니다.
+    data.go.kr 화면에 「활용신청」 대신 <b>「바로가기」</b>가 있으면
+    저쪽에서 열쇠를 따로 받아야 합니다. → 환경변수 <b>CULTURE_KEY</b>
+  </p>
+  <p class="pb-note">
+    같은 문 뒤에 <b>더 좋은 것</b>이 있습니다 —<br>
+    <b>한눈에보는문화정보</b> 는 전국 규모에 <b>이미지·실시간 갱신</b>이 있습니다.<br>
+    <b>국립지방박물관 전시 통합정보</b> 는 전국 <b>13개 국립지방박물관</b> · 이미지·동영상 포함.
+  </p>
+  <div class="pb-row">
+    <button class="pb-btn pb-gh" data-act="onenc">한눈에보는문화정보</button>
+    <button class="pb-btn pb-gh" data-act="localmuseum">국립지방박물관 전시</button>
   </div>
   <div class="pb-out" id="out-kcisa"></div>
 
@@ -180,7 +196,8 @@ body{margin:0;background:#fff;color:#17171A;
                            numOfRows: $('pbRows').value || 5, pageNo: 1 });
       var h = show(r);
       h += '\n\n<span class="pb-dim">── 읽는 법 ──\n'
-         + '403 「API Key is not valid」 → <b>서버는 살아 있습니다.</b> 열쇠로 다시 두드려 보십시오\n'
+         + '401 Unauthorized → 열쇠를 <b>안 보냈다</b>는 뜻. 서버는 살아 있습니다\n'
+         + '403 「API Key is not valid」 → 열쇠는 <b>갔는데 틀렸다</b>는 뜻. 역시 살아 있습니다\n'
          + '530 · error code 1016 → 저쪽 서버가 죽어 있습니다. 기다리는 수밖에 없습니다\n'
          + '200 → 열쇠 없이도 열립니다(드문 일)</span>';
       put('out-kcisa', h);
@@ -196,6 +213,31 @@ body{margin:0;background:#fff;color:#17171A;
          + '· 기관 이름이 여럿 보이는가 (국립현대미술관 · 예술의전당 · 아르코 …)\n'
          + '· <b>포스터 주소</b>가 들어 있는가 — 대문에 걸 그림입니다\n'
          + '· 전시 기간 · 장소 · 참여작가가 있는가</span>';
+      put('out-kcisa', h);
+    },
+
+    /* ── 같은 문 뒤의 다른 자료 ── */
+    onenc: async function () {
+      put('out-kcisa', '한눈에보는문화정보를 두드리는 중…');
+      var r = await call({ to: 'culture', path: '/openapi/API_CCA_144/request',
+                           numOfRows: $('pbRows').value || 5, pageNo: 1, key: 1 });
+      var h = '<b>한눈에보는문화정보</b>\n' + show(r);
+      var t = r.본문 ? guessTotal(r.본문) : null;
+      if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
+      h += '\n\n<span class="pb-dim">★ 경로가 틀릴 수 있습니다 — API_CCA_144 는 짐작입니다.\n'
+         + '  404·500 이 나오면 data.go.kr 의 그 자료 화면에서\n'
+         + '  <b>요청주소(엔드포인트)</b>를 확인해 알려 주십시오.</span>';
+      put('out-kcisa', h);
+    },
+    localmuseum: async function () {
+      put('out-kcisa', '국립지방박물관 전시를 두드리는 중…');
+      var r = await call({ to: 'culture', path: '/openapi/API_CCA_146/request',
+                           numOfRows: $('pbRows').value || 5, pageNo: 1, key: 1 });
+      var h = '<b>국립지방박물관 전시 통합정보</b>\n' + show(r);
+      var t = r.본문 ? guessTotal(r.본문) : null;
+      if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
+      h += '\n\n<span class="pb-dim">★ 경로가 틀릴 수 있습니다 — API_CCA_146 은 짐작입니다.\n'
+         + '  404·500 이면 요청주소를 확인해 알려 주십시오.</span>';
       put('out-kcisa', h);
     },
 

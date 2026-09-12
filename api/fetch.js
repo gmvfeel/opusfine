@@ -42,15 +42,26 @@
      (열쇠 없이 두드려 보는 정찰에 씁니다).
    ══════════════════════════════════════════════════════════════════ */
 
-/* 나갈 수 있는 곳 — 여기 없으면 안 나갑니다 */
+/* 나갈 수 있는 곳 — 여기 없으면 안 나갑니다
+   ★★ 2026-09-11 · <b>열쇠가 포털마다 다릅니다.</b>
+     api.kcisa.kr 에 공공데이터포털 열쇠(DATA_GO_KR_KEY)를 내밀었더니
+     403 「API Key is not valid」 가 났습니다. 열쇠가 만료된 것도
+     권한이 없는 것도 아니고 <b>애초에 다른 열쇠</b>였습니다.
+       · data.go.kr        → DATA_GO_KR_KEY   (apis.data.go.kr · e뮤지엄)
+       · 문화포털(culture) → CULTURE_KEY      (api.kcisa.kr)
+     data.go.kr 에 목록만 있고 <b>신청은 문화포털에서</b> 받는 자료가
+     있습니다. 그 화면에 「활용신청」 대신 <b>「바로가기」</b>가 있으면
+     저쪽 열쇠를 받아야 합니다. */
 const ALLOW = {
-  kcisa:   { base: 'https://api.kcisa.kr',                  keyName: 'serviceKey', env: 'DATA_GO_KR_KEY' },
+  kcisa:   { base: 'https://api.kcisa.kr',                  keyName: 'serviceKey', env: 'CULTURE_KEY' },
   apis:    { base: 'https://apis.data.go.kr',               keyName: 'serviceKey', env: 'DATA_GO_KR_KEY' },
   emuseum: { base: 'http://www.emuseum.go.kr',              keyName: 'serviceKey', env: 'DATA_GO_KR_KEY' },
   cma:     { base: 'https://openaccess-api.clevelandart.org', keyName: null,       env: null },
   met:     { base: 'https://collectionapi.metmuseum.org',   keyName: null,         env: null },
   gongu:   { base: 'https://gongu.copyright.or.kr',         keyName: 'apiKey',     env: 'GONGU_KEY' },
   seoul:   { base: 'http://openapi.seoul.go.kr:8088',       keyName: null,         env: 'SEOUL_KEY' },
+  /* 아래 둘도 문화포털 열쇠를 씁니다 (같은 api.kcisa.kr 뒤) */
+  culture: { base: 'https://api.kcisa.kr',                  keyName: 'serviceKey', env: 'CULTURE_KEY' },
   wd:      { base: 'https://query.wikidata.org',            keyName: null,         env: null },
   openalex:{ base: 'https://api.openalex.org',              keyName: null,         env: null }
 };
