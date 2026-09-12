@@ -217,8 +217,22 @@ function rowFromKcisa (c) {
   const [s, e] = twoDates(pick(c, 'PERIOD'));
   const org = pick(c, 'CNTC_INSTT_NM');
   const venue = pick(c, 'EVENT_SITE');
-  const artists = [pick(c, 'AUTHOR'), pick(c, 'ACTOR'), pick(c, 'CONTRIBUTOR')]
-    .filter(Boolean).join(', ') || null;
+
+  /* ★★ 2026-09-12 · <b>AUTHOR 만</b>이 참여작가입니다.
+       처음에 AUTHOR+ACTOR+CONTRIBUTOR 셋을 합쳐 넣었더니
+       artists 칸이 <b>주최기관으로 채워졌습니다</b> —
+       「국립현대미술관 / 한국근대미술사학회」·「동아일보사」·「문화공보부」.
+       셋을 따로 재어 보니 (표본 235건) —
+         AUTHOR      108건 · <b>105건이 사람 이름</b>
+                     「김경, 문신, 박고석, 유영국, 이규상, 천경자, 한묵」
+                     「곽덕준, 권진규, 김환기, 박수근, 이중섭, 구사마 야요이」
+         ACTOR         0건 · <b>아예 안 옵니다.</b> 괜히 붙였습니다
+         CONTRIBUTOR 217건 · 전부 <b>주최·협찬 기관</b>
+                     「국립현대미술관 / (협찬) 노루페인트, 무림페이퍼」
+     ▶ 칸 이름이 비슷하다고 묶지 않습니다. <b>하나씩 열어 봅니다.</b>
+     ★ CONTRIBUTOR 는 담지 않습니다. 주최기관을 둘 자리가 아직 없고,
+       필요해지면 다시 받으면 됩니다(5분). 없는 칸을 미리 만들지 않습니다. */
+  const artists = pick(c, 'AUTHOR') || null;
 
   return {
     source: 'kcisa145',
