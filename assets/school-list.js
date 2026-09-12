@@ -48,6 +48,28 @@
               '페루', '쿠바', '우루과이', '베네수엘라', '에콰도르']
   };
 
+
+  /* ── 다국어 도우미 ───────────────────────────────────────────
+     ★ 화면 글을 사전에 태웁니다. i18n.js 가 아직 안 실렸으면
+       원문을 그대로 돌려주므로 한국어 화면은 그대로 돕니다.
+     ★ N() 은 <b>숫자가 낀 글</b>용입니다. 「250곳」처럼 숫자와 낱말이
+       붙은 것은 사전 열쇠로 쓸 수 없습니다 — 숫자가 바뀌면 열쇠가
+       달라지니까요. 그래서 「{n}곳」을 열쇠로 두고 값만 끼웁니다.
+       (오퍼스클램이 2026-08-15 에 같은 일을 겪고 정한 방식입니다) */
+  function T(s) { return (window.OFI18N && window.OFI18N.t) ? window.OFI18N.t(s) : s; }
+  function N(tpl) {
+    var args = [].slice.call(arguments);
+    if (window.OFI18N && window.OFI18N.n) return window.OFI18N.n.apply(null, args);
+    var vals = args.slice(1);
+    return String(tpl).replace(/\{(n|\d+)\}/g, function (m, k) {
+      var v = (k === 'n') ? vals[0] : vals[Number(k)];
+      if (v === undefined || v === null) return m;
+      if (typeof v !== 'number') return String(v);
+      if (v >= 1000 && v < 3000 && v === Math.floor(v)) return String(v);
+      return v.toLocaleString();
+    });
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -117,7 +139,9 @@
 
     var meta = [];
     if (s.location) meta.push(esc(s.location));
-    if (s.founded)  meta.push(esc(s.founded) + ' 설립');
+    /* ★ 숫자가 낀 글은 사전으로 못 바꿉니다. OFI18N.n() 으로 넘깁니다.
+       사전에는 "{n} 설립": "Founded {n}" 을 둡니다. */
+    if (s.founded)  meta.push(N('{n} 설립', esc(s.founded)));
 
     var h = '<a class="sl-item" href="' + href + '">';
     h += '<span class="sl-head">';
@@ -177,7 +201,7 @@
       if (!rows.length && page === 0) {
         grid.innerHTML = note('찾으시는 학교가 없습니다. 다른 말로 찾아 보십시오.');
         moreBox.hidden = true;
-        cntBox.innerHTML = '0곳';
+        cntBox.innerHTML = N('{n}곳', 0);
         busy = false;
         return;
       }
@@ -186,8 +210,8 @@
       page++;
 
       if (total) {
-        cntBox.innerHTML = '<b>' + total.toLocaleString() + '</b>곳'
-          + (fReg || fHas || q ? ' (추린 것)' : '');
+        cntBox.innerHTML = N('<b>{n}</b>곳', total)
+          + (fReg || fHas || q ? ' ' + T('(추린 것)') : '');
       }
       /* ★ 0줄일 때 끝냅니다. 요청보다 적게 왔다고 끝내지 않습니다. */
       moreBox.hidden = rows.length === 0 || (total && page * PER >= total);

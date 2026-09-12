@@ -43,6 +43,28 @@
 (function () {
   'use strict';
 
+
+  /* ── 다국어 도우미 ───────────────────────────────────────────
+     ★ 화면 글을 사전에 태웁니다. i18n.js 가 아직 안 실렸으면
+       원문을 그대로 돌려주므로 한국어 화면은 그대로 돕니다.
+     ★ N() 은 <b>숫자가 낀 글</b>용입니다. 「250곳」처럼 숫자와 낱말이
+       붙은 것은 사전 열쇠로 쓸 수 없습니다 — 숫자가 바뀌면 열쇠가
+       달라지니까요. 그래서 「{n}곳」을 열쇠로 두고 값만 끼웁니다.
+       (오퍼스클램이 2026-08-15 에 같은 일을 겪고 정한 방식입니다) */
+  function T(s) { return (window.OFI18N && window.OFI18N.t) ? window.OFI18N.t(s) : s; }
+  function N(tpl) {
+    var args = [].slice.call(arguments);
+    if (window.OFI18N && window.OFI18N.n) return window.OFI18N.n.apply(null, args);
+    var vals = args.slice(1);
+    return String(tpl).replace(/\{(n|\d+)\}/g, function (m, k) {
+      var v = (k === 'n') ? vals[0] : vals[Number(k)];
+      if (v === undefined || v === null) return m;
+      if (typeof v !== 'number') return String(v);
+      if (v >= 1000 && v < 3000 && v === Math.floor(v)) return String(v);
+      return v.toLocaleString();
+    });
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -131,7 +153,7 @@
     }
     var sub = [];
     if (s.location) sub.push(esc(s.location));
-    if (s.founded)  sub.push(esc(s.founded) + ' 설립');
+    if (s.founded)  sub.push(N('{n} 설립', esc(s.founded)));
     if (sub.length) h += '<div class="sv-sub">' + sub.join('<i>·</i>') + '</div>';
     h += '</div></div>';
 
@@ -209,11 +231,11 @@
     h += '<div class="sv-side"><div class="sv-sidein"><div class="sv-facts">';
     h += '<div class="sv-fk">Information</div>';
     var facts = [];
-    if (s.category)    facts.push(['갈래', esc(s.category)]);
-    if (s.location)    facts.push(['소재지', esc(s.location)]);
-    if (s.founded)     facts.push(['설립', esc(s.founded)]);
-    if (items && items.length) facts.push(['담긴 동문', items.length + '명']);
-    if (s.wikidata_id) facts.push(['위키데이터', esc(s.wikidata_id)]);
+    if (s.category)    facts.push([T('갈래'), esc(s.category)]);
+    if (s.location)    facts.push([T('소재지'), esc(s.location)]);
+    if (s.founded)     facts.push([T('설립'), esc(s.founded)]);
+    if (items && items.length) facts.push([T('담긴 동문'), N('{n}명', items.length)]);
+    if (s.wikidata_id) facts.push([T('위키데이터'), esc(s.wikidata_id)]);
     if (!facts.length) facts.push(['—', '자료가 아직 없습니다']);
     h += facts.map(function (f) {
       return '<div class="sv-frow"><span class="k">' + f[0] + '</span>'

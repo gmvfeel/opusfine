@@ -14,11 +14,12 @@
       <a class="act" href="#">로그인</a>
       <a class="act" href="#">회원가입</a>
       <span class="u-sep"></span>
-      <span class="lang">
-        <select aria-label="언어 고르기">
-          <option>KO</option><option>EN</option><option>JA</option><option>ZH</option>
-        </select>
-      </span>
+      <!-- ★ 언어 고르개는 <b>assets/i18n.js 가 스스로 붙입니다.</b>
+           예전에는 여기에 <select> 가 있었는데 눌러도 아무 일이
+           일어나지 않는 껍데기였습니다. 그리고 KO·EN·JA·ZH 로 적혀
+           있어 엔진의 여섯 말(ko·en·ja·de·es·it)과 어긋났습니다.
+           ▶ 말을 더하거나 뺄 때는 <b>i18n.js 의 LANGS 한 줄</b>만
+             고치면 이 자리도 따라옵니다. 여기에 손으로 적지 마십시오. -->
     </span>
   </div>
 </div>

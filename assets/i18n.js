@@ -1,0 +1,1660 @@
+/* ===== OPUSFINE 다국어 엔진 (i18n) =====================================
+   2026-08-10 신설 · 1단계 기반
+
+   ── 무엇을 하는가 ────────────────────────────────────────────────
+   주소가 /en/… 또는 /ja/… 이면 화면의 한국어를 그 언어로 바꿉니다.
+   한국어(/…)일 때는 <b>사전을 받지도 않고 곧바로 끝냅니다.</b>
+   → 한국 이용자에게는 부담이 0 입니다.
+
+   ── 왜 이런 구조인가 ─────────────────────────────────────────────
+   ① 화면 파일을 고치지 않습니다
+      146개 화면에 data-i18n="…" 을 6,300군데 붙이는 것은 현실적이지
+      않습니다. 그래서 <b>한국어 원문 자체를 열쇠(key)로</b> 씁니다.
+      사전이 { "인물 DB": "People" } 이면 화면에 손대지 않아도 바뀝니다.
+
+   ② 화면이 그려지기 <b>전에</b> 바꿉니다
+      이 파일은 include.js 가 부릅니다. include.js 는 모든 화면에서
+      <body> 바로 다음에 <b>동기</b>로 실려 있습니다(111개 전수 확인).
+      그래서 본문이 아직 하나도 그려지지 않은 때에 사전이 준비됩니다.
+      → 한국어가 잠깐 보였다 바뀌는 깜빡임이 없습니다.
+
+   ③ 나중에 그려지는 것도 따라갑니다
+      헤더·하위메뉴·푸터·DB 목록은 나중에 붙습니다.
+      MutationObserver 로 계속 지켜보다가 붙는 즉시 바꿉니다.
+
+   ── 쓰는 법 (다른 파일에서) ──────────────────────────────────────
+      OFI18N.lang            'ko' | 'en' | 'ja'
+      OFI18N.t('저장')        번역된 글자 (없으면 원문 그대로)
+      OFI18N.url('/db/x.html')  현재 언어 주소로 (/en/db/x.html)
+      OFI18N.apply(el)       그 자리 안을 다시 훑어 바꾸기
+
+   ── 손대기 전에 알아둘 것 ────────────────────────────────────────
+   · 텍스트 조각 <b>전체</b>가 사전 열쇠와 같을 때만 바꿉니다.
+     한 조각 안의 일부만 바꾸면 「음악학교 DB」 의 '음악' 만 바뀌는
+     식으로 글이 망가집니다.
+   · 앞뒤 여백은 그대로 둡니다 — 없애면 낱말이 붙어버립니다.
+   · 내가 넣은 값은 기억해 두고 다시 건드리지 않습니다.
+     (번역문이 우연히 다른 열쇠와 같으면 끝없이 도는 것을 막습니다)
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  /* 사전 파일 판(버전) — assets/i18n/en.json · ja.json 을 받을 때만 씁니다.
+     ★ 화면(html)에는 판 번호를 붙이지 않습니다 (2026-08-10 정리).
+       vercel.json 이 /assets/*.js 와 /assets/i18n/*.json 에 이미
+       must-revalidate 를 걸어 두어 브라우저가 매번 물어봅니다.
+       예전에는 판을 올릴 때마다 index.html 과 legal/ 넷까지 다섯 파일을
+       함께 배포해야 했습니다 — 내용은 한 글자도 안 바뀌는데 말입니다.
+     ★ 이 숫자는 그냥 두어도 됩니다. 사전을 크게 바꿀 때 올리면
+       확실히 새 사전을 받게 하는 이중 안전장치 구실을 합니다. */
+  /* ★ 2026-08-13 · 오퍼니티 낱말 열둘을 더해 판을 올립니다.
+       기존 2,391 → 2,403개. 「그냥 두어도 된다」고 적혀 있지만,
+       새 게시판이 영어·일본어 화면에서 <b>한국어로 보이는</b> 일을
+       확실히 막기 위해 올립니다. */
+  /* ★ 2026-08-15 · 아이폰 설치 안내문 셋을 더해 판을 올립니다.
+       기존 2,468 → 2,471개. 아이폰 안내는 <b>화면에 없던 새 글</b>이라
+       사전을 새로 받지 못하면 영어·일본어에서 한국어로 나옵니다. */
+  /* ★ 2026-08-15b · 숫자가 섞인 글 18개 + 단위 낱말 4개를 더했습니다.
+       기존 2,471 → 2,493개. 「전체 206건」·「2026년 8월 공연 0건」이
+       영어·일본어 화면에서 <b>한국어로 남던</b> 것을 고치면서 생긴 열쇠라,
+       사전을 새로 받지 못하면 그대로 한국어가 나옵니다. */
+  /* ★ 2026-08-15c · 국제 콩쿨 아카이브 낱말을 더했습니다.
+       기존 2,493 → 2,530개. 대회 이름·나라·부문·숫자 섞인 글까지
+       모두 넣었습니다. 새 화면의 글이라 사전을 새로 받지 못하면
+       영어·일본어 화면에서 <b>한국어로 나옵니다.</b>
+     ★ 자바스크립트가 만드는 글은 i18n 엔진이 화면을 훑을 때 아직
+       없으므로 저절로 바뀌지 않습니다 — 화면 코드에서 직접
+       사전을 태워야 합니다(concours-archive.html 의 t·ocN). */
+  /* ★ 2026-08-16 · 정보SPOT 「이번 주 공연」 낱말을 더했습니다. 2,534개. */
+  /* ★ 2026-08-16b · 「연주 올리기」 낱말을 더했습니다. */
+  /* ★ 2026-08-21 · db-list.js 어조를 부드럽게 바꾸며 <b>열쇠 27개</b>가
+       달라졌습니다(「없습니까?」→「없나요?」 · 「찾아보십시오」→「찾아보세요」 등).
+       번역문은 그대로이고 한국어 열쇠만 바뀌었습니다.
+       판을 올리지 않으면 브라우저가 옛 사전을 그대로 써서, 바뀐 27줄이
+       영어·일본어 화면에서 <b>한국어로</b> 나옵니다. */
+  /* ★ 2026-09-09 · <b>무단수집 금지 문서를 다시 쓰며 열쇠 126개를 더했습니다.</b>
+       기존 2,757 → 2,883개. 다섯 사전(en·ja·de·es·it) 모두 같은 열쇠입니다.
+     ★ 왜 판을 올리는가 — 이번에는 <b>화면 글이 통째로 바뀌었습니다.</b>
+       조문 번호와 법정형이 새로 들어가 조각이 82개에서 137개로 늘었고,
+       예전 열쇠 대부분이 화면에서 사라졌습니다. 판을 올리지 않으면
+       브라우저가 옛 사전을 그대로 써서 <b>법률 고지가 한국어로 나옵니다.</b>
+       외국 수집자에게 읽혀야 하는 문서이므로 여기서만은 그냥 두면 안 됩니다.
+     ★ 문장 안의 강조 태그를 걷어냈습니다 — <b>i18n 은 조각 전체가 열쇠와
+       같을 때만 바꿉니다.</b> 문장 중간에 태그가 있으면 반쪽짜리 조각이
+       열쇠가 되어 번역이 끊깁니다. 앞으로 법률 문서를 고치실 때는
+       강조를 문장 단위로만 두시는 편이 좋습니다. */
+  /* ★ 2026-09-03 · <b>이탈리아어(it)를 더했습니다.</b> 사전 2,666개 —
+       네 사전(en·ja·de·es)과 <b>열쇠가 하나도 어긋나지 않습니다.</b>
+       새 말을 넣을 때 판을 올리지 않으면 브라우저가 옛 사전을 그대로
+       써서 이탈리아어 화면이 <b>한국어로</b> 나올 수 있습니다. */
+  var V = '20260909a';
+
+  /* ★★ 번역이 덜 찬 동안 검색엔진에 잡히지 않게 막습니다 ★★
+     ─────────────────────────────────────────────────────────────
+     지금 /en/ · /ja/ 화면은 <b>겉껍데기만 번역되고 속은 한국어</b>입니다.
+     이대로 검색엔진이 「영어 판」 으로 거두어 가면, 나중에 제대로
+     번역해도 <b>「한국어가 섞인 영어 쪽」 이라는 평가가 남습니다.</b>
+     그래서 다 채울 때까지 「거두어 가지 마세요」 표를 붙여 둡니다.
+
+     ▶ 2026-08-11 · <b>열었습니다.</b> 사전 2,319개 · 화면 문구 96% ·
+       법적 문서 4종 100%. 이제 noindex 가 빠지고 hreflang 이 붙습니다.
+       (한국어 화면에는 처음부터 아무 영향이 없었습니다)
+
+     ★ hreflang 은 <b>두 갈래로</b> 알립니다.
+       ① 이 파일이 화면 <head> 에 넣는 link — 구글은 자바스크립트를
+          돌리므로 읽습니다.
+       ② <b>sitemap.xml</b> — 네이버·다음·빙은 자바스크립트를 잘 돌리지
+          않아 ①을 놓칠 수 있습니다. 그래서 sitemap 에도 넣었습니다.
+          그쪽은 scripts/build-sitemap.mjs 가 만듭니다.
+       ★ 둘 다 <b>같은 짝</b>이어야 합니다. 어느 한쪽만 고치면 구글이
+         어긋난 짝을 통째로 버립니다. 감출 화면(HIDE_PATH)을 손대면
+         <b>sitemap 을 다시 돌려 주십시오.</b>
+
+     ★ robots.txt 에 Disallow 를 <b>넣지 않습니다.</b>
+       막아 버리면 봇이 화면을 읽지 못해 <b>noindex 를 보지도 못합니다.</b>
+       그러면 링크만 보고 주소를 거두어 갈 수 있어 오히려 위험합니다.
+       읽게 하되 「거두지 마세요」 라고 말하는 편이 확실합니다.
+
+     ★ 되돌리려면 아래를 true 로 바꾸면 됩니다 — 그 순간 다시 막힙니다. */
+  var HIDE_FROM_SEARCH = false;
+
+  /* 다룰 언어.
+     ★★ 2026-09-02 고침 — 늘릴 때 고칠 곳은 <b>셋</b>입니다.
+       ① 이 LANGS
+       ② assets/i18n/○○.json  (사전)
+       ③ <b>middleware.js 의 config.matcher 와 LANGS</b>
+     ▶ ③ 을 빠뜨리면 <b>모든 화면이 404</b> 입니다.
+       `/de/db/` 같은 주소는 그런 폴더가 있어서 열리는 것이 아니라,
+       미들웨어가 `/de` 를 떼어 한국어 파일을 내어 주기 때문입니다.
+       matcher 에 없으면 미들웨어가 아예 돌지 않습니다.
+       (독일어를 처음 넣을 때 이걸 몰라 404 를 겪었습니다.
+        전에도 vercel.json 규칙이 딸려 나가 같은 일이 있었습니다 — 8/18.)
+
+     ★ 2026-09-02 · 독일어·스페인어를 더했습니다 (파트너 지시 — 유럽 방문이 있음).
+       사전은 <b>자주 보이는 것부터</b> 채웁니다. 없는 낱말은 한국어로 나옵니다 —
+       영어 화면도 아직 그런 곳이 있으니 같은 수준입니다.
+
+     ★ 2026-09-03 · <b>이탈리아어를 더했습니다</b> (파트너 지시).
+       클래식 음악은 용어 자체가 이탈리아어입니다 — Allegro · Opera ·
+       Concerto. 사전은 2,666개로 <b>스페인어와 열쇠가 똑같습니다.</b>
+     ▶ 함께 고친 파일 : assets/i18n/it.json · <b>middleware.js</b>
+       (middleware.js 를 빠뜨리면 `/it/` 이 통째로 404 입니다) */
+  /* ★★ 언어 목록 — 파트너께서 정하실 자리입니다 (2026-09-11 남겨 둠)
+       지금은 <b>오퍼스클램과 똑같이</b> 두었습니다.
+       다만 분야가 다르므로 한 번 보셔야 합니다 —
+         · 오퍼스클램(클래식) : 독일어·이탈리아어·스페인어가 음악의 말입니다
+         · 오퍼스파인(미술)   : <b>프랑스어</b>가 미술사의 말이고,
+                                <b>중국어</b>는 시장과 자료가 큽니다
+       헤더(partials/header.html)에는 KO·EN·JA·<b>ZH</b> 로 적혀 있어
+       지금 엔진과 어긋납니다. 엔진이 고르개를 스스로 붙이므로
+       <b>이 줄만 고치면</b> 헤더도 따라옵니다.
+
+     ★ 언어를 더할 때 함께 고칠 것 셋
+       ① 이 LANGS   ② assets/i18n/{말}.json   ③ middleware.js 의 LANGS
+       (③ 을 빠뜨리면 그 말의 주소가 통째로 404 입니다) */
+  var LANGS = ['en', 'ja', 'de', 'es', 'it'];
+  /* ★ 아래 세 이름은 <b>사전에 넣지 마세요.</b>
+       고르개는 「그 말을 쓰는 사람이 읽을 이름」 을 보여야 합니다.
+       영어 화면에서도 「한국어」 라고 적혀 있어야 한국 사람이 찾습니다. */
+  var NAMES = { ko: '한국어', en: 'English', ja: '日本語',
+                de: 'Deutsch', es: 'Español', it: 'Italiano' };
+  var SHORT = { ko: 'KO', en: 'EN', ja: 'JA', de: 'DE', es: 'ES', it: 'IT' };
+
+  /* ── 붙박이 값 ─────────────────────────────────────────────────
+     ★ <b>반드시 여기(맨 위)에 두어야 합니다.</b>
+       var 는 이름만 미리 올라가고 <b>값은 그 줄에 닿아야</b> 담깁니다.
+       예전에 이 값들을 파일 아래쪽에 두었더니, 위에서 부르는
+       scan()·startWatch() 가 돌 때 모두 undefined 여서
+       <b>번역이 통째로 조용히 실패</b>했습니다 (2026-08-10 검증에서 잡음).
+       바깥을 try 로 감싸 두어 오류도 드러나지 않았습니다. */
+
+/* ── 주소에 언어 붙이기 ────────────────────────────────────────
+     · 우리 사이트 안의 화면 주소에만 붙입니다
+     · 그림·CSS·JS 같은 파일에는 붙이지 않습니다 (붙여도 되지만 헛걸음) */
+  var SKIP_PATH = /^\/(assets|partials|seed|scripts|sql|tools|icon-|manifest|sw\.js|robots\.txt|sitemap\.xml)/i;
+  var FILE_EXT = /\.(png|jpe?g|gif|svg|webp|css|js|json|xml|txt|ico|pdf|mjs|webmanifest)$/i;
+
+/* 안을 들여다보지 않을 꼬리표 */
+  var SKIP_TAG = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1, SVG: 1, CANVAS: 1 };
+
+/* 바꿔 줄 속성 */
+  var ATTRS = ['placeholder', 'title', 'alt', 'aria-label', 'aria-placeholder', 'data-empty', 'data-label'];
+
+/* 내가 넣은 값 기억 — 다시 건드리지 않기 위해 */
+  var mine = (typeof WeakMap === 'function') ? new WeakMap() : null;
+
+  var HOSTS = [
+    '.util .u-r',        /* 헤더 맨 윗줄 오른쪽 — 로그인·회원가입 옆 */
+    '.hd .tools',        /* 좁은 화면 — 로고 옆 도구 자리 */
+    '.hd-r'              /* 예비 — 헤더 오른쪽 묶음 */
+  ];
+
+  /* 어느 자식 <b>앞</b>에 끼울지 — 자리마다 다릅니다.
+     ★ 헤더 도구 줄(.mast-tools)에서는 <b>테마·전체메뉴 단추 앞</b>에 둡니다.
+       그냥 뒤에 붙였더니 ≡ 바깥으로 밀려나 화면 끝에 걸쳤습니다
+       (2026-08-10 · 파트너가 휴대폰 그림으로 찾음). */
+  var BEFORE = {
+    /* 도구 줄에서는 <b>밝게/어둡게·MENU 단추 앞</b>에 둡니다.
+       뒤에 붙이면 ≡ 바깥으로 밀려 화면 끝에 걸칩니다
+       (오퍼스클램에서 겪은 일 — 2026-08-10). */
+    '.hd .tools': '#themeBtn, .tbtn, .menu-btn, .burger'
+  };
+
+  /* ── 약관 화면에 붙일 「정본 고지」 ─────────────────────────────
+     ★ 왜 필요한가
+       이용약관·개인정보처리방침은 <b>법적 효력이 있는 문서</b>입니다.
+       번역본을 아무 말 없이 올리면 「영문판도 같은 효력인가」 를 두고
+       다툼이 생길 수 있습니다. 그래서 옮긴 화면에는 <b>한국어 원문이
+       정본</b>임을 밝히고, 원문으로 가는 길을 함께 둡니다.
+
+     ★ 화면 파일을 고치지 않습니다 — 엔진이 스스로 붙입니다.
+       약관은 앞으로도 손볼 일이 있는데, 그때마다 네 파일에 같은
+       문구를 넣고 빼는 것은 빠뜨리기 쉽습니다.
+
+     ★ 한국어 화면에는 붙지 않습니다. */
+  /* ★ 오퍼스파인에는 /legal/ 화면이 아직 없습니다. 만들면 그대로 돕니다. */
+  var LEGAL_PATH = /^\/legal\//;
+  var LEGAL_NOTE = {
+    en: {
+      text: 'This is an unofficial translation provided for convenience. ' +
+            'The Korean original is the authoritative text — where the two differ, the Korean version prevails.',
+      link: 'Read the Korean original'
+    },
+    ja: {
+      text: 'これは便宜のための参考訳です。' +
+            '韓国語の原文が正文であり、内容に相違がある場合は韓国語版が優先します。',
+      link: '韓国語の原文を読む'
+    },
+    de: {
+      text: 'Dies ist eine unverbindliche Übersetzung. ' +
+            'Maßgeblich ist der koreanische Originaltext — bei Abweichungen gilt die koreanische Fassung.',
+      link: 'Koreanisches Original lesen'
+    },
+    es: {
+      text: 'Esta es una traducción no oficial, ofrecida por comodidad. ' +
+            'El texto coreano es el auténtico — en caso de discrepancia, prevalece la versión coreana.',
+      link: 'Leer el original en coreano'
+    },
+    it: {
+      text: 'Questa è una traduzione non ufficiale, fornita per comodità. ' +
+            'Il testo coreano è quello autentico — in caso di discordanza prevale la versione coreana.',
+      link: 'Leggi l\'originale in coreano'
+    }
+  };
+
+  /* 알림창을 감쌀 때 쓸 원래 함수 자리 */
+  var _dialogWrapped = false;
+  /* 앞부분 맞추기에 쓸 가장 짧은 열쇠 길이 — 짧으면 엉뚱한 곳에 걸립니다 */
+  var MIN_PREFIX = 6;
+
+  /* ════════════════════════════════════════════════════════════
+     말에 따라 감출 메뉴와 자리         (2026-08-10 · 파트너 지정)
+     ════════════════════════════════════════════════════════════
+     ★ 왜 감추는가
+       한국 안에서만 뜻이 있는 것들이 있습니다.
+         · 리쿠르트 — 한국 채용 정보
+         · 입시요강 · 입시커뮤니티 — 한국 대학 입시
+         · 지원금 / 정책자금 — 한국 정부 사업
+         · 입점문의 — 한국 쇼핑몰 입점
+       바깥에서 오신 분께 이런 것을 내밀면 도움이 되기는커녕
+       「나와 상관없는 곳」 이라는 인상을 줍니다.
+
+     ★ 화면 파일을 고치지 않습니다
+       메뉴는 partials 한 곳에서 나오고, 홈은 섹션이 열여섯 개입니다.
+       말이 늘 때마다 그 파일들을 손대면 반드시 어긋납니다.
+       여기 목록만 고치면 헤더·전체메뉴·하위메뉴·푸터·홈이 함께 따릅니다.
+
+     ★ 영어와 일본어를 따로 정할 수 있습니다
+       지금은 같지만, 예컨대 일본에서는 한국 입시를 보고 싶어 할 수도
+       있습니다. 그때는 ja 목록에서 그 줄만 빼면 됩니다. */
+
+  /* 감출 화면 (주소가 이것으로 시작하면 메뉴에서 지웁니다) */
+  var HIDE_PATH = {
+    en: [
+      '/recruit/',                      /* 리쿠르트 — 통째로 */
+      '/community/admission',           /* 입시 · 입시커뮤니티 */
+      '/spot/funding',                  /* 지원금 / 정책자금 */
+      '/spot/sites',                    /* 관련사이트 */
+      '/shop/apply',                    /* 입점문의 · 안내 */
+      '/lesson/live',                   /* 진행중 레슨 */
+      '/lesson/one',                    /* 분야별 1:1 레슨 */
+      '/lesson/group',                  /* 분야별 그룹레슨 */
+      '/lesson/instructor',             /* 인스트럭터 정보 · 신청 */
+      '/lesson/curate'
+    ],
+    ja: [
+      '/recruit/',
+      '/community/admission',
+      '/spot/funding',
+      '/spot/sites',
+      '/shop/apply',
+      '/lesson/live',
+      '/lesson/one',
+      '/lesson/group',
+      '/lesson/instructor',
+      '/lesson/curate'
+    ],
+    /* ★ 독일어·스페인어도 영어와 같게 — 국내만 해당하는 화면들입니다 */
+    de: [
+      '/recruit/',
+      '/community/admission',
+      '/spot/funding',
+      '/spot/sites',
+      '/shop/apply',
+      '/lesson/live',
+      '/lesson/one',
+      '/lesson/group',
+      '/lesson/instructor',
+      '/lesson/curate'
+    ],
+    es: [
+      '/recruit/',
+      '/community/admission',
+      '/spot/funding',
+      '/spot/sites',
+      '/shop/apply',
+      '/lesson/live',
+      '/lesson/one',
+      '/lesson/group',
+      '/lesson/instructor',
+      '/lesson/curate'
+    ],
+    it: [
+      '/recruit/',
+      '/community/admission',
+      '/spot/funding',
+      '/spot/sites',
+      '/shop/apply',
+      '/lesson/live',
+      '/lesson/one',
+      '/lesson/group',
+      '/lesson/instructor',
+      '/lesson/curate'
+    ]
+  };
+
+  /* 감출 덩어리 — 선택자로 곧바로 지정합니다
+     ★ 왜 자동 판정을 버렸나 (2026-08-10)
+       「광고만 남은 줄이면 감춘다」 를 코드로 재려 했더니, 재는 때와
+       감추는 때가 엉켜 몇 번을 고쳐도 어긋났습니다.
+       section.lower 는 <b>리쿠르트 · 유틸리티 · 광고</b> 세 칸인데,
+       앞 둘을 빼면 광고만 남아 바로 위 큰 광고와 겹쳐 보입니다.
+       그 판단은 <b>사람이 한 번 하면 끝나는 일</b>입니다.
+       여기 적어 두는 편이 확실하고, 나중에 읽기도 쉽습니다. */
+  var HIDE_BLOCK = {
+    en: [],
+    ja: [],
+    de: [],
+    es: [],
+    it: []
+  };
+
+  /* ── 감춘 뒤 <b>옮길</b> 것 ────────────────────────────────────
+     ★ 왜 옮기는가 (2026-08-10 · 파트너 지정)
+       section.lower 는 <b>리쿠르트 · 유틸리티 · 광고</b> 세 칸입니다.
+       앞 둘이 빠지면 광고만 혼자 남아 그 줄이 어색해집니다.
+       그렇다고 <b>광고를 없애면 안 됩니다</b> — 광고 자리는 수익과
+       이어진 자리입니다. (제가 처음에 지워 버렸습니다.)
+     ▶ 오른쪽 기둥(.side) 맨 아래로 옮깁니다.
+       「오늘의 작품 · 이주의 음악가」 아래가 비어 있어 자리가 맞습니다.
+     ★ 옮긴 뒤 빈 줄(section.lower)은 감춥니다.
+
+     ★★ 2026-08-19 고침 — <b>회전 상자째 옮깁니다.</b>
+       예전에는 광고 <b>한 장</b>(.ad-slot.lower-ad)을 골라 옮겼습니다.
+       그런데 2026-08-14 에 광고 둘을 <b>회전 상자(.ad-rot)로 감싸면서</b>
+       상자는 그 자리에 남고 알맹이만 빠져나가게 됐습니다. 게다가
+       화면을 지켜보는 코드가 다시 돌 때마다 남은 것을 하나씩 더 꺼내,
+       영어·일본어 대문에서 <b>광고 셋이 따로따로</b> 놓였습니다.
+         · 상자 밖이라 <b>번갈아 보이는 규칙이 안 걸립니다</b>
+         · 상자에 걸어 둔 width:min(357px,100%) 도 <b>함께 풀립니다</b>
+       ▶ .ad-rot 을 먼저 찾습니다. 문서에 나온 차례로 고르므로
+         상자가 있으면 상자가, 없으면 예전처럼 광고 한 장이 잡힙니다
+         (회전 상자를 쓰지 않는 화면이 생겨도 그대로 돕니다). */
+  var MOVE_AD = {
+    /* ★ 오퍼스파인에는 옮길 광고 자리가 아직 없습니다.
+         오퍼스클램은 section.lower(리쿠르트·유틸리티·광고) 셋 가운데
+         앞 둘을 감추면 광고만 남아 오른쪽 기둥으로 옮겼습니다.
+         오퍼스파인 대문은 구조가 달라 그대로 두고, 광고 자리가
+         자리를 잡으면 그때 채웁니다. */
+    en: [], ja: [], de: [], es: [], it: []
+  };
+
+  /* 감출 홈 섹션 — 제목의 영문으로 찾습니다 (<span class="en-s">)
+     ★ 왜 감추나 — 한국어 자료뿐이라 바깥에서 오신 분께 도움이 안 되는 칸입니다.
+       메뉴에서는 남기고 <b>대문에서만</b> 뺍니다.
+     ★ 오퍼스파인 대문 구역 이름으로 맞췄습니다
+       (Archive · Now Showing · Today's Pick · Open Calls · Artists ·
+        Community · Art Market · Recruit · Admission).
+     ★ 지금은 <b>비워 둡니다.</b> 대문 구역 대부분이 아직 견본이라,
+       무엇을 감출지는 자료가 채워진 뒤에 정하는 것이 맞습니다. */
+  var HIDE_SECTION = {
+    en: [], ja: [], de: [], es: [], it: []
+  };
+
+  /* 사전과 살림살이 — ★ 반드시 조기 return 위에 두어야 합니다 */
+  var DICT = null;
+  var _pk = null;
+
+  /* 지켜보기 살림살이 */
+  var mo = null, paused = 0, queue = [], timer = null;
+
+  /* ── ① 지금 어느 말인가 ────────────────────────────────────────
+     주소만 봅니다. 저장해 둔 값으로 <b>자동으로 옮기지 않습니다</b> —
+     검색엔진이 헷갈리고, 이용자도 왜 옮겨졌는지 모릅니다. */
+  var seg = (location.pathname.split('/')[1] || '').toLowerCase();
+  var LANG = (LANGS.indexOf(seg) >= 0) ? seg : 'ko';
+
+  /* 언어를 뺀 알맹이 주소 — /en/db/person.html → /db/person.html */
+  var BARE = (LANG === 'ko')
+    ? location.pathname
+    : location.pathname.slice(('/' + LANG).length) || '/';
+
+  /* ── 주소에서 언어를 떼는 도우미 ───────────────────────────────
+     ★ <b>한국어 화면에서도 반드시 내어 두어야 합니다.</b>
+       이 도우미가 없으면 다른 파일들이 폴백(String)으로 돌아가는데,
+       그것은 한국어에서 옳게 동작합니다. 문제는 영어·일본어입니다.
+
+     ★ 왜 있어야 하나 (2026-08-10 검증에서 찾음)
+       공용 JS 여러 곳이 「지금 어느 화면인가」 를 location.pathname 으로
+       가립니다. /en/db/person.html 은 /db/person.html 과 <b>다른 글자</b>라
+       — 관심분야 단추가 사라지고, 위 메뉴 표시가 꺼지고,
+       즐겨찾기 갈래(itemType)가 어긋났습니다.
+
+     ★ 쓰는 법 — 파일마다 이렇게 씁니다(i18n 이 없어도 안전).
+         var here = (window.ofPath || String)(location.pathname);
+       String('/db/x') 는 '/db/x' 를 그대로 돌려주므로 폴백이 완벽합니다.
+
+     ★ 「돌아갈 주소」(?next=·pushState) 에는 <b>쓰지 마세요.</b>
+       그것은 /en 이 붙은 채여야 로그인 뒤에도 영어로 돌아옵니다. */
+  /* ── 자료의 이름을 지금 언어로 고르기 ─────────────────────────
+     ★ 무엇이 잘못됐었나 (2026-08-10)
+       화면 스무 곳이 이름을 이렇게 골랐습니다.
+           row.name_ko || row.name_en
+       한국어 이름이 있으면 <b>언제나 한국어</b>가 나옵니다.
+       그래서 영어 화면인데 목록의 인물·단체 이름만 한국어로 남아
+       <b>껍데기만 영어</b>인 꼴이 되었습니다.
+
+     ★ 말에 따라 차례를 뒤집습니다
+         한국어  name_ko → name_en
+         영어    name_en → name_ko
+         일본어  name_ja → name_en → name_ko
+       (name_ja 는 아직 없는 표가 많습니다. 없으면 영어로 내려갑니다 —
+        빈 칸을 보여 주는 것보다 낫습니다.)
+
+     ★ 이름 말고 다른 칸에도 씁니다 — ofField(row, 'summary') 처럼.
+
+     ★ i18n 이 없어도 안전합니다(폴백). */
+  window.ofField = function (row, base) {
+    if (!row) return '';
+    var L = (window.OFI18N && OFI18N.lang) || 'ko';
+    var ko = row[base + '_ko'], en = row[base + '_en'], ja = row[base + '_ja'];
+    var pick;
+    if (L === 'en')      pick = en || ko;
+    else if (L === 'ja') pick = ja || en || ko;
+    else                 pick = ko || en;
+    return (pick == null ? '' : String(pick));
+  };
+  window.ofName = function (row) { return window.ofField(row, 'name'); };
+
+  /* ── 목록의 「큰 이름 + 작은 이름」 ────────────────────────────
+     ★ DB 목록은 이름을 두 줄로 보여 줍니다.
+         큰 글씨 : 한국어  ·  작은 글씨 : 영어
+       좋은 짜임입니다 — 두 말이 함께 보입니다.
+       영어 화면에서는 <b>차례만 뒤집으면</b> 됩니다.
+         큰 글씨 : 영어    ·  작은 글씨 : 한국어
+
+     ★ 같은 글자면 작은 줄을 두지 않습니다 — 두 번 겹쳐 보입니다.
+     ★ i18n 이 없으면 예전처럼(한국어가 큰 글씨) 돌아갑니다. */
+  window.ofNamePair = function (row) {
+    if (!row) return { main: '', sub: '' };
+    var L = (window.OFI18N && OFI18N.lang) || 'ko';
+    var ko = (row.name_ko || '').trim();
+    var en = (row.name_en || '').trim();
+    var ja = (row.name_ja || '').trim();
+    var main, sub;
+    if (L === 'en')      { main = en || ko;        sub = ko; }
+    else if (L === 'ja') { main = ja || en || ko;  sub = (ja ? (en || ko) : ko); }
+    else                 { main = ko || en;        sub = en; }
+    if (!sub || sub === main) sub = '';
+    return { main: main, sub: sub };
+  };
+
+  /* ── 화면을 옮길 때 언어를 잃지 않게 ─────────────────────────
+     ★ 무엇이 잘못됐었나 (2026-08-10 · 훑기 도구가 찾음)
+       /en/account/interests.html 은 로그인이 필요해서
+         location.href = '/account/login.html?next=…'
+       로 보냅니다. 그런데 그 주소에 <b>/en 이 없어</b> 로그인 화면이
+       한국어로 열립니다. 로그인한 뒤에도 한국어로 돌아옵니다.
+       — 영어로 보던 사람이 한 번 튕기면 말이 바뀌어 버립니다.
+
+     ★ 파일마다 고치지 않습니다
+       열한 곳이 넘고, 앞으로 새로 만드는 이동에서도 같은 일이 납니다.
+       <b>여기 한 곳</b>에서 감싸면 지금 것도 앞으로 것도 함께 됩니다.
+
+     ★ 쓰는 법 —  ofGo('/account/login.html?next=' + back)
+       i18n 이 없으면 그냥 그 주소로 갑니다(폴백 안전). */
+  window.ofGo = function (url, replace) {
+    var u = url;
+    try {
+      if (window.OFI18N && OFI18N.url) u = OFI18N.url(String(url));
+    } catch (e) {}
+    if (replace) location.replace(u); else location.href = u;
+  };
+
+  window.ofPath = function (p) {
+    var s = String(p == null ? '' : p);
+    if (s.charAt(0) !== '/') return s;
+    var first = (s.split('/')[1] || '').toLowerCase();
+    if (LANGS.indexOf(first) < 0) return s;
+    return s.slice(first.length + 1) || '/';
+  };
+
+  /* 다른 파일이 쓸 수 있게 미리 내어 둡니다 */
+  var API = {
+    lang: LANG,
+    langs: ['ko'].concat(LANGS),
+    bare: BARE,
+    dict: null,
+    t: function (s) { return s; },
+    /* ★★ 2026-08-15 · 숫자가 섞인 글을 위한 자리표 (파트너 요청) ★★
+       ─────────────────────────────────────────────────────────
+       ★ 무엇이 문제였나
+         「전체 206건」·「2026년 8월 공연 0건」이 영어·일본어 화면에서
+         <b>한국어로 남았습니다.</b> 코드가 숫자와 글자를 이어 붙여
+         통짜 문자열을 만드는데, 사전은 「건」은 알아도 「206건」은
+         모르기 때문입니다.
+
+       ★ 어떻게 푸나 — 숫자 자리에 표를 둡니다
+           OFI18N.n('전체 {n}건', 206)
+         사전 열쇠는 <b>{n} 이 든 채로</b> 넣습니다 —
+           '전체 {n}건'  →  '{n} in total'  ·  '全{n}件'
+         이러면 <b>숫자 자리가 언어마다 달라도</b> 됩니다. 일본어는
+         숫자가 가운데, 영어는 앞에 옵니다. 이어 붙이는 방식으로는
+         이것을 할 수 없습니다.
+
+       ★ 값이 여럿이면 {0} {1} 로 씁니다
+           OFI18N.n('{0}년 {1}월 공연 {2}건', 2026, 8, 12)
+
+       ★ 큰 수는 <b>쉼표를 넣어</b> 갈아 끼웁니다 (1206 → 1,206).
+         ▶ 다만 <b>연도에는 넣지 않습니다.</b> 1000~2999 는 「2,026년」이
+           되어 버립니다(시험에서 잡았습니다). 그 범위는 그대로 둡니다.
+         ▶ 쉼표가 꼭 필요한 네 자리 수(예: 1,234건)라면 숫자를 미리
+           문자열로 만들어 넘기십시오 — 문자열은 손대지 않습니다.
+
+       ★ 사전에 없으면 한국어 원문에 값만 채워 돌려줍니다 —
+         화면이 비지 않습니다. */
+    n: function (tpl, /* ...vals */) {
+      var vals = [].slice.call(arguments, 1);
+      var out = (window.OFI18N && window.OFI18N.t) ? window.OFI18N.t(tpl) : tpl;
+      return String(out).replace(/\{(n|\d+)\}/g, function (m, k) {
+        var v = (k === 'n') ? vals[0] : vals[Number(k)];
+        if (v === undefined || v === null) return m;
+        if (typeof v !== 'number') return String(v);
+        /* 연도로 보이는 수에는 쉼표를 넣지 않습니다 */
+        if (v >= 1000 && v < 3000 && v === Math.floor(v)) return String(v);
+        return v.toLocaleString();
+      });
+    },
+    url: function (p) { return p; },
+    apply: function () {},
+    ready: false
+  };
+  window.OFI18N = API;
+
+  /* 언어 고르개는 어느 말이든 답니다 */
+  mountStyle();
+  onReady(mountPicker);
+
+  /* 한국어면 여기서 끝 — 사전도 받지 않습니다.
+
+     ★★ 여기서 <b>되돌아갑니다.</b> 그러니 이 줄 아래에 새로 만드는
+        var 값은 한국어 화면에서 <b>영영 담기지 않습니다.</b> ★★
+        (2026-08-10 에 이 실수를 <b>두 번</b> 했습니다. 두 번째는
+         var HOSTS 를 아래에 두어 한국어 화면에서만 언어 고르개가
+         통째로 사라졌고, onReady 의 try 가 오류를 삼켜 조용했습니다.)
+     ▶ 값(var)은 반드시 <b>맨 위 붙박이 구역</b>에 두세요.
+       함수(function)는 미리 올라가므로 아래에 두어도 됩니다.
+       tools/i18n-verify.py 가 이 규칙을 자동으로 검사합니다. */
+  if (LANG === 'ko') {
+    markAlternates();
+    API.ready = true;
+    return;
+  }
+
+  /* ── ② 사전 받기 (동기) ───────────────────────────────────────
+     동기로 받는 까닭: 이 줄이 끝나야 본문이 그려집니다. 비동기로
+     받으면 한국어가 한 번 그려진 뒤에 바뀌어 깜빡입니다.
+     include.js 도 같은 방식으로 헤더를 넣고 있습니다. */
+  DICT = loadDict(LANG);
+  if (!DICT) {
+    /* 사전이 없으면 한국어 그대로 보여 줍니다 — 화면이 멈추면 안 됩니다 */
+    if (window.console) console.warn('[i18n] 사전을 받지 못했습니다:', LANG);
+    markAlternates();
+    API.ready = true;
+    return;
+  }
+  API.dict = DICT;
+  API.t = translate;
+  API.url = localize;
+  API.apply = function (root) { walk(root || document.body); };
+
+  document.documentElement.setAttribute('lang', LANG);
+  document.documentElement.setAttribute('data-of-lang', LANG);
+  markAlternates();
+
+  /* 문서 제목 */
+  try { if (document.title) document.title = translate(document.title); } catch (e) {}
+
+  /* ★ 2026-08-11 · 검색 결과에 나오는 <b>두 줄 설명</b>도 옮깁니다.
+       ─────────────────────────────────────────────────────────
+       예전에는 제목만 옮겼습니다. 그래서 영어 화면인데 설명만
+       한국어로 나갔습니다 — 검색 결과에서 그것이 더 눈에 띕니다.
+
+     ★ 글감은 화면의 <b>소개 문장(.pdb-lead)</b>과 같습니다.
+       그 문장들은 이미 사전에 들어 있으므로 따로 옮길 것이 없습니다.
+       (넣는 일은 scripts/build-meta.mjs 가 합니다)
+
+     ★ og:description·twitter:description 도 함께 봅니다 —
+       카카오톡·트위터에 주소를 붙일 때 나오는 그 설명입니다. */
+  try {
+    var metaSel = 'meta[name="description"],meta[property="og:description"],' +
+                  'meta[name="twitter:description"],meta[property="og:title"],' +
+                  'meta[name="twitter:title"]';
+    var metas = document.querySelectorAll(metaSel);
+    for (var mi = 0; mi < metas.length; mi++) {
+      var mc = metas[mi].getAttribute('content');
+      if (mc) metas[mi].setAttribute('content', translate(mc));
+    }
+  } catch (e) {}
+
+  /* 첫 훑기 — 지금 있는 것(주로 <head> 와 빈 <body>)을 바꿉니다 */
+  scan(document.documentElement);
+
+  /* 알림창(alert·confirm·prompt)도 옮깁니다 */
+  wrapDialogs();
+
+  /* 앞으로 붙는 것들을 지켜봅니다 */
+  startWatch();
+
+  /* ★ 그물을 한 겹 더 둡니다.
+     문서를 읽는 도중에는 파서가 글자를 <b>조각내어</b> 넣기도 합니다
+     ("인물 D" → "인물 DB"). 그 사이에 견주면 어긋납니다.
+     다 읽은 뒤 한 번, 그림·글꼴까지 다 온 뒤 한 번 더 훑습니다. */
+  onReady(function () { scan(document.documentElement); mountLegalNote(); hideKoreaOnly(); });
+  window.addEventListener('load', function () { scan(document.documentElement); hideKoreaOnly(); });
+
+  API.ready = true;
+
+  /* ===================================================================
+     아래는 살림살이
+     =================================================================== */
+
+  /* ── 사전 받기 ──────────────────────────────────────────────── */
+  function loadDict(lang) {
+    try {
+      var x = new XMLHttpRequest();
+      x.open('GET', '/assets/i18n/' + lang + '.json?v=' + V, false); /* false = 동기 */
+      x.send();
+      if (x.status && x.status !== 200 && x.status !== 0) return null;
+      var raw = JSON.parse(x.responseText);
+      /* 밑줄로 시작하는 열쇠는 메모용이라 뺍니다 */
+      var out = {};
+      for (var k in raw) {
+        if (!Object.prototype.hasOwnProperty.call(raw, k)) continue;
+        if (k.charAt(0) === '_') continue;
+        var v = raw[k];
+        if (typeof v === 'string' && v !== '') out[norm(k)] = v;
+      }
+      return out;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ── 여백 고르기 ────────────────────────────────────────────────
+     줄바꿈·여러 칸을 한 칸으로 줄여 견줍니다. 화면에서는 어차피
+     한 칸으로 보이는데, 파일에는 줄이 나뉘어 있는 곳이 많습니다. */
+  function norm(s) {
+    return String(s).replace(/\s+/g, ' ').trim();
+  }
+
+  /* ── 글자 하나 옮기기 ──────────────────────────────────────────
+     앞뒤 여백은 <b>그대로 되돌려 놓습니다</b>. */
+  function translate(s) {
+    if (!s) return s;
+    var raw = String(s);
+    var key = norm(raw);
+    if (!key) return raw;
+    var hit = DICT[key];
+    if (hit === undefined) return raw;
+    var m = raw.match(/^(\s*)[\s\S]*?(\s*)$/);
+    return (m ? m[1] : '') + hit + (m ? m[2] : '');
+  }
+
+
+  function localize(p) {
+    if (LANG === 'ko') return p;
+    var s = String(p || '');
+    if (!s || s.charAt(0) !== '/') return s;              /* 상대주소·외부주소는 그대로 */
+    if (s.charAt(1) === '/') return s;                    /* //cdn… 은 외부 */
+    var path = s.split('#')[0].split('?')[0];
+    if (SKIP_PATH.test(path)) return s;
+    if (FILE_EXT.test(path)) return s;
+    /* 이미 언어가 붙어 있으면 그대로 */
+    var first = (path.split('/')[1] || '').toLowerCase();
+    if (LANGS.indexOf(first) >= 0) return s;
+    return '/' + LANG + s;
+  }
+
+  /* ── hreflang · 대체 주소 알림 ─────────────────────────────────
+     검색엔진에 「같은 글의 다른 말 판」을 알려 줍니다. */
+  function markAlternates() {
+    try {
+      var head = document.head || document.getElementsByTagName('head')[0];
+      if (!head) return;
+
+      /* ① 아직 덜 채웠으면 「거두어 가지 마세요」 를 붙입니다 */
+      if (HIDE_FROM_SEARCH && LANG !== 'ko' && !document.getElementById('oc-i18n-noindex')) {
+        var mt = document.createElement('meta');
+        mt.id = 'oc-i18n-noindex';
+        mt.setAttribute('name', 'robots');
+        mt.setAttribute('content', 'noindex, nofollow');
+        head.appendChild(mt);
+      }
+
+      /* ② hreflang 은 <b>다 채운 뒤에</b> 답니다.
+         막아 둔 화면을 「이 말의 판」 이라고 알리면 서로 어긋납니다. */
+      if (HIDE_FROM_SEARCH) return;
+      if (document.querySelector('link[rel="alternate"][hreflang]')) return;
+
+      /* ★ 2026-08-11 · 그 말에서 <b>감춘 화면</b>은 그 말을 적지 않습니다.
+           리쿠르트·입시·지원금 따위는 영어·일본어 메뉴에서 감췄는데,
+           예전에는 여기서 세 말을 늘 적었습니다. 그러면
+           <b>sitemap.xml 과 짝이 어긋납니다</b> — sitemap 은 한국어만
+           담고 이쪽은 영어·일본어까지 담으니, 구글이 서로 다른 두 말을
+           듣고 <b>그 짝을 통째로 버립니다.</b>
+         ★ 감출 목록은 위 HIDE_PATH 하나만 봅니다. sitemap 을 만드는
+           scripts/build-sitemap.mjs 도 이 파일의 같은 자리를 읽습니다.
+           그래서 한 곳만 고치면 둘이 저절로 맞습니다. */
+      function shownIn(lang) {
+        var paths = HIDE_PATH[lang] || [];
+        for (var i = 0; i < paths.length; i++) {
+          if (BARE.indexOf(paths[i]) === 0) return false;
+        }
+        return true;
+      }
+
+      var list = [['ko', BARE]];
+      LANGS.forEach(function (l) {
+        if (shownIn(l)) list.push([l, '/' + l + BARE]);
+      });
+      list.push(['x-default', BARE]);
+      list.forEach(function (pair) {
+        var el = document.createElement('link');
+        el.setAttribute('rel', 'alternate');
+        el.setAttribute('hreflang', pair[0]);
+        el.setAttribute('href', location.origin + pair[1]);
+        head.appendChild(el);
+      });
+    } catch (e) {}
+  }
+
+  /* ── 훑어서 바꾸기 ────────────────────────────────────────────── */
+
+
+
+  function remember(node, val) { if (mine) { try { mine.set(node, val); } catch (e) {} } }
+  function isMine(node, val) {
+    if (!mine) return false;
+    try { return mine.get(node) === val; } catch (e) { return false; }
+  }
+
+  function scan(root) {
+    if (!root) return;
+    pause();
+    try { walk(root); } catch (e) { if (window.console) console.warn('[i18n]', e); }
+    resume();
+  }
+
+  function walk(root) {
+    if (!root) return;
+
+    /* ① 이 마디 자체가 글자면 */
+    if (root.nodeType === 3) { fixText(root); return; }
+    if (root.nodeType !== 1 && root.nodeType !== 9 && root.nodeType !== 11) return;
+
+    /* ② 속성 */
+    if (root.nodeType === 1) fixAttrs(root);
+
+    /* ③ 안쪽 글자 — TreeWalker 로 한 번에 */
+    var doc = root.ownerDocument || document;
+    var tw;
+    try {
+      tw = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (n) {
+          var p = n.parentNode;
+          if (!p || p.nodeType !== 1) return NodeFilter.FILTER_REJECT;
+          if (SKIP_TAG[p.nodeName]) return NodeFilter.FILTER_REJECT;
+          if (!n.nodeValue || !/\S/.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+    } catch (e) { return; }
+
+    var list = [];
+    var n;
+    while ((n = tw.nextNode())) list.push(n);
+    for (var i = 0; i < list.length; i++) fixText(list[i]);
+
+    /* ④ 안쪽 속성 + 링크 */
+    if (root.querySelectorAll) {
+      var els = root.querySelectorAll('*');
+      for (var j = 0; j < els.length; j++) fixAttrs(els[j]);
+    }
+  }
+
+  function fixText(node) {
+    var cur = node.nodeValue;
+    if (!cur || !/\S/.test(cur)) return;
+    if (isMine(node, cur)) return;                 /* 내가 넣은 그대로면 지나감 */
+
+    /* ★★ 2026-08-11 · <b>고르개의 값을 먼저 못박습니다</b> ★★
+       ─────────────────────────────────────────────────────
+       파트너가 「영문·일문에서 조건 검색이 안 된다」 고 알려 주셨습니다.
+       원인은 HTML 규칙이었습니다 —
+
+         <option>작곡</option>   ← value 가 없으면 <b>글자가 값</b>입니다
+
+       우리 화면의 option 84개에 value 가 <b>하나도 없었습니다.</b>
+       그래서 글자를 「Composition」 으로 바꾸면 select.value 도
+       「Composition」 이 되고, 그것으로 조회하니 <b>0건</b>이 나왔습니다.
+       DB 갈래 일곱 곳의 <b>모든 조건 검색이 먹통</b>이었습니다.
+
+       ★ 왜 화면이 아니라 여기서 고치는가
+         화면마다 value 를 적으면 수백 곳이고, 새 화면을 만들 때
+         또 빠뜨립니다. <b>글자를 바꾸기 직전</b>에 원문을 값으로
+         박아 두면 화면을 하나도 고치지 않아도 됩니다.
+
+       ★ 이미 value 가 있으면 건드리지 않습니다. */
+    try {
+      var _p = node.parentNode;
+      if (_p && _p.nodeName === 'OPTION' && !_p.hasAttribute('value')) {
+        _p.setAttribute('value', String(cur).trim());
+      }
+    } catch (e) {}
+
+    var out = translate(cur);
+    if (out === cur) return;
+    node.nodeValue = out;
+    remember(node, out);
+  }
+
+  function fixAttrs(el) {
+    if (!el || el.nodeType !== 1) return;
+    if (SKIP_TAG[el.nodeName]) return;
+
+    /* 명시 열쇠가 있으면 그것을 먼저 */
+    var key = el.getAttribute && el.getAttribute('data-i18n');
+    if (key) {
+      var v = DICT[norm(key)];
+      if (v !== undefined && el.textContent !== v) el.textContent = v;
+    }
+
+    for (var i = 0; i < ATTRS.length; i++) {
+      var a = ATTRS[i];
+      if (!el.hasAttribute || !el.hasAttribute(a)) continue;
+      var cur = el.getAttribute(a);
+      if (!cur || !/\S/.test(cur)) continue;
+      var out = translate(cur);
+      if (out !== cur) el.setAttribute(a, out);
+    }
+
+    /* 단추 글자 */
+    if (el.nodeName === 'INPUT') {
+      var t = (el.getAttribute('type') || '').toLowerCase();
+      if (t === 'button' || t === 'submit' || t === 'reset') {
+        var vv = el.getAttribute('value');
+        if (vv && /\S/.test(vv)) {
+          var nv = translate(vv);
+          if (nv !== vv) el.setAttribute('value', nv);
+        }
+      }
+    }
+
+    /* 링크에 언어 붙이기
+       ★ data-oc-nolang 이 붙은 링크는 <b>건드리지 않습니다.</b>
+         (2026-08-10 · 파트너가 찾음)
+         언어 고르개의 「한국어」 줄은 일부러 /db/person.html 로 두는데,
+         여기서 /en 을 붙여 버려 <b>눌러도 제자리를 맴돌았습니다.</b>
+         「이 링크는 지금 언어를 따르지 않는다」 고 말할 방법이
+         있어야 합니다. 앞으로도 그런 링크는 이 표를 붙이세요. */
+    if (el.nodeName === 'A') {
+      if (el.hasAttribute('data-oc-nolang')) return;
+      var h = el.getAttribute('href');
+      if (h) {
+        var nh = localize(h);
+        if (nh !== h) el.setAttribute('href', nh);
+      }
+    }
+  }
+
+  /* ── 지켜보기 ──────────────────────────────────────────────────
+     ★ 바꾸는 동안에는 잠시 멈춥니다 — 내가 바꾼 것을 내가 다시 보고
+       또 바꾸려 드는 되돌이를 막습니다. */
+
+  function startWatch() {
+    if (typeof MutationObserver !== 'function') return;
+    mo = new MutationObserver(function (recs) {
+      if (paused) return;
+      for (var i = 0; i < recs.length; i++) {
+        var r = recs[i];
+        if (r.type === 'childList') {
+          for (var j = 0; j < r.addedNodes.length; j++) queue.push(r.addedNodes[j]);
+        } else if (r.target) {
+          queue.push(r.target);
+        }
+      }
+      /* ★ 마이크로태스크로 미룹니다 (setTimeout 이 아니라)
+         setTimeout 은 화면을 한 번 그린 <b>뒤</b>에 돌 수 있어
+         한국어가 반짝 보입니다. 마이크로태스크는 그리기 전에 끝납니다. */
+      if (queue.length && !timer) {
+        timer = 1;
+        if (typeof Promise === 'function') Promise.resolve().then(flush);
+        else setTimeout(flush, 0);
+      }
+    });
+    mo.observe(document.documentElement, {
+      childList: true, subtree: true, characterData: true,
+      attributes: true, attributeFilter: ATTRS.concat(['href', 'value', 'data-i18n'])
+    });
+  }
+
+  function flush() {
+    timer = null;
+    var list = queue; queue = [];
+    pause();
+    /* 헤더·하위메뉴가 나중에 들어오므로 그때마다 다시 감춥니다 */
+    try { hideKoreaOnly(); } catch (e) {}
+    try {
+      for (var i = 0; i < list.length; i++) {
+        var n = list[i];
+        if (!n || !n.parentNode && n.nodeType !== 9) { /* 이미 떨어져 나간 마디는 건너뜀 */ }
+        try { walk(n); } catch (e) {}
+      }
+    } finally {
+      resume();
+    }
+  }
+
+  function pause() { paused++; }
+  function resume() {
+    paused--;
+    if (paused < 0) paused = 0;
+    /* 내가 바꾸는 동안 쌓인 알림은 버립니다 */
+    if (!paused && mo) { try { mo.takeRecords(); } catch (e) {} }
+  }
+
+  /* ── 언어 고르개 ──────────────────────────────────────────────
+     ★ 꾸밈을 스스로 넣습니다 — style.css 를 부르지 않는 화면
+       (index.html·home.html·회원 화면)에서도 같게 보이도록. */
+  function mountStyle() {
+    if (document.getElementById('oc-i18n-css')) return;
+    /* ★★ 색은 반드시 !important 로 못박습니다 ★★
+       ─────────────────────────────────────────────────────────
+       고르개는 헤더 맨 윗줄(.util .right) 안에 들어갑니다.
+       그 자리는 <b>어두운 바탕에 흰 글씨</b>라 style.css 에
+         .util .right a { color: rgba(255,255,255,.34) }
+       가 걸려 있습니다.
+
+       그런데 이 규칙은 클래스 둘·꼬리표 하나(0,2,1)이고
+       제 규칙 .of-lang li a 는 클래스 하나·꼬리표 둘(0,1,2)이라
+       <b>제가 집니다.</b> 그래서 흰 상자 위에 흰 글씨가 되어
+       English·日本語 가 <b>보이지 않았습니다</b>
+       (2026-08-10 · 파트너가 스크린샷으로 찾음).
+       「한국어」 만 보인 것은 그 줄에만 .on 규칙이 하나 더 붙어
+       간신히 이겼기 때문입니다.
+
+       ★ style.css 를 고치지 않습니다 — 그 규칙은 헤더 윗줄
+         전체가 쓰는 것이라 건드리면 다른 곳이 틀어집니다.
+         내 것만 못박는 편이 안전합니다.
+       ★ 회원 헤더·홈처럼 style.css 를 안 쓰는 화면도 있어,
+         어느 화면에 놓이든 같게 보이려면 못박아야 합니다. */
+    var css =
+      '.of-lang{position:relative;display:inline-flex;align-items:center;margin-left:14px;font-family:inherit}' +
+      /* ★★ 단추는 <b>스스로 바탕을 가집니다</b> ★★
+         ─────────────────────────────────────────────────────
+         처음에는 「놓인 자리의 바탕을 재어 글자색을 정하는」 방식을
+         썼습니다. 그런데 헤더 맨 윗줄은 background 에 0.35초짜리
+         <b>전환(transition)</b>이 걸려 있어, 재는 <b>시점</b>에 따라
+         「밝다/어둡다」 가 뒤집혔습니다. 실제로 넓은 화면에서
+         어두운 헤더를 밝다고 잘못 보아 어두운 글씨를 썼습니다.
+         스크롤·테마 전환에도 같은 일이 납니다.
+
+         ▶ 그래서 재지 않습니다. 반투명 검정 알약에 흰 글씨를
+           고정하면 <b>어느 바탕 위에서든</b> 읽힙니다.
+             · 짙은 헤더 위 — 알약은 묻히고 흰 글씨만 또렷합니다
+             · 밝은 바탕 위 — 알약이 드러나 흰 글씨를 받쳐 줍니다
+           재지 않으니 흔들릴 일도 없습니다. */
+      '.of-lang>button{border:0;cursor:pointer;font:inherit;font-size:11px;font-weight:700;' +
+      'letter-spacing:.06em;line-height:1;display:inline-flex;align-items:center;gap:4px;' +
+      'padding:5px 9px;border-radius:13px;background:rgba(16,14,32,.42) !important;' +
+      'color:#fff !important;opacity:1;transition:background .2s ease}' +
+      '.of-lang>button:hover{background:rgba(16,14,32,.68) !important}' +
+      '.mast-tools .of-lang{margin-left:0}' +
+      '.of-lang>button::after{content:"";width:0;height:0;border-left:3px solid transparent;' +
+      'border-right:3px solid transparent;border-top:4px solid currentColor;opacity:.7}' +
+      '.of-lang ul{position:absolute;top:100%;right:0;margin:4px 0 0;padding:5px 0;list-style:none;' +
+      'min-width:112px;background:#fff;border:1px solid #e6e1d7;border-radius:8px;' +
+      'box-shadow:0 8px 24px rgba(20,16,40,.14);display:none;z-index:9999}' +
+      '.of-lang.open ul{display:block}' +
+      '.of-lang ul li{margin:0;padding:0;list-style:none}' +
+      /* ★★ 2026-08-12 · 글자 크기도 <b>못박습니다</b> (파트너 지적) ★★
+         ─────────────────────────────────────────────────────────
+         ★ 무엇이 문제였나
+           목록의 「한국어 · English · 日本語」가 <b>8px</b> 로 아주 작게
+           보였습니다. 제 규칙은 12.5px 로 적어 두었는데 안 먹었습니다.
+
+         ★ 왜 안 먹었나 — <b>색에서 났던 일과 똑같습니다</b> (위 설명 참고)
+           style.css 68줄에 이것이 있습니다 —
+             .util .right a { font-size: 8px }
+           헤더 맨 윗줄 전체를 아주 작게 두는 규칙입니다.
+           그 규칙은 클래스 둘·꼬리표 하나(0,2,1)이고
+           제 규칙 .of-lang ul li a 는 클래스 하나·꼬리표 셋(0,1,3)이라
+           <b>제가 집니다.</b>
+           2026-08-10 에 색만 !important 로 못박고 <b>크기는 빼먹었습니다.</b>
+
+         ★ 그래서 크기·굵기·자간을 함께 못박습니다.
+           목록은 흰 상자 안이라 헤더 윗줄의 작은 글씨 규칙을 따를 이유가
+           없습니다. 읽는 글자이므로 <b>13.5px</b> 로 조금 키웁니다.
+         ★ style.css 는 고치지 않습니다 — 헤더 윗줄 전체가 쓰는 규칙이라
+           건드리면 다른 곳이 틀어집니다. */
+      '.of-lang ul li a{display:block;margin:0;padding:10px 16px;' +
+      'font-size:13.5px !important;font-weight:500 !important;' +
+      'letter-spacing:normal !important;line-height:1.5 !important;' +
+      'text-align:left;text-decoration:none;white-space:nowrap;' +
+      'color:#2a2b45 !important;background:transparent !important;opacity:1 !important}' +
+      '.of-lang ul li a:hover{background:#f6f2ea !important;color:#1F4B47 !important}' +
+      /* ★ 지금 고르고 있는 언어는 굵게 — 위에서 굵기를 !important 로
+           못박았으므로 <b>여기도 못박아야</b> 이깁니다. */
+      '.of-lang ul li a.on{color:#1F4B47 !important;font-weight:700 !important}' +
+      '.of-lang ul li a::after{content:none !important}' +
+      'html[data-theme="dark"] .of-lang ul{background:#161616;border-color:#2f2f2f}' +
+      'html[data-theme="dark"] .of-lang ul li a{color:#e8e8e8 !important}' +
+      'html[data-theme="dark"] .of-lang ul li a:hover{background:#242424 !important;color:#fff !important}' +
+      'html[data-theme="dark"] .of-lang ul li a.on{color:#b9a3e8 !important}' +
+      '.of-lang-float{position:fixed;top:10px;right:12px;z-index:9998;margin:0;padding:2px 4px;border-radius:7px;background:rgba(20,18,40,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff}' +
+      '.of-lang-float>button{opacity:.9}' +
+      /* ★ 큰 광고의 아래를 오른쪽 기둥에 맞추던 자리 (영어·일본어에서만)
+         ─────────────────────────────────────────────────────────────
+         ★★ 2026-08-19 · <b>맞추기를 그만두었습니다</b> (파트너 결정)
+
+         왜 넣었던가 — 영어·일본어에서는 아래 광고를 오른쪽 기둥으로
+           옮기는 탓에 그 기둥이 길어지는데, 왼쪽 큰 광고는 높이가
+           고정이라 아래가 어긋나 보였습니다. 그래서 왼쪽을 <b>늘여</b>
+           남는 자리를 채우게 했습니다(align-self:stretch).
+
+         왜 그만두나 — 2026-08-14 에 A 자리 광고 <b>둘을 회전 상자
+           (.ad-rot)로 감싸면서</b> 이 규칙이 어긋났습니다.
+             · 첫 장은 흐름 안에 있어 <b>제 키(756×310) 그대로</b>
+             · 뒷장들은 상자에 꽉 차게 붙어 <b>756×422 로 부풀었습니다</b>
+           그림 배너와 문의 자리표가 <b>서로 다른 크기</b>로 번갈아 나와
+           화면이 들썩였습니다.
+
+         ★ 둘 다 늘여 크기를 맞출 수도 있었지만, 그러면 그림이 늘어나고
+           <b>「이 자리는 몇 픽셀」이라고 말할 수 없어 단가를 매길 수
+           없습니다</b> (2026-08-09 에 같은 까닭으로 stretch 를 뺐던 기록이
+           바로 위 home.html 에 남아 있습니다).
+         ▶ 광고 크기를 지킵니다. 아래가 조금 비는 것은 받아들입니다.
+
+         ★ 되돌리려면 아래 두 줄의 주석을 풀면 됩니다. 다만 그때는
+           <b>회전 상자 안 모든 장</b>을 함께 늘여야 합니다
+           (.ad-rot.board-ad > .ad-slot{height:100%}). */
+      /* '@media(min-width:1081px){' +
+        'html[data-of-lang] .board-main{grid-template-rows:auto 1fr}' +
+        'html[data-of-lang] .board-main .board-ad{align-self:stretch;height:auto;' +
+        'aspect-ratio:auto;min-height:310px}' +
+      '}' + */
+      /* ★ 2026-08-14 · 큰 메뉴 <b>하위 목록의 자리</b> (파트너 지적 — 정보SPOT
+           하위 메뉴가 영문·일문에서 엉뚱한 곳에 열렸습니다)
+         ─────────────────────────────────────────────────────────────
+         style.css 는 메뉴마다 --dd-nudge 를 <b>손으로 잰 px</b> 로 갖고
+         있습니다(정보SPOT −69px · SHOPPING −322px …). 그 값은 <b>한국어
+         글자 폭</b>에 맞춘 것이라, 「정보SPOT → Info SPOT」 처럼 글자가
+         바뀌면 그만큼 어긋납니다. 언어마다 다시 재는 것은 끝이 없습니다.
+       ▶ 다른 말에서는 <b>옮기지 않습니다</b>(0). 화면 가운데를 기준으로
+         고르게 놓입니다. DATABASE 는 왼쪽 정렬이라 그대로 둡니다. */
+      'html[data-of-lang] .dropdown-inner{--dd-nudge:0px}' +
+
+      /* ★★ 2026-08-19 · 하위 목록을 <b>한 줄로</b> (파트너 지시)
+         ─────────────────────────────────────────────────────────────
+         영어·일본어는 같은 뜻이라도 글자가 깁니다. 그래서 항목이 많은
+         두 메뉴가 <b>두 줄로 접혔습니다.</b> 실측(1440px · 들어갈 자리 1140):
+
+             메뉴            한국어    영어     일본어
+             DATABASE(11)    1171    1252     1115
+             OC커뮤니티(12)    1149    1253     1233
+
+         ▶ 좌우 여백 18px → 12px · 글자 13px → 12.5px 로 줄입니다.
+           고친 뒤 영어 1087·1088 · 일본어 955·1069 — <b>50~70px 남습니다.</b>
+           항목이 하나 늘어도 견딥니다.
+         ★ 글자 12.5px 는 바로 아래 서브내비(.subnav a)와 같은 값이라
+           나란히 두어도 튀지 않습니다.
+         ※ 1080px 아래에서는 하위 목록이 <b>접었다 펴는 꼴</b>로 바뀌므로
+           손대지 않습니다.
+
+         ★ 한국어도 사실 두 줄입니다(위 표). 한국어는 이 규칙이 걸리지
+           않으니 그대로입니다 — 함께 고치려면 style.css 의 `.dropdown a`
+           여백을 줄이면 됩니다. */
+      '@media(min-width:1081px){' +
+        'html[data-of-lang] .dropdown a{padding-left:12px;padding-right:12px;font-size:12.5px}' +
+      '}';
+    var st = document.createElement('style');
+    st.id = 'oc-i18n-css';
+    st.textContent = css;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  /* ── 언어 고르개 ──────────────────────────────────────────────
+     ★ 자리를 <b>화면 폭 숫자로 고르지 않습니다</b> (2026-08-10)
+       처음에는 헤더 맨 윗줄(.util .right) 한 곳에만 놓았습니다.
+       그런데 그 줄은 좁은 화면에서 통째로 사라집니다
+       — <b>모바일에서는 말을 바꿀 길이 아예 없었습니다.</b>
+
+       「몇 px 아래면 다른 자리」 로 적을 수도 있지만, 그 숫자가
+       style.css 와 어긋나면 <b>둘 다 사라지거나 둘 다 나옵니다.</b>
+       화면마다 CSS 가 달라 숫자를 하나로 정할 수도 없습니다.
+
+     ▶ 그래서 <b>여러 자리에 만들어 두고, 실제로 눈에 보이는 것</b>
+       하나만 남깁니다. 재어 보고 고르므로 어떤 화면·어떤 폭에서도
+       반드시 하나는 보입니다. 창 크기를 바꾸면 다시 고릅니다. */
+
+  function buildPicker(host, beforeSel) {
+    if (!host || host.querySelector('.of-lang')) return null;
+
+    var box = document.createElement('div');
+    box.className = 'of-lang';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Language');
+    btn.textContent = SHORT[LANG] || 'KO';
+
+    var ul = document.createElement('ul');
+    API.langs.forEach(function (l) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = (l === 'ko' ? '' : '/' + l) + BARE + location.search + location.hash;
+      a.setAttribute('data-oc-nolang', '1');   /* ★ 이 주소는 그대로 두어야 합니다 */
+      a.textContent = NAMES[l] || l;
+      if (l === LANG) a.className = 'on';
+      /* 막아 둔 동안에는 봇이 따라 들어가지 않게 합니다 */
+      if (HIDE_FROM_SEARCH && l !== 'ko') a.setAttribute('rel', 'nofollow');
+      /* ★ 고른 말을 적어 둡니다 — 나중에 「그 말로 열기」 를 만들 때 씁니다.
+           지금은 자동으로 옮기지 않습니다. */
+      a.addEventListener('click', function () {
+        try { localStorage.setItem('of-lang', l); } catch (e) {}
+      });
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      /* 다른 자리의 것은 닫습니다 */
+      [].forEach.call(document.querySelectorAll('.of-lang'), function (o) {
+        if (o !== box) o.classList.remove('open');
+      });
+      box.classList.toggle('open');
+    });
+
+    box.appendChild(btn);
+    box.appendChild(ul);
+
+    var pin = beforeSel ? host.querySelector(beforeSel) : null;
+    if (pin && pin.parentNode === host) host.insertBefore(box, pin);
+    else host.appendChild(box);
+
+    return box;
+  }
+
+
+  /* 눈에 보이는가 — 재어서 판단합니다 (CSS 를 짐작하지 않습니다) */
+  function shown(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+
+  /* 보이는 것 하나만 남기고 나머지는 감춥니다 */
+  function syncPickers() {
+    var all = [].slice.call(document.querySelectorAll('.of-lang'));
+    /* ★ 하나도 없어도 돌아가지 <b>않습니다</b> — 아래에서 떠 있는 것을
+       만들어야 합니다. 예전에 여기서 되돌아가는 바람에 헤더가 없는
+       화면(index.html·legal/*)에서 고르개가 <b>아예 없었습니다.</b> */
+    var keep = null;
+    all.forEach(function (el) {
+      el.style.display = '';                 /* 재기 전에 되돌립니다 */
+    });
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].classList.contains('of-lang-float')) continue;
+      if (shown(all[i])) { keep = all[i]; break; }
+    }
+    /* 어느 자리도 안 보이면 — 떠 있는 것을 하나 둡니다 */
+    if (!keep) {
+      var f = document.querySelector('.of-lang-float');
+      if (!f && document.body) {
+        f = buildPicker(document.body);
+        if (f) f.className = 'of-lang of-lang-float';
+      }
+      keep = f;
+    }
+    all = [].slice.call(document.querySelectorAll('.of-lang'));
+    all.forEach(function (el) {
+      if (el !== keep) { el.style.display = 'none'; el.classList.remove('open'); }
+    });
+  }
+
+  function mountPicker() {
+    HOSTS.forEach(function (sel) {
+      var host = document.querySelector(sel);
+      if (host) buildPicker(host, BEFORE[sel]);
+    });
+    syncPickers();
+
+    /* 바깥을 누르면 닫습니다 */
+    if (!window.__ofLangClose) {
+      window.__ofLangClose = true;
+      document.addEventListener('click', function (e) {
+        [].forEach.call(document.querySelectorAll('.of-lang'), function (box) {
+          if (!box.contains(e.target)) box.classList.remove('open');
+        });
+      });
+      window.addEventListener('resize', function () {
+        if (_pk) return;
+        _pk = setTimeout(function () { _pk = null; mountPicker(); }, 160);
+      });
+
+      /* 헤더가 늦게 들어오는 화면도 있으므로 한 번 더 확인합니다 */
+      window.addEventListener('load', function () { mountPicker(); });
+    }
+  }
+
+  /* 약관 화면 맨 위에 정본 고지를 놓습니다 */
+  function mountLegalNote() {
+    try {
+      if (LANG === 'ko') return;
+      if (!LEGAL_PATH.test(BARE)) return;
+      if (document.getElementById('of-legal-note')) return;
+      var n = LEGAL_NOTE[LANG];
+      if (!n || !document.body) return;
+
+      if (!document.getElementById('of-legal-css')) {
+        var st = document.createElement('style');
+        st.id = 'of-legal-css';
+        st.textContent =
+          '#of-legal-note{margin:0 0 22px;padding:13px 16px;border-radius:9px;' +
+          'border:1px solid #e3d9bd;background:#fdf8ec;color:#5b4a20;' +
+          'font-size:13px;line-height:1.7;word-break:keep-all}' +
+          '#of-legal-note a{color:#1F4B47;font-weight:600;text-decoration:underline;' +
+          'margin-left:6px;white-space:nowrap}' +
+          'html[data-theme="dark"] #of-legal-note{background:#231d10;border-color:#4a3f22;color:#d9c99a}';
+        (document.head || document.documentElement).appendChild(st);
+      }
+
+      var box = document.createElement('div');
+      box.id = 'of-legal-note';
+      box.setAttribute('role', 'note');
+      box.appendChild(document.createTextNode(n.text));
+      var a = document.createElement('a');
+      a.href = BARE;                       /* 한국어 원문 */
+      a.setAttribute('data-oc-nolang', '1');   /* ★ 언어를 붙이면 안 됩니다 */
+      a.textContent = n.link;
+      box.appendChild(a);
+
+      /* 본문이 시작되는 자리를 찾아 그 맨 앞에 둡니다 */
+      var host = document.querySelector('main, article, .wrap, .container') || document.body;
+      host.insertBefore(box, host.firstChild);
+    } catch (e) {}
+  }
+
+  /* ── 알림창을 감싸 옮깁니다 ────────────────────────────────────
+     ★ 왜 필요한가
+       alert() · confirm() 은 <b>화면(DOM)에 들어가지 않습니다.</b>
+       그래서 지켜보기(MutationObserver)로는 영영 잡을 수 없고,
+       영어 화면에서도 한국어 그대로 튀어나옵니다.
+
+     ★ 왜 파일마다 고치지 않는가
+       공용 JS 여덟 곳에 서른여덟 군데가 있습니다. 하나씩
+       OFI18N.t() 로 감싸면 빠뜨리기 쉽고, 앞으로 새로 만드는
+       alert 도 그때마다 손봐야 합니다.
+       <b>바깥에서 한 번 감싸면</b> 지금 것도 앞으로 것도 함께 됩니다.
+
+     ★ 앞부분만 맞는 것도 옮깁니다
+       '삭제 실패: ' + 오류내용  처럼 이어붙인 글은 통째로는 사전에
+       없습니다. 그래서 <b>앞부분</b>이 사전에 있으면 그 부분만 바꾸고
+       뒤(오류 내용)는 그대로 둡니다.
+       ★ 너무 짧은 열쇠로는 하지 않습니다 — 엉뚱한 곳에 걸립니다.
+
+     ★ 한국어에서는 감싸지 않습니다 — 원래 함수 그대로입니다. */
+  function wrapDialogs() {
+    if (_dialogWrapped) return;
+    _dialogWrapped = true;
+    ['alert', 'confirm', 'prompt'].forEach(function (name) {
+      var orig = window[name];
+      if (typeof orig !== 'function') return;
+      window[name] = function (msg, second) {
+        try { msg = dialogText(msg); } catch (e) {}
+        return (name === 'prompt') ? orig.call(window, msg, second)
+                                   : orig.call(window, msg);
+      };
+    });
+  }
+
+  /* 알림창 글자 옮기기 — 통째로 → 줄마다 → 앞부분 */
+  function dialogText(msg) {
+    if (msg == null) return msg;
+    var s = String(msg);
+    if (!s || !/[가-힣]/.test(s)) return msg;
+
+    /* ① 통째로 */
+    var whole = translate(s);
+    if (whole !== s) return whole;
+
+    /* ② 줄마다 (여러 줄짜리 알림이 많습니다) */
+    if (s.indexOf('\n') >= 0) {
+      var lines = s.split('\n');
+      var any = false;
+      var out = lines.map(function (ln) {
+        var t = translate(ln);
+        if (t !== ln) any = true;
+        return t;
+      });
+      if (any) return out.join('\n');
+    }
+
+    /* ③ 앞부분만 */
+    var key = null;
+    for (var k in DICT) {
+      if (k.length < MIN_PREFIX) continue;
+      if (s.indexOf(k) !== 0) continue;
+      if (!key || k.length > key.length) key = k;   /* 가장 긴 것을 고릅니다 */
+    }
+    if (key) {
+      /* ★ 사이 공백이 겹치지 않게 다듬습니다.
+         사전 열쇠는 여백을 고른 '삭제 실패:' 인데 실제 글은
+         '삭제 실패: 네트워크' 라 뒤에 빈칸이 하나 더 붙습니다.
+         그대로 이으면 'Could not delete:  네트워크' 처럼 두 칸이 됩니다. */
+      var rest = s.slice(key.length);
+      var head = DICT[key];
+      if (/\s$/.test(head) && /^\s/.test(rest)) rest = rest.replace(/^\s+/, '');
+      else if (!/\s$/.test(head) && /^\s/.test(rest)) rest = ' ' + rest.replace(/^\s+/, '');
+      return head + rest;
+    }
+
+    return s;
+  }
+
+  /* ── 한국 안에서만 뜻이 있는 메뉴·자리를 감춥니다 ──────────────
+     ★ 지우지 않고 <b>감춥니다</b> (display:none)
+       지우면 그 자리를 세거나 찾는 다른 코드가 어긋날 수 있습니다.
+       감추면 화면에서만 사라지고 짜임은 그대로입니다.
+       (「삭제보다 숨김」 — 오퍼스클램의 원칙과도 같습니다)
+
+     ★ 링크 하나가 아니라 <b>담긴 칸</b>을 감춥니다
+       <li><a href="/recruit/…">리쿠르트</a></li> 에서 링크만 감추면
+       빈 칸이 남아 목록에 구멍이 생깁니다. 담긴 칸을 찾아 감춥니다.
+
+     ★ 큰 메뉴가 통째로 비면 그 메뉴도 감춥니다
+       리쿠르트는 하위가 전부 사라지므로 위 큰 메뉴도 남길 이유가 없습니다.
+
+     ★ 한국어 화면에는 아무 일도 하지 않습니다. */
+  function hideKoreaOnly() {
+    if (LANG === 'ko') return;
+    var paths = HIDE_PATH[LANG] || [];
+    var secs  = HIDE_SECTION[LANG] || [];
+    if (!paths.length && !secs.length) return;
+
+    try {
+      /* ① 링크 — 담긴 칸을 감춥니다 */
+      var links = document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length; i++) {
+        var a = links[i];
+        if (a.getAttribute('data-oc-koronly') === 'done') continue;
+        var h = (window.ofPath || String)(a.getAttribute('href') || '');
+        if (h.charAt(0) !== '/') continue;
+        var hit = false;
+        for (var j = 0; j < paths.length; j++) {
+          if (h.indexOf(paths[j]) === 0) { hit = true; break; }
+        }
+        if (!hit) continue;
+        a.setAttribute('data-oc-koronly', 'done');
+
+        /* ★★ <b>메뉴 이름</b>은 감추지 않습니다 ★★
+             SHOPPING 은 메뉴 이름 자체가 /shop/apply.html 로 걸려 있습니다.
+             그래서 그대로 감추면 —
+               · 전체메뉴에서는 칸 제목이 사라져 번호(06)만 남고
+               · 위 큰 메뉴에서는 <b>SHOPPING 글자가 통째로 사라집니다</b>
+             둘 다 실제로 그렇게 되었습니다 (2026-08-10 · 파트너가 찾음).
+
+             ▶ 아래가 살아 있으면 이름은 남깁니다.
+               다만 <b>링크만 풀어</b> 감춘 화면으로 가지 않게 합니다.
+               (LPSTOCK·LIFEPOP 을 보러 들어갈 길은 그대로 열립니다) */
+        if (isMenuLabel(a) && hasLivingChildren(a, paths)) {
+          unlink(a);
+          continue;
+        }
+        /* ★ 담는 상자는 <b>아주 좁게</b> 잡습니다.
+             .sec · .card 는 여러 자리를 함께 담고,
+             .fm-col 은 전체메뉴의 <b>칸 하나를 통째로</b> 담습니다.
+             그래서 「입시」 링크 하나 때문에 OC커뮤니티 칸이 통째로
+             사라졌습니다 — 영어 전체메뉴에 DATABASE 하나만 남았습니다
+             (2026-08-10 · 스크린샷으로 잡음).
+           ▶ 줄(li)이나 위 큰 메뉴(nav-item)까지만 봅니다.
+             칸이 통째로 빌 때 감추는 일은 아래 ③ 이 맡습니다. */
+        /* ★★ 담는 상자는 <b>줄(li)까지만</b> 봅니다 ★★
+             드롭다운 안의 링크는 <li> 로 감싸여 있지 않습니다.
+                 <div class="nav-item"><a>OC커뮤니티</a>
+                   <div class="dropdown"><div class="dropdown-inner">
+                     <a href="/community/admission.html">입시</a>   ← li 가 없습니다
+             그래서 closest('li, .nav-item') 가 <b>.nav-item 까지 올라가</b>
+             「입시」 하나를 감추려다 <b>OC커뮤니티 메뉴가 통째로</b> 사라졌습니다.
+             정보SPOT·레슨:ON·SHOPPING 도 같은 일을 당했습니다.
+             (2026-08-10 · 파트너가 「쇼핑 전체가 없어졌다」 고 알려 주심)
+
+           ▶ 링크 하나(또는 그것이 든 줄)만 감춥니다.
+             메뉴를 통째로 감추는 일은 아래 ④ 가 맡습니다 —
+             <b>살아 있는 하위가 하나도 없을 때만</b> 감춥니다. */
+        var box = a.closest('li') || a;
+        hideEl(box);
+      }
+
+      /* ② 홈의 큰 자리 — 제목의 영문으로 찾습니다 */
+      if (secs.length) {
+        var heads = document.querySelectorAll('.en-s');
+        for (var x = 0; x < heads.length; x++) {
+          var t = (heads[x].textContent || '').trim();
+          if (secs.indexOf(t) < 0) continue;
+          hideSection(heads[x]);
+        }
+      }
+
+      /* ③ 전체메뉴에서 칸 하나가 통째로 비면 그 칸도 감춥니다
+         ★★ offsetParent 로 「보이는가」 를 재면 안 됩니다 ★★
+           전체메뉴는 평소에 <b>닫혀 있습니다.</b> 닫혀 있으면 그 안의
+           링크는 모두 offsetParent 가 null 이라 「하나도 안 보인다」 가
+           됩니다. 그래서 <b>모든 칸이 감춰졌습니다</b> — 영어 전체메뉴에
+           DATABASE 하나만 남았습니다 (2026-08-10 · 눈으로 잡음).
+         ▶ 보이는지가 아니라 <b>주소만</b> 봅니다. */
+      var cols = document.querySelectorAll('.fullmenu-grid > *');
+      for (var c = 0; c < cols.length; c++) {
+        var as = cols[c].querySelectorAll('a[href]');
+        if (!as.length) continue;
+        var left = 0;
+        for (var d = 0; d < as.length; d++) {
+          var ah = (window.ofPath || String)(as[d].getAttribute('href') || '');
+          if (ah.charAt(0) !== '/') { left++; continue; }   /* 바깥 주소는 남깁니다 */
+          var out = false;
+          for (var e = 0; e < paths.length; e++) if (ah.indexOf(paths[e]) === 0) { out = true; break; }
+          if (!out) left++;
+        }
+        if (left === 0) hideEl(cols[c]);
+      }
+
+      /* ④ 위 큰 메뉴 — 하위가 <b>하나도 남지 않았을 때만</b> 통째로 감춥니다
+         (리쿠르트가 그렇습니다. OC커뮤니티는 하위가 남으므로 그대로 둡니다) */
+      var items = document.querySelectorAll('.site-header .nav-item, .gnb .ga-item');
+      for (var t = 0; t < items.length; t++) {
+        var kids = items[t].querySelectorAll('.dropdown a[href]');
+        if (!kids.length) continue;
+        var alive = 0;
+        for (var u = 0; u < kids.length; u++) {
+          var kh = (window.ofPath || String)(kids[u].getAttribute('href') || '');
+          if (kh.charAt(0) !== '/') { alive++; continue; }   /* 바깥 주소는 살아 있습니다 */
+          var ko = false;
+          for (var v = 0; v < paths.length; v++) if (kh.indexOf(paths[v]) === 0) { ko = true; break; }
+          if (!ko) alive++;
+        }
+        if (alive === 0) hideEl(items[t]);
+      }
+
+      /* ②-2 통째로 감출 덩어리 */
+      var blocks = HIDE_BLOCK[LANG] || [];
+      for (var b = 0; b < blocks.length; b++) {
+        var els = document.querySelectorAll(blocks[b]);
+        for (var y = 0; y < els.length; y++) hideEl(els[y]);
+      }
+
+      /* ②-3 광고를 살려 옮깁니다 */
+      moveAds();
+
+      /* ⑤ 빠진 뒤 남은 자리를 다듬습니다
+         ★ 반드시 <b>맨 마지막</b>이어야 합니다.
+           앞의 ①~④ 가 다 끝나야 「무엇이 남았는가」 를 셀 수 있습니다.
+           예전에는 홈의 자리를 감추기 전에 세어, 광고만 남은 줄을
+           <b>못 알아보고 그대로 두었습니다</b>
+           (2026-08-10 · 유틸리티 옆 광고가 혼자 남았습니다). */
+      tidyAfterHide();
+    } catch (e) {}
+  }
+
+  /* ── 광고를 다른 자리로 옮깁니다 ──────────────────────────────
+     ★ 지우지 않고 <b>옮깁니다.</b> 광고 자리는 수익과 이어진 자리라
+       말이 달라졌다는 이유로 없애면 안 됩니다.
+     ★ 한 번만 옮깁니다 — 지켜보기가 여러 번 돌아도 자리를 흩지 않습니다. */
+  function moveAds() {
+    var jobs = MOVE_AD[LANG] || [];
+    for (var i = 0; i < jobs.length; i++) {
+      try {
+        var j = jobs[i];
+        var ad = document.querySelector(j.from);
+        var dest = document.querySelector(j.to);
+        if (!ad || !dest) continue;
+        if (ad.getAttribute('data-oc-moved') === '1') continue;
+
+        /* 광고를 담고 있던 칸째로 옮겨야 짜임이 유지됩니다 */
+        var box = ad.parentElement && ad.parentElement.children.length === 1
+                  ? ad.parentElement : ad;
+        box.setAttribute('data-oc-moved', '1');
+        ad.setAttribute('data-oc-moved', '1');
+        box.style.marginTop = '18px';
+        dest.appendChild(box);
+
+        /* 옮긴 뒤 빈 줄은 감춥니다 */
+        if (j.after) {
+          var rest = document.querySelector(j.after);
+          if (rest) hideEl(rest);
+        }
+
+
+
+      } catch (e) {}
+    }
+  }
+
+  /* ── 감춘 뒤 남은 자리 다듬기 ──────────────────────────────────
+     ★ 왜 필요한가 (2026-08-10 · 파트너가 화면을 보고 알려 주심)
+       메뉴만 감추면 <b>빈 자리가 그대로 남습니다.</b>
+         · 아래 빠른 링크는 다섯 칸 격자였는데 둘이 빠져
+           <b>세 칸이 왼쪽으로 몰렸습니다.</b>
+         · 리쿠르트·유틸리티가 빠진 줄에는 <b>광고만 혼자</b> 남아,
+           바로 위에 있는 큰 광고와 겹쳐 보였습니다.
+       감추는 일과 <b>빈자리를 메우는 일</b>은 함께 해야 합니다. */
+  function tidyAfterHide() {
+    /* ① 빠른 링크 — 남은 칸 수에 맞춰 가운데로 모읍니다 */
+    var qw = document.querySelector('.quick .wrap');
+    if (qw) {
+      var alive = 0;
+      var qs = qw.querySelectorAll('.qa');
+      for (var i = 0; i < qs.length; i++) {
+        if (qs[i].getAttribute('data-oc-hidden') !== '1') alive++;
+      }
+      if (alive > 0 && alive < qs.length) {
+        /* 격자를 남은 수로 다시 짜고 가운데로 둡니다.
+           칸 너비는 그대로 두어 아이콘 크기가 커지지 않게 합니다. */
+        qw.style.gridTemplateColumns = 'repeat(' + alive + ', minmax(0, 176px))';
+        qw.style.justifyContent = 'center';
+      }
+    }
+
+  }
+
+  /* ── 홈의 한 자리만 정확히 감춥니다 ────────────────────────────
+     ★ 무엇이 잘못됐었나 (2026-08-10 · 검사 도구가 잡음)
+       처음에는 제목에서 가장 가까운 <section> 을 찾아 감췄습니다.
+       그런데 홈은 <b>한 &lt;section&gt; 안에 자리가 여럿</b> 들어 있습니다.
+         section.board  ← News · Concours · Festival · Scores
+         section.lower  ← Recruit · Utility / Data
+       그래서 「리쿠르트」 를 감추려다 <b>유틸리티·자료까지</b> 날아갔고,
+       뉴스·콩쿨·페스티벌·악보도 통째로 사라졌습니다.
+
+     ▶ 「제목이 <b>하나뿐인</b> 가장 큰 조상」 을 찾습니다.
+       그것이 그 자리만 담은 상자입니다.
+       조상이 모두 제목을 여럿 담고 있으면(형제로 늘어선 짜임),
+       제목 줄부터 <b>다음 제목 전까지</b>만 감춥니다. */
+  function hideSection(headEl) {
+    var head = headEl.closest('.sec-head') || headEl;
+
+    /* ① 제목이 하나뿐인 가장 큰 조상 찾기 */
+    var best = null, cand = head.parentElement;
+    while (cand && cand !== document.body && cand.nodeType === 1) {
+      var n = cand.querySelectorAll('.sec-head').length;
+      if (n <= 1) { best = cand; cand = cand.parentElement; }
+      else break;
+    }
+    if (best) { hideEl(best); return; }
+
+    /* ② 형제로 늘어선 짜임 — 이 제목부터 다음 제목 전까지 */
+    hideEl(head);
+    var sib = head.nextElementSibling;
+    while (sib) {
+      if (sib.classList && sib.classList.contains('sec-head')) break;
+      if (sib.querySelector && sib.querySelector('.sec-head')) break;
+      hideEl(sib);
+      sib = sib.nextElementSibling;
+    }
+  }
+
+  /* 이 링크가 <b>메뉴·칸의 이름</b>인가 — 목록의 한 줄이 아니라 제목인가 */
+  function isMenuLabel(a) {
+    var p = a.parentElement;
+    if (!p) return false;
+    /* 전체메뉴 칸 제목 : <h4><a>SHOPPING</a></h4> */
+    if (/^H[1-6]$/.test(p.tagName)) return true;
+    /* 위 큰 메뉴 : <div class="nav-item"><a>SHOPPING</a><div class="dropdown">… */
+    if (p.classList && p.classList.contains('nav-item')) return true;
+    /* 하위 메뉴 알약 줄의 제목 */
+    if (p.classList && (p.classList.contains('sec-head') || p.classList.contains('t'))) return true;
+    return false;
+  }
+
+  /* 그 아래에 <b>감추지 않는</b> 항목이 남아 있는가 */
+  function hasLivingChildren(a, paths) {
+    var box = a.closest('.nav-item, .fm-col, h1, h2, h3, h4, h5, h6');
+    if (!box) return false;
+    if (/^H[1-6]$/.test(box.tagName)) box = box.parentElement || box;
+    var kids = box.querySelectorAll('a[href]');
+    for (var i = 0; i < kids.length; i++) {
+      if (kids[i] === a) continue;
+      var h = (window.ofPath || String)(kids[i].getAttribute('href') || '');
+      if (h.charAt(0) !== '/') return true;        /* 바깥 주소 — 살아 있습니다 */
+      var out = false;
+      for (var j = 0; j < paths.length; j++) if (h.indexOf(paths[j]) === 0) { out = true; break; }
+      if (!out) return true;
+    }
+    return false;
+  }
+
+  /* 글자는 남기고 링크만 풉니다
+     ★ <span> 으로 바꾸면 <b>꾸밈이 사라집니다</b> — a 에 걸린 색·굵기·여백이
+       span 에는 오지 않아, SHOPPING 이 흐릿하게 묻혔습니다
+       (2026-08-10 · 스크린샷으로 잡음).
+     ▶ 그래서 태그를 바꾸지 않고 <b>a 를 그대로 두되</b> 갈 곳만 없앱니다.
+       보이는 모습은 조금도 달라지지 않고, 눌러도 아무 일이 없습니다. */
+  function unlink(a) {
+    try {
+      if (a.getAttribute('data-oc-unlinked') === '1') return;
+      a.setAttribute('data-oc-unlinked', '1');
+      a.removeAttribute('href');            /* 갈 곳을 없앱니다 */
+      a.style.cursor = 'default';
+      a.addEventListener('click', function (e) { e.preventDefault(); });
+    } catch (e) {}
+  }
+
+  function hideEl(el) {
+    if (!el || !el.style) return;
+    if (el.getAttribute && el.getAttribute('data-oc-hidden') === '1') return;
+    el.style.display = 'none';
+    if (el.setAttribute) el.setAttribute('data-oc-hidden', '1');
+  }
+
+  function onReady(fn) {
+    /* 헤더는 include.js 가 넣으므로, 문서를 다 읽은 뒤에 붙입니다 */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { try { fn(); } catch (e) {} });
+    } else {
+      try { fn(); } catch (e) {}
+    }
+  }
+
+})();

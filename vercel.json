@@ -21,6 +21,15 @@
       ]
     },
     {
+      "source": "/assets/i18n/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -37,21 +46,6 @@
           "value": "public, max-age=0, must-revalidate"
         }
       ]
-    },
-    {
-      "source": "/img/aic/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800, immutable"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/img/aic/:path*",
-      "destination": "https://www.artic.edu/iiif/2/:path*"
     }
   ]
 }
