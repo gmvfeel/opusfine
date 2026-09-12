@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>자료원 정찰 · OPUSFINE</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   OPUSFINE · 자료원 정찰 · tools/probe.html
+   ------------------------------------------------------------------
+   ★ 무엇을 하는가
+     바깥 자료원을 <b>필요할 때 직접</b> 두드려 봅니다.
+     GitHub Actions 를 쓰지 않습니다 (파트너 결정 · 2026-09-11).
+
+   ★★ <b>담지 않습니다.</b> DB 를 건드리지 않습니다.
+     무엇이 오는지 눈으로 보는 자리입니다.
+
+   ★ of.css 를 <b>부르지 않습니다.</b>
+     tools/cma-proof.html 이 of.css 와 부딪혀 글자가 겹쳐 무너진
+     일이 있었습니다(2026-08-23). 이 화면은 확인용이라 우리 결을
+     따를 까닭이 없고, 남의 규칙과 부딪히지 않는 것이 더 중요합니다.
+   ★ 이름 앞에 <b>pb-</b> 를 붙여 무엇과도 겹치지 않게 했습니다.
+
+   ★ 바깥 API 는 <b>/api/fetch</b> 를 거칩니다.
+     브라우저는 다른 사이트로 곧바로 못 부릅니다(CORS).
+     열쇠도 서버가 붙이므로 <b>화면에 열쇠가 없습니다.</b>
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.pb-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.pb-h1{font-size:26px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.pb-lead{color:#5C5C60;font-size:14px;margin:0 0 8px}
+.pb-warn{font-size:13px;color:#1F4B47;border:1px solid #CFDDD9;background:#F6FAF9;
+  padding:11px 14px;margin:18px 0 30px;line-height:1.75}
+.pb-warn b{color:#1F4B47}
+
+.pb-h2{font-size:17px;font-weight:600;margin:40px 0 6px;
+  padding-top:18px;border-top:1px solid #E6E4DE}
+.pb-note{font-size:13px;color:#7A7A7E;margin:0 0 14px;line-height:1.75}
+.pb-note b{color:#8C3A2E}
+
+/* 단추 줄 */
+.pb-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.pb-btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;
+  border:1px solid #17171A;background:#17171A;color:#fff;cursor:pointer;transition:.15s}
+.pb-btn:hover{opacity:.82}
+.pb-btn.pb-gh{background:transparent;color:#17171A}
+.pb-btn:disabled{opacity:.4;cursor:default}
+.pb-in{font:inherit;font-size:13px;padding:8px 11px;border:1px solid #D8D6D0;min-width:90px}
+.pb-lab{font-size:12px;color:#7A7A7E}
+
+/* 결과 */
+.pb-out{margin-top:14px;border:1px solid #E6E4DE;background:#FCFBF9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-all;
+  padding:14px 16px;max-height:460px;overflow:auto}
+.pb-out:empty{display:none}
+.pb-ok{color:#1F4B47;font-weight:700}
+.pb-bad{color:#8C3A2E;font-weight:700}
+.pb-dim{color:#8A8A8E}
+
+/* 요약표 */
+.pb-tb{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.pb-tb th,.pb-tb td{border:1px solid #E6E4DE;padding:8px 10px;text-align:left;vertical-align:top}
+.pb-tb th{background:#F7F6F2;font-weight:600;white-space:nowrap}
+.pb-tb td.pb-n{font-variant-numeric:tabular-nums;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="pb-wrap">
+
+  <h1 class="pb-h1">자료원 정찰</h1>
+  <p class="pb-lead">바깥 자료원을 필요할 때 두드려 봅니다.</p>
+
+  <div class="pb-warn">
+    <b>담지 않습니다.</b> 이 화면은 DB 를 건드리지 않습니다 · 무엇이 오는지 눈으로 보는 자리입니다<br>
+    열쇠는 <b>서버가 붙입니다</b> — 화면 코드에 열쇠가 들어 있지 않습니다
+  </div>
+
+  <!-- ── ① 한국문화정보원 ────────────────────────────────── -->
+  <h2 class="pb-h2">① 한국문화정보원 <span class="pb-dim">api.kcisa.kr</span></h2>
+  <p class="pb-note">
+    여기가 열리면 <b>12개 기관 전시정보</b>가 한꺼번에 옵니다 —
+    국립현대미술관 · 예술의전당 · 아르코 · 대한민국역사박물관 · 인천문화재단 ·
+    고양문화재단 등. 지금 전시DB 는 서울시립미술관 <b>한 곳</b>뿐이고
+    열린 전시가 <b>17건</b>입니다.<br>
+    <b>2026-08-31</b> 에는 530(서버가 죽어 있음)이었는데
+    <b>2026-09-02</b> 에 403(열쇠가 틀림)으로 바뀌었습니다.
+    서버가 살아났다는 뜻이라 <b>진짜 열쇠로 두드려 볼 차례</b>입니다.
+  </p>
+  <div class="pb-row">
+    <button class="pb-btn pb-gh" data-act="kcisa-nokey">열쇠 없이 (403 이 나오면 정상)</button>
+    <button class="pb-btn" data-act="kcisa-key">열쇠로 두드리기</button>
+    <span class="pb-lab">몇 건</span>
+    <input class="pb-in" id="pbRows" value="5" size="4">
+  </div>
+  <div class="pb-out" id="out-kcisa"></div>
+
+  <!-- ── ② 그 밖의 문 ───────────────────────────────────── -->
+  <h2 class="pb-h2">② 그 밖의 문</h2>
+  <p class="pb-note">
+    <b>e뮤지엄</b> 은 서버가 살아 있는데 열쇠가 등록되지 않았습니다(4030).<br>
+    <b>전남도립미술관</b> 은 <span class="pb-dim">apis.data.go.kr</span> 로
+    막힌 관문과 <b>다른 문</b>이라 살아 있을 가능성이 있습니다. 근현대 작품입니다.
+  </p>
+  <div class="pb-row">
+    <button class="pb-btn pb-gh" data-act="emuseum">e뮤지엄</button>
+    <button class="pb-btn pb-gh" data-act="jnmuseum">전남도립미술관</button>
+  </div>
+  <div class="pb-out" id="out-etc"></div>
+
+  <!-- ── ③ 지금 담긴 것 ─────────────────────────────────── -->
+  <h2 class="pb-h2">③ 지금 담긴 것</h2>
+  <p class="pb-note">
+    새 자료를 받기 전에 <b>지금 무엇이 얼마나 있는지</b> 봅니다.
+    <b>「원천이 가진 수」와 「우리 빈칸에 들어갈 수」는 다릅니다.</b>
+  </p>
+  <div class="pb-row">
+    <button class="pb-btn" data-act="counts">세어 보기</button>
+  </div>
+  <div id="out-counts"></div>
+
+</div>
+
+<script src="/assets/config.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+    });
+  }
+  function put(id, html) { $(id).innerHTML = html; }
+  function add(id, html) { $(id).innerHTML += html; }
+
+  /* ── 바깥 부르기 — /api/fetch 를 거칩니다 ────────────────── */
+  async function call(params) {
+    var qs = new URLSearchParams(params).toString();
+    var res = await fetch('/api/fetch?' + qs);
+    return await res.json();
+  }
+
+  /* 응답을 읽기 좋게 */
+  function show(r) {
+    var h = '';
+    var good = r.ok && r.상태 >= 200 && r.상태 < 300;
+    h += (good ? '<span class="pb-ok">HTTP ' + r.상태 + '</span>'
+               : '<span class="pb-bad">HTTP ' + (r.상태 || '?') + '</span>');
+    h += '  <span class="pb-dim">' + esc(r.종류 || '') + ' · ' + r.걸린시간ms + 'ms · '
+       + (r.길이 || 0).toLocaleString() + '바이트'
+       + (r.열쇠붙임 ? ' · 열쇠 붙임' : ' · 열쇠 없이') + '</span>\n';
+    h += '<span class="pb-dim">' + esc(r.부른곳 || '') + '</span>\n\n';
+    if (r.오류) h += '<span class="pb-bad">' + esc(r.오류) + '</span>\n';
+    if (r.본문) h += esc(String(r.본문).slice(0, 4000));
+    if (r.error) h += '<span class="pb-bad">' + esc(JSON.stringify(r, null, 1)) + '</span>';
+    return h;
+  }
+
+  /* 응답에서 「몇 건인가」를 찾아봅니다 — 꼴이 여러 가지입니다 */
+  function guessTotal(body) {
+    var m;
+    m = /<totalCount>(\d+)<\/totalCount>/i.exec(body);          if (m) return m[1];
+    m = /"totalCount"\s*:\s*"?(\d+)"?/i.exec(body);             if (m) return m[1];
+    m = /<totalCnt>(\d+)<\/totalCnt>/i.exec(body);              if (m) return m[1];
+    m = /"totalCnt"\s*:\s*"?(\d+)"?/i.exec(body);               if (m) return m[1];
+    return null;
+  }
+
+  var ACT = {
+    /* ── 한국문화정보원 ── */
+    'kcisa-nokey': async function () {
+      put('out-kcisa', '두드리는 중…');
+      var r = await call({ to: 'kcisa', path: '/openapi/API_CCA_145/request',
+                           numOfRows: $('pbRows').value || 5, pageNo: 1 });
+      var h = show(r);
+      h += '\n\n<span class="pb-dim">── 읽는 법 ──\n'
+         + '403 「API Key is not valid」 → <b>서버는 살아 있습니다.</b> 열쇠로 다시 두드려 보십시오\n'
+         + '530 · error code 1016 → 저쪽 서버가 죽어 있습니다. 기다리는 수밖에 없습니다\n'
+         + '200 → 열쇠 없이도 열립니다(드문 일)</span>';
+      put('out-kcisa', h);
+    },
+    'kcisa-key': async function () {
+      put('out-kcisa', '열쇠로 두드리는 중…');
+      var r = await call({ to: 'kcisa', path: '/openapi/API_CCA_145/request',
+                           numOfRows: $('pbRows').value || 5, pageNo: 1, key: 1 });
+      var h = show(r);
+      var t = r.본문 ? guessTotal(r.본문) : null;
+      if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
+      h += '\n\n<span class="pb-dim">── 무엇을 보셔야 하나 ──\n'
+         + '· 기관 이름이 여럿 보이는가 (국립현대미술관 · 예술의전당 · 아르코 …)\n'
+         + '· <b>포스터 주소</b>가 들어 있는가 — 대문에 걸 그림입니다\n'
+         + '· 전시 기간 · 장소 · 참여작가가 있는가</span>';
+      put('out-kcisa', h);
+    },
+
+    /* ── 그 밖 ── */
+    emuseum: async function () {
+      put('out-etc', 'e뮤지엄을 두드리는 중…');
+      var r = await call({ to: 'emuseum', path: '/openapi/relic/list',
+                           numOfRows: 1, pageNo: 1, key: 1 });
+      var h = '<b>e뮤지엄</b>\n' + show(r);
+      h += '\n\n<span class="pb-dim">4030 SERVICE KEY IS NOT REGISTERED\n'
+         + '→ 서버는 멀쩡한데 <b>우리 열쇠가 등록되지 않았습니다.</b>\n'
+         + '  emuseum.go.kr 을 여는 활용신청을 아직 못 찾았습니다.</span>';
+      put('out-etc', h);
+    },
+    jnmuseum: async function () {
+      put('out-etc', '전남도립미술관을 두드리는 중…');
+      var r = await call({ to: 'apis', path: '/6460000/collectionInfo/getCollectionInfoList',
+                           numOfRows: 5, pageNo: 1, key: 1 });
+      var h = '<b>전남도립미술관 소장품</b>\n' + show(r);
+      var t = r.본문 ? guessTotal(r.본문) : null;
+      if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
+      h += '\n\n<span class="pb-dim">도립미술관이라 <b>근현대 작품</b>입니다.\n'
+         + '작품명 · 작가명 · 재료 · 규격 · 부문이 온다고 알려져 있습니다.\n'
+         + '실제로 무엇이 오는지 위 본문을 보십시오.</span>';
+      put('out-etc', h);
+    },
+
+    /* ── 지금 담긴 것 ── */
+    counts: async function () {
+      put('out-counts', '<div class="pb-out">세는 중…</div>');
+      var h = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
+      async function cnt(q) {
+        try {
+          var r = await fetch(OF.SB_URL + '/rest/v1/' + q + '&select=count', { headers: h });
+          var j = await r.json();
+          return r.ok && j[0] ? j[0].count : '?';
+        } catch (e) { return '?'; }
+      }
+      var today = new Date().toISOString().slice(0, 10);
+      var rows = [
+        ['작가',            await cnt('artists?hidden=not.is.true'), ''],
+        ['작품',            await cnt('artworks?hidden=not.is.true'), ''],
+        ['　도판 있는 것',   await cnt('artworks?hidden=not.is.true&image_small=not.is.null'), '대문 격자에 걸립니다'],
+        ['　1900년 이후',    await cnt('artworks?hidden=not.is.true&year_from=gte.1900'), ''],
+        ['전시',            await cnt('exhibitions?hidden=not.is.true'), ''],
+        ['　지금 열린 것',   await cnt('exhibitions?hidden=not.is.true&end_date=gte.' + today),
+                            '<b>여기가 대문 전시 구역을 채웁니다</b>'],
+        ['미술대학',        await cnt('schools?hidden=not.is.true'), '한국 미술대학은 0곳'],
+        ['관계(entity_links)', await cnt('entity_links?id=not.is.null'), '동문 347줄']
+      ];
+      var t = '<table class="pb-tb"><tr><th>갈래</th><th>건수</th><th>비고</th></tr>';
+      rows.forEach(function (r) {
+        t += '<tr><td>' + r[0] + '</td><td class="pb-n">'
+           + (typeof r[1] === 'number' ? r[1].toLocaleString() : r[1])
+           + '</td><td class="pb-dim">' + r[2] + '</td></tr>';
+      });
+      t += '</table>';
+      put('out-counts', t);
+    }
+  };
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]');
+    if (!b) return;
+    var fn = ACT[b.getAttribute('data-act')];
+    if (!fn) return;
+    b.disabled = true;
+    Promise.resolve(fn()).catch(function (err) {
+      alert('실패했습니다 — ' + (err && err.message || err));
+    }).then(function () { b.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>
