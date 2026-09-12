@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>작가 초상 수집 · OPUSFINE</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   OPUSFINE · 작가 초상 수집 · tools/collect-artist.html
+   ★ of.css 를 부르지 않습니다 · 이름 앞에 cp- 를 붙였습니다
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cp-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.cp-h1{font-size:26px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.cp-lead{color:#5C5C60;font-size:14px;margin:0 0 8px}
+.cp-warn{font-size:13px;color:#1F4B47;border:1px solid #CFDDD9;background:#F6FAF9;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.cp-danger{font-size:13px;color:#8C3A2E;border:1px solid #E4CFCB;background:#FDF7F6;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.cp-h2{font-size:17px;font-weight:600;margin:34px 0 6px;
+  padding-top:18px;border-top:1px solid #E6E4DE}
+.cp-note{font-size:13px;color:#7A7A7E;margin:0 0 14px;line-height:1.75}
+.cp-note b{color:#8C3A2E}
+.cp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.cp-btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;
+  border:1px solid #17171A;background:#17171A;color:#fff;cursor:pointer;transition:.15s}
+.cp-btn:hover{opacity:.82}
+.cp-btn.cp-gh{background:transparent;color:#17171A}
+.cp-btn:disabled{opacity:.35;cursor:default}
+.cp-in{font:inherit;font-size:13px;padding:8px 11px;border:1px solid #D8D6D0;min-width:110px}
+.cp-in.cp-wide{min-width:320px}
+.cp-lab{font-size:12px;color:#7A7A7E}
+.cp-bar{height:6px;background:#EEECE6;margin:10px 0 4px;overflow:hidden}
+.cp-bar i{display:block;height:100%;width:0;background:#17171A;transition:width .2s}
+.cp-out{margin-top:12px;border:1px solid #E6E4DE;background:#FCFBF9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-all;
+  padding:14px 16px;max-height:460px;overflow:auto}
+.cp-out:empty{display:none}
+.cp-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 0}
+.cp-tbl th,.cp-tbl td{border-bottom:1px solid #EEECE6;padding:7px 9px;text-align:left}
+.cp-tbl th{font-weight:600;color:#7A7A7E;font-size:12px}
+.cp-num{text-align:right;font-variant-numeric:tabular-nums}
+.cp-faces{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.cp-face{width:96px;text-align:center;font-size:11px;color:#5C5C60;line-height:1.4}
+.cp-face img{width:96px;height:118px;object-fit:cover;background:#F2EFE7;display:block}
+</style>
+</head>
+<body>
+<div class="cp-wrap">
+
+  <h1 class="cp-h1">작가 초상 수집</h1>
+  <p class="cp-lead">위키데이터에서 <b>초상 · 생몰 · 소개</b>를 받습니다.</p>
+
+  <div class="cp-warn">
+    대문 「작가」 자리가 <b>한국 인물 일색</b>이었습니다.
+    초상 있는 작가 125명 중 <b>110명이 한국인</b>이라 어떻게 뽑아도 안 섞입니다.
+    고야·뒤러·휘슬러·호머가 들어왔지만 <b>초상이 없습니다.</b>
+  </div>
+
+  <div class="cp-danger">
+    <b>이름만으로 커먼즈를 뒤지면 안 됩니다.</b>
+    지금 DB 에 이런 초상이 붙어 있었습니다 —
+    박태홍 → <b>축구선수</b> · 정수정 → <b>아이돌</b> · 김웅용 → <b>수학 신동</b>.
+    그래서 위키데이터에 <b>「사람인가」와 「직업이 미술인가」를 함께</b> 물어
+    동명이인을 걸러냅니다. 실제로 시험하니 저 셋이 모두 튕겨 나왔습니다.
+  </div>
+
+  <h2 class="cp-h2">자물쇠</h2>
+  <p class="cp-note">Vercel 환경변수 <b>COLLECT_TOKEN</b> · 전시·작품 수집과 같은 것입니다.</p>
+  <div class="cp-row">
+    <input id="tok" class="cp-in cp-wide" type="password" placeholder="COLLECT_TOKEN" autocomplete="off">
+    <span class="cp-lab" id="tokmsg"></span>
+  </div>
+
+  <h2 class="cp-h2">받기</h2>
+  <p class="cp-note">
+    <b>미리보기</b>로 스무 명만 먼저 보십시오 — 담지 않고 무엇이 붙을지만 알려 줍니다.
+    <b>느립니다.</b> 사람마다 위키데이터를 두 번 두드려야 해서
+    스무 명에 <b>20~40초</b>쯤 걸립니다.
+    「로마자 이름」 757명을 다 돌면 <b>20분 남짓</b>입니다.
+  </p>
+  <div class="cp-row">
+    <span class="cp-lab">누구</span>
+    <select id="who" class="cp-in">
+      <option value="roman">로마자 이름 757명 (먼저 이쪽)</option>
+      <option value="all">초상 없는 작가 모두 3,404명</option>
+    </select>
+    <span class="cp-lab">차례</span>
+    <input id="from" class="cp-in" type="number" value="0" min="0">
+    <span class="cp-lab">~</span>
+    <input id="to" class="cp-in" type="number" value="20" min="1">
+    <button class="cp-btn cp-gh" id="prev">미리보기</button>
+    <button class="cp-btn" id="apply">담기</button>
+  </div>
+  <div class="cp-bar"><i id="bar"></i></div>
+  <div class="cp-out" id="out"></div>
+
+  <h2 class="cp-h2">지금 붙은 것</h2>
+  <div class="cp-row">
+    <button class="cp-btn cp-gh" id="stat">헤아리기</button>
+    <button class="cp-btn cp-gh" id="peek">얼굴 보기</button>
+  </div>
+  <div id="s_out"></div>
+  <div class="cp-faces" id="faces"></div>
+
+</div>
+
+<script>
+var SB_URL = 'https://jmankqdbvyrnyhxjmqsa.supabase.co';
+var SB_KEY = 'sb_publishable_q8y3AUDpoQrT86HmZMLBHA_dn9-CJ3x';
+var STEP = 20;   /* 한 번에 보는 사람 수 — api/collect-artist.js 의 MAX_BATCH 와 같아야 합니다 */
+
+function $(id){ return document.getElementById(id); }
+function add(s){ var o=$('out'); o.textContent += s; o.scrollTop = o.scrollHeight; }
+
+var tok = $('tok');
+try{ var t0 = sessionStorage.getItem('of_collect_tok'); if(t0) tok.value = t0; }catch(e){}
+tok.addEventListener('input', function(){
+  try{ sessionStorage.setItem('of_collect_tok', tok.value); }catch(e){}
+  $('tokmsg').textContent = tok.value ? '넣으셨습니다' : '';
+});
+if(tok.value) $('tokmsg').textContent = '넣으셨습니다';
+
+function lock(on){ document.querySelectorAll('button,select,input[type=number]')
+  .forEach(function(b){ b.disabled = on; }); }
+
+async function run(mode){
+  if(!tok.value){ add('자물쇠를 먼저 넣어 주십시오.\n'); return; }
+  var who = $('who').value;
+  var from = Math.max(0, parseInt($('from').value,10)||0);
+  var to   = Math.max(from+1, parseInt($('to').value,10)||(from+STEP));
+
+  lock(true);
+  add('\n['+who+'] '+(mode==='apply'?'담는':'미리보는')+' 중 · '+from+'~'+to+'\n');
+  var 합 = {본사람:0, 찾음:0, 못찾음:0, 초상붙음:0, 생몰붙음:0};
+
+  for(var s = from; s < to; s += STEP){
+    var e2 = Math.min(s + STEP, to);
+    try{
+      var r = await fetch('/api/collect-artist?token='+encodeURIComponent(tok.value)
+             +'&who='+who+'&mode='+mode+'&from='+s+'&to='+e2);
+      var j = await r.json();
+      if(!r.ok){ add('  '+s+'~'+e2+' · 막힘 · '+JSON.stringify(j).slice(0,180)+'\n'); }
+      else{
+        합.본사람+=j.본사람||0; 합.찾음+=j.찾음||0; 합.못찾음+=j.못찾음||0;
+        합.초상붙음+=j.초상붙음||0; 합.생몰붙음+=j.생몰붙음||0;
+        add('  '+s+'~'+e2+' · 본사람 '+(j.본사람||0)+' · 찾음 '+(j.찾음||0)
+            +' · 초상 '+(j.초상붙음||0)+'\n');
+        if(mode!=='apply' && j.결과){
+          (j.결과||[]).forEach(function(x){
+            add('    '+(x.초상||'-')+' '+x.이름+' · '+(x.생몰||'')+' · '+(x.소개||x.판정||'')+'\n');
+          });
+        }
+        if((j.본사람||0) === 0){ add('  더 볼 사람이 없습니다.\n'); break; }
+      }
+    }catch(err){ add('  '+s+'~'+e2+' · 오류 · '+err+'\n'); }
+    $('bar').style.width = Math.round((e2-from)/(to-from)*100)+'%';
+  }
+  add('  ══ 끝 ══ '+JSON.stringify(합)+'\n');
+  lock(false);
+  if(mode==='apply') count();
+}
+
+$('prev').addEventListener('click', function(){ run('preview'); });
+$('apply').addEventListener('click', function(){ run('apply'); });
+
+/* ── 헤아리기 ── */
+$('stat').addEventListener('click', count);
+async function count(){
+  var box = $('s_out');
+  box.innerHTML = '<div class="cp-out">헤아리는 중…</div>';
+  async function n(qs){
+    var r = await fetch(SB_URL + '/rest/v1/artists?' + qs, {
+      headers:{ apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, Prefer:'count=exact', Range:'0-0' }});
+    var m = (r.headers.get('content-range')||'').match(/\/(\d+)$/);
+    return m ? parseInt(m[1],10) : 0;
+  }
+  try{
+    var rows = [
+      ['보이는 작가', await n('select=id&hidden=not.is.true')],
+      ['초상 있음',   await n('select=id&hidden=not.is.true&image_url=not.is.null')],
+      ['  — 한글 이름', await n('select=id&hidden=not.is.true&image_url=not.is.null&name_ko=imatch.[가-힣]')],
+      ['  — 로마자 이름', await n('select=id&hidden=not.is.true&image_url=not.is.null&name_ko=not.imatch.[가-힣]')],
+      ['생몰 있음',   await n('select=id&hidden=not.is.true&birth_year=not.is.null')],
+      ['소개 있음',   await n('select=id&hidden=not.is.true&bio=not.is.null')],
+      ['아직 초상 없음 · 로마자', await n('select=id&hidden=not.is.true&image_url=is.null&name_ko=not.imatch.[가-힣]')]
+    ];
+    var h = '<table class="cp-tbl"><tr><th>갈래</th><th class="cp-num">사람</th></tr>';
+    rows.forEach(function(r){ h += '<tr><td>'+r[0]+'</td><td class="cp-num">'+r[1].toLocaleString()+'</td></tr>'; });
+    h += '</table>';
+    box.innerHTML = h;
+  }catch(e){ box.innerHTML = '<div class="cp-out">오류 · '+e+'</div>'; }
+}
+
+/* ── 얼굴 보기 — 붙은 초상이 진짜 그 사람인지 눈으로 ── */
+$('peek').addEventListener('click', async function(){
+  var box = $('faces'); box.innerHTML = '<div class="cp-lab">불러오는 중…</div>';
+  try{
+    var r = await fetch(SB_URL + '/rest/v1/artists'
+      + '?select=name_ko,birth_year,death_year,image_url&hidden=not.is.true'
+      + '&image_url=not.is.null&order=updated_at.desc&limit=18',
+      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    var rows = await r.json();
+    box.innerHTML = '';
+    rows.forEach(function(a){
+      var d = document.createElement('div'); d.className='cp-face';
+      var im = document.createElement('img'); im.src=a.image_url; im.alt=a.name_ko;
+      im.onerror = function(){ d.style.opacity='.4'; };
+      d.appendChild(im);
+      d.appendChild(document.createTextNode(a.name_ko + (a.birth_year? ' '+a.birth_year : '')));
+      box.appendChild(d);
+    });
+  }catch(e){ box.innerHTML = '<div class="cp-lab">오류 · '+e+'</div>'; }
+});
+</script>
+</body>
+</html>
