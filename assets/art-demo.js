@@ -122,14 +122,46 @@
     if (!fill.length) return;
     /* ★ hidden=not.is.true — 「=false」로 하면 <b>빈 값인 줄이 통째로
          빠집니다.</b> 오퍼스클램에서 여러 번 겪은 일입니다. */
-    var url = OF.SB_URL + '/rest/v1/artworks'
+    /* ★★ 2026-09-12 · <b>한쪽으로 쏠리는 것</b>을 고쳤습니다.
+         전에는 quality 내림차순으로 60건만 받았습니다. 그러면
+         <b>가장 충실한 60건</b>만 오는데, 그것이 늘 한 자료원에 몰립니다.
+           · 아침 — 공유마당·클리블랜드 동양 부서라 <b>동양 일색</b>
+           · 클리블랜드 회화를 담은 뒤 — 작가·재료·크기·설명이 다 있어
+             quality 최고점을 받아 <b>서양 일색</b>
+         자료가 바뀌면 <b>쏠리는 쪽만 바뀔 뿐</b> 늘 한쪽입니다.
+       ▶ <b>자료원을 나눠</b> 고르게 받아 섞습니다.
+         소장처(holder)가 자료원을 가장 잘 가릅니다 —
+         공유마당·클리블랜드·메트·커먼즈가 서로 다릅니다. */
+    var BASE = OF.SB_URL + '/rest/v1/artworks'
       + '?select=id,title,year_text,medium,holder,artist_name,image_url,image_small'
-      + '&hidden=not.is.true&rights=eq.public&image_small=not.is.null'
-      + '&order=quality.desc,id.asc&limit=' + Math.max(60, fill.length * 6);
+      + '&hidden=not.is.true&rights=eq.public&image_small=not.is.null';
 
-    return get(url).then(function (rows) {
+    /* 자료원마다 넉넉히 받습니다. 없는 곳은 빈 채로 지나갑니다. */
+    var 갈래 = [
+      '&holder=like.*Cleveland*&holder_dept=in.(%22European%20Painting%20and%20Sculpture%22,%22Modern%20European%20Painting%20and%20Sculpture%22,%22American%20Painting%20and%20Sculpture%22,Drawings,Photography,%22Greek%20and%20Roman%20Art%22,%22Medieval%20Art%22,%22Art%20of%20the%20Americas%22)',
+      '&holder=like.*Cleveland*&holder_dept=in.(%22Japanese%20Art%22,%22Chinese%20Art%22,%22Korean%20Art%22,%22Indian%20and%20Southeast%20Asian%20Art%22,%22Islamic%20Art%22)',
+      '&gongu_sn=not.is.null',
+      '&met_id=not.is.null',
+      '&commons_file=not.is.null'
+    ];
+    var 몫 = Math.max(24, fill.length * 3);
+
+    return Promise.all(갈래.map(function (q) {
+      return get(BASE + q + '&order=quality.desc,id.asc&limit=' + 몫)
+             .catch(function () { return []; });
+    })).then(function (묶음) {
+      /* ★ 자료원마다 <b>먼저 섞은 뒤</b> 번갈아 뽑습니다.
+           그냥 이어 붙이면 앞 자료원이 앞자리를 다 차지합니다. */
+      묶음.forEach(function (b) { shuffle(b); });
+      var rows = [], 남음 = true, k = 0;
+      while (남음) {
+        남음 = false;
+        for (var i = 0; i < 묶음.length; i++) {
+          if (묶음[i][k]) { rows.push(묶음[i][k]); 남음 = true; }
+        }
+        k++;
+      }
       if (!rows.length) { calm(fill); return; }
-      shuffle(rows);
       rows.forEach(function (w) {
         w._alt = (w.artist_name ? w.artist_name + ', ' : '') + (w.title || '작품');
       });
