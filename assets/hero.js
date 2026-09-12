@@ -136,11 +136,19 @@
     });
   }
 
-  /* 「2026.08.27 — 2027.02.14」 */
+  /* 「2026.08.27 — 09.14」 · 해가 바뀌면 「2026.06.11 — 2027.05.16」
+     ★★ 2026-09-11 고침 — <b>날짜가 거꾸로 보였습니다.</b>
+       예전에는 끝 날짜에서 <b>늘</b> 연도를 뗐습니다(slice(5)).
+       그래서 해가 바뀌는 전시가 「2026.06.11 — 05.16」 으로 나와
+       끝이 시작보다 앞선 것처럼 읽혔습니다.
+       ▶ <b>해가 같을 때만</b> 뗍니다. */
   function period(a, b) {
     var f = function (d) { return String(d || '').replace(/-/g, '.'); };
     if (!a && !b) return null;
-    return f(a) + ' — ' + f(b).slice(5);
+    var ya = String(a || '').slice(0, 4);
+    var yb = String(b || '').slice(0, 4);
+    var tail = (ya && yb && ya === yb) ? f(b).slice(5) : f(b);
+    return f(a) + ' — ' + tail;
   }
 
   function exhibitionSlide(e) {
