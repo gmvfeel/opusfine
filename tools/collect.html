@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>전시 수집 · OPUSFINE</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   OPUSFINE · 전시 수집 · tools/collect.html
+   ------------------------------------------------------------------
+   ★ 무엇을 하는가
+     /api/collect 에 <b>방아쇠만</b> 당깁니다.
+     받아오기·해석·담기는 전부 서버가 합니다.
+     이 화면에는 <b>열쇠가 없습니다</b> — 자물쇠 글자만 넣습니다.
+
+   ★ 왜 화면이 필요한가
+     한 번에 12쪽까지만 부를 수 있어(Vercel Function 이 오래 못
+     붙듭니다) 97쪽을 끊어 불러야 합니다. 그 되풀이를 여기서 합니다.
+
+   ★ of.css 를 <b>부르지 않습니다.</b>
+     tools/cma-proof.html 이 of.css 와 부딪혀 무너진 일이
+     있었습니다(2026-08-23). probe.html 과 같은 판단입니다.
+   ★ 이름 앞에 <b>cl-</b> 를 붙여 무엇과도 겹치지 않게 했습니다.
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cl-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.cl-h1{font-size:26px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.cl-lead{color:#5C5C60;font-size:14px;margin:0 0 8px}
+.cl-warn{font-size:13px;color:#1F4B47;border:1px solid #CFDDD9;background:#F6FAF9;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.cl-warn b{color:#1F4B47}
+.cl-danger{font-size:13px;color:#8C3A2E;border:1px solid #E4CFCB;background:#FDF7F6;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+
+.cl-h2{font-size:17px;font-weight:600;margin:38px 0 6px;
+  padding-top:18px;border-top:1px solid #E6E4DE}
+.cl-note{font-size:13px;color:#7A7A7E;margin:0 0 14px;line-height:1.75}
+.cl-note b{color:#8C3A2E}
+
+.cl-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.cl-btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;
+  border:1px solid #17171A;background:#17171A;color:#fff;cursor:pointer;transition:.15s}
+.cl-btn:hover{opacity:.82}
+.cl-btn.cl-gh{background:transparent;color:#17171A}
+.cl-btn.cl-rd{background:transparent;color:#8C3A2E;border-color:#8C3A2E}
+.cl-btn:disabled{opacity:.35;cursor:default}
+.cl-in{font:inherit;font-size:13px;padding:8px 11px;border:1px solid #D8D6D0;min-width:90px}
+.cl-in.cl-wide{min-width:320px}
+.cl-lab{font-size:12px;color:#7A7A7E}
+
+.cl-bar{height:6px;background:#EEECE6;margin:10px 0 4px;overflow:hidden}
+.cl-bar i{display:block;height:100%;width:0;background:#17171A;transition:width .2s}
+
+.cl-out{margin-top:12px;border:1px solid #E6E4DE;background:#FCFBF9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-all;
+  padding:14px 16px;max-height:480px;overflow:auto}
+.cl-out:empty{display:none}
+
+.cl-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 0}
+.cl-tbl th,.cl-tbl td{border-bottom:1px solid #EEECE6;padding:7px 9px;text-align:left}
+.cl-tbl th{font-weight:600;color:#7A7A7E;font-size:12px}
+.cl-num{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="cl-wrap">
+
+  <h1 class="cl-h1">전시 수집</h1>
+  <p class="cl-lead">두 자료원에서 전시를 받아 <code>exhibitions</code> 에 담습니다.</p>
+
+  <div class="cl-warn">
+    <b>A-preview → B-apply → C-undo</b> 세 벌입니다.
+    먼저 <b>미리보기</b>로 무엇이 담길지 보시고, 그다음 <b>담기</b>를 누르십시오.
+    잘못되면 <b>되돌리기</b>가 그 자료원으로 담은 것을 통째로 지웁니다.
+  </div>
+
+  <!-- ── 자물쇠 ─────────────────────────────────────────── -->
+  <h2 class="cl-h2">자물쇠</h2>
+  <p class="cl-note">
+    Vercel 환경변수 <b>COLLECT_TOKEN</b> 에 넣으신 글자입니다.
+    이 창에만 잠깐 머물고 <b>저장되지 않습니다</b>(창을 닫으면 사라집니다).
+  </p>
+  <div class="cl-row">
+    <input id="tok" class="cl-in cl-wide" type="password" placeholder="COLLECT_TOKEN" autocomplete="off">
+    <span class="cl-lab" id="tokmsg"></span>
+  </div>
+
+  <!-- ── 12개 기관 ──────────────────────────────────────── -->
+  <h2 class="cl-h2">12개 기관 전시정보 · 9,605건</h2>
+  <p class="cl-note">
+    <code>api.kcisa.kr</code> · 문화포털 열쇠.
+    <b>GENRE 가 채워진 것만</b> 담습니다(약 절반).
+    그 칼 하나로 국립중앙박물관의 유물 단품(굽다리 항아리 …)이 저절로 걸러지고,
+    남는 것은 <b>기간이 100% 있습니다</b>.
+    한 쪽에 100줄 · 모두 <b>97쪽</b>입니다.
+  </p>
+  <div class="cl-row">
+    <span class="cl-lab">쪽</span>
+    <input id="k_from" class="cl-in" type="number" value="1" min="1">
+    <span class="cl-lab">~</span>
+    <input id="k_to" class="cl-in" type="number" value="97" min="1">
+    <button class="cl-btn cl-gh" data-src="kcisa145" data-mode="preview">미리보기</button>
+    <button class="cl-btn"        data-src="kcisa145" data-mode="apply">담기</button>
+    <button class="cl-btn cl-rd"  data-src="kcisa145" data-mode="undo">되돌리기</button>
+  </div>
+  <div class="cl-bar"><i id="k_bar"></i></div>
+  <div class="cl-out" id="k_out"></div>
+
+  <!-- ── 한눈에보는 ─────────────────────────────────────── -->
+  <h2 class="cl-h2">한눈에보는문화정보 · 전시 304건</h2>
+  <p class="cl-note">
+    <code>apis.data.go.kr</code> · 공공데이터포털 열쇠.
+    <b>304건 전부</b> 담습니다 — <code>serviceName</code> 이 「공연」인 11건도
+    열어 보니 전부 미술 전시였습니다(이응노·유영국·반 고흐 …).
+    날짜·장소가 <b>100%</b> 있고 <b>전국 16곳</b>이 들어옵니다.
+    한 쪽에 <b>10줄만</b> 오므로 모두 <b>31쪽</b>입니다.
+  </p>
+  <div class="cl-row">
+    <span class="cl-lab">쪽</span>
+    <input id="c_from" class="cl-in" type="number" value="1" min="1">
+    <span class="cl-lab">~</span>
+    <input id="c_to" class="cl-in" type="number" value="31" min="1">
+    <button class="cl-btn cl-gh" data-src="cultureinfo" data-mode="preview">미리보기</button>
+    <button class="cl-btn"        data-src="cultureinfo" data-mode="apply">담기</button>
+    <button class="cl-btn cl-rd"  data-src="cultureinfo" data-mode="undo">되돌리기</button>
+  </div>
+  <div class="cl-bar"><i id="c_bar"></i></div>
+  <div class="cl-out" id="c_out"></div>
+
+  <!-- ── 지금 담긴 것 ───────────────────────────────────── -->
+  <h2 class="cl-h2">지금 담긴 것</h2>
+  <p class="cl-note">DB 를 읽기만 합니다. 아무 때나 눌러 보셔도 됩니다.</p>
+  <div class="cl-row">
+    <button class="cl-btn cl-gh" id="stat">헤아리기</button>
+  </div>
+  <div id="s_out"></div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ★ 여기에는 열쇠가 없습니다.
+     공개키(anon)는 헤아리기에만 씁니다 — 읽기 전용입니다.
+     service key 는 <b>서버 안에만</b> 있습니다.
+   ══════════════════════════════════════════════════════════════ */
+var SB_URL = 'https://jmankqdbvyrnyhxjmqsa.supabase.co';
+var SB_KEY = 'sb_publishable_q8y3AUDpoQrT86HmZMLBHA_dn9-CJ3x';
+
+var MAX = 12;   /* 한 번에 부를 수 있는 쪽 수 — api/collect.js 와 같아야 합니다 */
+
+function $(id){ return document.getElementById(id); }
+function say(el, s){ el.textContent = s; }
+function add(el, s){ el.textContent += s; el.scrollTop = el.scrollHeight; }
+
+/* 자물쇠 — sessionStorage 에만 둡니다 (창 닫으면 사라집니다) */
+var tok = $('tok');
+try{ var t0 = sessionStorage.getItem('of_collect_tok'); if(t0) tok.value = t0; }catch(e){}
+tok.addEventListener('input', function(){
+  try{ sessionStorage.setItem('of_collect_tok', tok.value); }catch(e){}
+  $('tokmsg').textContent = tok.value ? '넣으셨습니다' : '';
+});
+if(tok.value) $('tokmsg').textContent = '넣으셨습니다';
+
+/* ── 단추 ───────────────────────────────────────────────── */
+document.querySelectorAll('button[data-src]').forEach(function(b){
+  b.addEventListener('click', function(){ run(b.dataset.src, b.dataset.mode); });
+});
+
+function ui(src){
+  return src === 'kcisa145'
+    ? { from:$('k_from'), to:$('k_to'), out:$('k_out'), bar:$('k_bar') }
+    : { from:$('c_from'), to:$('c_to'), out:$('c_out'), bar:$('c_bar') };
+}
+
+function lock(on){
+  document.querySelectorAll('button[data-src]').forEach(function(b){ b.disabled = on; });
+}
+
+async function run(src, mode){
+  var u = ui(src);
+  if(!tok.value){ say(u.out, '자물쇠를 먼저 넣어 주십시오.'); return; }
+
+  /* ── C-undo ─────────────────────────────────────────── */
+  if(mode === 'undo'){
+    if(!confirm(src + ' 로 담은 것을 모두 지웁니다. 하시겠습니까?')) return;
+    lock(true); say(u.out, '지우는 중…\n');
+    try{
+      var r = await fetch('/api/collect?token=' + encodeURIComponent(tok.value)
+              + '&src=' + src + '&mode=undo');
+      add(u.out, JSON.stringify(await r.json(), null, 1));
+    }catch(e){ add(u.out, '\n오류 · ' + e); }
+    lock(false); return;
+  }
+
+  var from = Math.max(1, parseInt(u.from.value,10) || 1);
+  var to   = Math.max(from, parseInt(u.to.value,10) || from);
+
+  lock(true);
+  u.bar.style.width = '0%';
+  say(u.out, (mode === 'apply' ? '담는' : '미리보는') + ' 중 · ' + from + '~' + to + '쪽\n\n');
+
+  var 합 = { 받은줄:0, 담을줄:0, 거른줄:0, 날짜있음:0, 지금열림:0, 포스터:0,
+             갈래:{art:0,museum:0,other:0}, 전체건수:null, 실패쪽:[] };
+
+  for(var p = from; p <= to; p += MAX){
+    var q = Math.min(p + MAX - 1, to);
+    var url = '/api/collect?token=' + encodeURIComponent(tok.value)
+            + '&src=' + src + '&mode=' + mode + '&from=' + p + '&to=' + q;
+    try{
+      var res = await fetch(url);
+      var j = await res.json();
+      if(!res.ok){ add(u.out, p+'~'+q+'쪽 · 막힘 · ' + JSON.stringify(j).slice(0,200) + '\n');
+                   합.실패쪽.push(p+'~'+q); }
+      else{
+        합.받은줄 += j.받은줄||0; 합.담을줄 += j.담을줄||0; 합.거른줄 += j.거른줄||0;
+        합.날짜있음 += j.날짜있음||0; 합.지금열림 += j.지금열림||0; 합.포스터 += j.포스터||0;
+        if(j.전체건수) 합.전체건수 = j.전체건수;
+        if(j.갈래){ 합.갈래.art += j.갈래.art||0; 합.갈래.museum += j.갈래.museum||0; 합.갈래.other += j.갈래.other||0; }
+        add(u.out, p+'~'+q+'쪽 · 받은줄 '+(j.받은줄||0)+' · 쓸것 '+(j.담을줄||0)
+                 + (j.한일 ? ' · '+j.한일 : '') + '\n');
+        if(mode !== 'apply' && j.맛보기 && p === from){
+          add(u.out, '\n  ── 맛보기 ──\n');
+          j.맛보기.forEach(function(s){ add(u.out, '  ' + s + '\n'); });
+          add(u.out, '\n');
+        }
+      }
+    }catch(e){ add(u.out, p+'~'+q+'쪽 · 오류 · ' + e + '\n'); 합.실패쪽.push(p+'~'+q); }
+
+    u.bar.style.width = Math.round((q - from + 1) / (to - from + 1) * 100) + '%';
+  }
+
+  add(u.out, '\n══ 끝 ══\n' + JSON.stringify(합, null, 1) + '\n');
+  lock(false);
+  if(mode === 'apply') count();
+}
+
+/* ── 헤아리기 ───────────────────────────────────────────── */
+$('stat').addEventListener('click', count);
+
+async function count(){
+  var box = $('s_out');
+  box.innerHTML = '<div class="cl-out">헤아리는 중…</div>';
+  var 오늘 = new Date().toISOString().slice(0,10);
+
+  async function n(qs){
+    var r = await fetch(SB_URL + '/rest/v1/exhibitions?' + qs, {
+      headers:{ apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, Prefer:'count=exact', Range:'0-0' }
+    });
+    var cr = r.headers.get('content-range') || '';
+    var m = cr.match(/\/(\d+)$/);
+    return m ? parseInt(m[1],10) : 0;
+  }
+
+  try{
+    var rows = [
+      ['모두',        await n('select=id')],
+      ['미술(art)',   await n('select=id&kind=eq.art')],
+      ['박물(museum)',await n('select=id&kind=eq.museum')],
+      ['그 밖(other)',await n('select=id&kind=eq.other')],
+      ['날짜 있음',   await n('select=id&start_date=not.is.null&end_date=not.is.null')],
+      ['지금 열림',   await n('select=id&start_date=lte.'+오늘+'&end_date=gte.'+오늘)],
+      ['지금 열림 · 미술', await n('select=id&kind=eq.art&start_date=lte.'+오늘+'&end_date=gte.'+오늘)],
+      ['포스터 있음', await n('select=id&poster_url=not.is.null')]
+    ];
+    var h = '<table class="cl-tbl"><tr><th>갈래</th><th class="cl-num">건수</th></tr>';
+    rows.forEach(function(r){ h += '<tr><td>'+r[0]+'</td><td class="cl-num">'+r[1].toLocaleString()+'</td></tr>'; });
+    h += '</table>';
+    box.innerHTML = h;
+  }catch(e){
+    box.innerHTML = '<div class="cl-out">오류 · ' + e + '</div>';
+  }
+}
+</script>
+</body>
+</html>
