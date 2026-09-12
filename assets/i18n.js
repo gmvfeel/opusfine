@@ -1052,8 +1052,13 @@
       /* 어두운 화면 — 단추도 이웃과 같은 결로 */
       'html[data-theme="dark"] .of-lang>button{color:#9B9B9E !important}' +
       'html[data-theme="dark"] .of-lang>button:hover{color:#F5F4F0 !important}' +
-      '.of-lang-float{position:fixed;top:10px;right:12px;z-index:9998;margin:0;padding:2px 4px;border-radius:7px;background:rgba(20,18,40,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff}' +
-      '.of-lang-float>button{opacity:.9}' +
+      /* ★ backdrop-filter 는 display:none 이어도 그 자리가 그려지는
+         브라우저가 있습니다. 오퍼스파인은 흰 바탕이라 굳이 흐리게
+         할 까닭이 없으므로 <b>뺐습니다.</b> */
+      '.of-lang-float{position:fixed;top:10px;right:12px;z-index:9998;margin:0;'+
+      'padding:4px 8px;border-radius:0;background:#fff;border:1px solid #E5E4E0;color:#57575B}' +
+      '.of-lang-float[style*="display: none"]{display:none !important}' +
+      '.of-lang-float>button{opacity:1;color:#57575B !important}' +
       /* ★ 큰 광고의 아래를 오른쪽 기둥에 맞추던 자리 (영어·일본어에서만)
          ─────────────────────────────────────────────────────────────
          ★★ 2026-08-19 · <b>맞추기를 그만두었습니다</b> (파트너 결정)
@@ -1210,14 +1215,40 @@
       if (all[i].classList.contains('of-lang-float')) continue;
       if (shown(all[i])) { keep = all[i]; break; }
     }
-    /* 어느 자리도 안 보이면 — 떠 있는 것을 하나 둡니다 */
+    /* 어느 자리도 안 보이면 — 떠 있는 것을 하나 둡니다
+       ★★ 2026-09-11 · 오퍼스파인에서는 <b>기다렸다가</b> 만듭니다.
+         오퍼스클램은 헤더가 없는 화면(index.html·legal/*)이 있어
+         곧바로 띄워야 했습니다. 오퍼스파인은 <b>모든 화면이
+         partials/header.html 을 끼웁니다.</b> 그런데 그 헤더는
+         include.js 가 <b>나중에</b> 넣으므로, 엔진이 처음 돌 때는
+         붙을 자리가 없습니다.
+         그때 곧바로 띄우면 — 화면 오른쪽 위에 <b>어두운 알약이
+         잠깐 나타났다가</b> 헤더가 들어오면 사라집니다.
+         서브 화면처럼 느린 곳에서는 <b>그대로 남아 보입니다.</b>
+         (파트너가 그림으로 찾아 주셨습니다)
+       ▶ 헤더가 올 시간을 주고, 그래도 없을 때만 띄웁니다. */
     if (!keep) {
       var f = document.querySelector('.of-lang-float');
-      if (!f && document.body) {
-        f = buildPicker(document.body);
-        if (f) f.className = 'of-lang of-lang-float';
+      if (f) {
+        keep = f;
+      } else if (document.body) {
+        /* 헤더를 기다립니다 — 이미 기다리는 중이면 두 번 걸지 않습니다 */
+        if (!window.__ofFloatWait) {
+          window.__ofFloatWait = setTimeout(function () {
+            window.__ofFloatWait = 0;
+            /* 그 사이에 헤더가 들어왔으면 아무것도 하지 않습니다 */
+            var hostFound = false;
+            for (var k = 0; k < HOSTS.length; k++) {
+              if (document.querySelector(HOSTS[k])) { hostFound = true; break; }
+            }
+            if (hostFound) { mountPicker(); return; }
+            var ff = buildPicker(document.body);
+            if (ff) { ff.className = 'of-lang of-lang-float'; syncPickers(); }
+          }, 2500);
+        }
+        /* 지금은 아무것도 보이지 않게 둡니다 — 깜빡임보다 낫습니다 */
+        keep = null;
       }
-      keep = f;
     }
     all = [].slice.call(document.querySelectorAll('.of-lang'));
     all.forEach(function (el) {
