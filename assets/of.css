@@ -345,18 +345,21 @@ html[data-theme="dark"] .dd.dd-wide .dd-in{background:var(--paper)}
      차이를 지키니 두 줄의 관계는 그대로이고 전체만 가벼워집니다.
    ★ 100 은 Noto Serif KR 의 가장 얇은 굵기입니다. 큰 활자에서만 살아
      있으므로, 작은 화면에서는 아래 미디어쿼리로 올립니다. */
-/* ★★ 2026-09-11 고침 — <b>86px 에서 52px 로 줄였습니다.</b>
+/* ★★ 2026-09-11 고침 — <b>86px 에서 60px 로 줄였습니다.</b>
      까닭 — 히어로에 <b>전시 제목</b>이 걸리는데 86px 에서는 46자짜리가
      세 줄을 꽉 채워 넘쳤습니다. 전시 879건의 제목 길이를 재어 보니
        중간값 25자 · 90%가 44자 이하 · 51자 넘는 것은 42건(4.8%)
-     52px 이면 46자가 <b>두 줄</b>에 들어가고, 「오윤」 두 글자도
-     허전하지 않습니다. 실제 화면에 다섯 크기를 나란히 놓고 고른 값입니다.
+     처음에 52px 로 줄였더니 이번에는 <b>소개 슬라이드</b>가 눌렸습니다
+     —「작품과 사람을 / 제대로 기록하는 곳」처럼 짧고 굵은 한 문장은
+     큰 활자라야 삽니다. 전시 제목과 소개 문장이 <b>맞바꾸는 관계</b>라
+     실제 화면에 여러 크기를 나란히 놓고 <b>60px</b> 로 정했습니다.
+     46자 제목이 두세 줄에 들어가고 소개 문장도 시원합니다.
    ★ 길이에 따라 크기를 바꾸지 <b>않습니다.</b> 슬라이드가 넘어갈 때
      글씨가 들쭉날쭉해 보입니다. 5%를 위해 95%를 흔들지 않습니다.
    ★ 대신 <b>세 줄에서 자릅니다</b>(-webkit-line-clamp).
      제목 때문에 히어로 높이가 들쑥날쑥해지지 않습니다. */
 .hero h1{font-family:var(--serif);font-weight:100;
-  font-size:clamp(30px,4.2vw,52px);line-height:1.22;
+  font-size:clamp(32px,4.8vw,60px);line-height:1.22;
   letter-spacing:-.035em;margin:22px 0 0;min-height:2.44em;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
   overflow:hidden}
