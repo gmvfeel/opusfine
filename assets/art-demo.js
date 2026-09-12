@@ -234,15 +234,36 @@
        ★ order=id.desc — 제목이 「오늘 새로 쌓인 작가」이므로
          <b>늦게 들어온 순</b>으로 봅니다. 제목과 내용이 달라선 안 됩니다.
        ★ 죽은 주소가 섞이므로 자리 수의 네 배쯤 넉넉히 부릅니다. */
-    var url = OF.SB_URL + '/rest/v1/artists'
+    /* ★★ 2026-09-12 · 작품 자리와 <b>같은 쏠림</b>이 여기도 있었습니다.
+         order=id.desc 하나로만 부르니 —
+           · 아침 — 초상 있는 작가 125명 중 110명이 한국인이라 <b>한국 일색</b>
+           · 클리블랜드 작가 초상을 받은 뒤 — 늦게 담겨 <b>앞 48명이 전부 로마자</b>
+         자료가 바뀌면 <b>쏠리는 쪽만 바뀔 뿐</b> 늘 한쪽입니다.
+       ▶ 한글 이름과 로마자 이름을 <b>따로 받아 번갈아</b> 뽑습니다.
+       ★ 제목이 「오늘 새로 쌓인 작가」이므로 각 갈래 안에서는
+         <b>늦게 들어온 순</b>을 지킵니다. 제목과 내용이 달라선 안 됩니다. */
+    var A = OF.SB_URL + '/rest/v1/artists'
       + '?select=id,name_ko,name_han,life,birth_year,death_year,image_url'
-      + '&hidden=not.is.true&image_url=not.is.null'
-      + '&order=id.desc&limit=' + Math.max(48, faces.length * 4);
+      + '&hidden=not.is.true&image_url=not.is.null';
+    var 몫 = Math.max(24, faces.length * 2);
 
-    return get(url).then(function (rows) {
+    return Promise.all([
+      get(A + '&name_ko=imatch.[가-힣]&order=id.desc&limit=' + 몫).catch(function () { return []; }),
+      get(A + '&name_ko=not.imatch.[가-힣]&order=id.desc&limit=' + 몫).catch(function () { return []; })
+    ]).then(function (묶음) {
+      /* 번갈아 — [한글, 로마자, 한글, 로마자, …] */
+      var rows = [], 남음 = true, k = 0;
+      while (남음) {
+        남음 = false;
+        for (var i = 0; i < 묶음.length; i++) {
+          if (묶음[i][k]) { rows.push(묶음[i][k]); 남음 = true; }
+        }
+        k++;
+      }
       if (!rows.length) { calm(faces); return; }
       rows.forEach(function (a) { a._alt = (a.name_ko || '') + ' 도판'; });
-      rows.sort(function (x, y) { return faceScore(y) - faceScore(x); });
+      /* ★ faceScore 로 다시 정렬하면 <b>번갈아 놓은 것이 흐트러집니다.</b>
+           갈래 안에서만 쓰도록 여기서는 걷어냅니다. */
 
       /* ★ 카드 수를 <b>열의 배수</b>로 맞춥니다 (격자가 6·4·3열).
            12 는 셋 모두의 배수이고, 모자라면 6 으로 내립니다.
@@ -256,10 +277,15 @@
         if (card && card.parentNode) card.parentNode.removeChild(card);
       });
 
+      /* ★ 작품 자리와 <b>같은 함정</b>입니다 — 번갈아 놓은 rows 를
+           연속한 덩어리로 자르면 한 자리는 덩어리의 <b>첫 장만</b> 쓰므로
+           다시 한쪽으로 뭉칩니다.
+         ▶ <b>건너뛰며</b> 나눠 줍니다. 자리 i 는 i, i+n, i+2n … */
       var use = faces.slice(0, n);
-      var per = Math.max(2, Math.floor(rows.length / Math.max(1, use.length)));
       use.forEach(function (el, i) {
-        put(el, rows.slice(i * per, i * per + per), 3, artistCard);
+        var 몫2 = [];
+        for (var k2 = i; k2 < rows.length && 몫2.length < 5; k2 += use.length) 몫2.push(rows[k2]);
+        put(el, 몫2, 3, artistCard);
       });
 
       credit();
