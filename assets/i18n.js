@@ -995,14 +995,21 @@
              · 짙은 헤더 위 — 알약은 묻히고 흰 글씨만 또렷합니다
              · 밝은 바탕 위 — 알약이 드러나 흰 글씨를 받쳐 줍니다
            재지 않으니 흔들릴 일도 없습니다. */
-      '.of-lang>button{border:0;cursor:pointer;font:inherit;font-size:11px;font-weight:700;' +
-      'letter-spacing:.06em;line-height:1;display:inline-flex;align-items:center;gap:4px;' +
-      'padding:5px 9px;border-radius:13px;background:rgba(16,14,32,.42) !important;' +
-      'color:#fff !important;opacity:1;transition:background .2s ease}' +
-      '.of-lang>button:hover{background:rgba(16,14,32,.68) !important}' +
-      '.mast-tools .of-lang{margin-left:0}' +
+      /* ★★ 2026-09-11 · 오퍼스파인 결에 맞춰 고쳤습니다.
+           오퍼스클램은 <b>짙은 보라 헤더</b>라 어두운 알약에 흰 글씨가
+           어울렸습니다. 오퍼스파인은 <b>흰 바탕에 가는 줄</b>뿐이라
+           알약이 혼자 떠 보이고, 옆의 「로그인·회원가입」(10px 회색
+           글자)과 멀찍이 떨어진 것처럼 읽혔습니다. (파트너 지적)
+         ▶ <b>이웃과 같은 결</b>로 둡니다 — 바탕 없이 작은 회색 글자.
+           자리는 그대로인데 <b>붙어 보입니다.</b> */
+      '.of-lang>button{border:0;cursor:pointer;font:inherit;font-size:10px;font-weight:400;' +
+      'letter-spacing:.08em;line-height:1;display:inline-flex;align-items:center;gap:4px;' +
+      'padding:0;border-radius:0;background:transparent !important;' +
+      'color:var(--ink-3,#9B9B9E) !important;opacity:1;transition:color .2s ease}' +
+      '.of-lang>button:hover{color:var(--ink,#17171A) !important;background:transparent !important}' +
+      '.mast-tools .of-lang,.tools .of-lang,.u-r .of-lang{margin-left:0}' +
       '.of-lang>button::after{content:"";width:0;height:0;border-left:3px solid transparent;' +
-      'border-right:3px solid transparent;border-top:4px solid currentColor;opacity:.7}' +
+      'border-right:3px solid transparent;border-top:3.5px solid currentColor;opacity:.6}' +
       '.of-lang ul{position:absolute;top:100%;right:0;margin:4px 0 0;padding:5px 0;list-style:none;' +
       'min-width:112px;background:#fff;border:1px solid #e6e1d7;border-radius:8px;' +
       'box-shadow:0 8px 24px rgba(20,16,40,.14);display:none;z-index:9999}' +
@@ -1041,7 +1048,10 @@
       'html[data-theme="dark"] .of-lang ul{background:#161616;border-color:#2f2f2f}' +
       'html[data-theme="dark"] .of-lang ul li a{color:#e8e8e8 !important}' +
       'html[data-theme="dark"] .of-lang ul li a:hover{background:#242424 !important;color:#fff !important}' +
-      'html[data-theme="dark"] .of-lang ul li a.on{color:#b9a3e8 !important}' +
+      'html[data-theme="dark"] .of-lang ul li a.on{color:#8FB8B2 !important}' +
+      /* 어두운 화면 — 단추도 이웃과 같은 결로 */
+      'html[data-theme="dark"] .of-lang>button{color:#9B9B9E !important}' +
+      'html[data-theme="dark"] .of-lang>button:hover{color:#F5F4F0 !important}' +
       '.of-lang-float{position:fixed;top:10px;right:12px;z-index:9998;margin:0;padding:2px 4px;border-radius:7px;background:rgba(20,18,40,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff}' +
       '.of-lang-float>button{opacity:.9}' +
       /* ★ 큰 광고의 아래를 오른쪽 기둥에 맞추던 자리 (영어·일본어에서만)
