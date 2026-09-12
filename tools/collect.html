@@ -151,7 +151,9 @@ body{margin:0;background:#fff;color:#17171A;
 var SB_URL = 'https://jmankqdbvyrnyhxjmqsa.supabase.co';
 var SB_KEY = 'sb_publishable_q8y3AUDpoQrT86HmZMLBHA_dn9-CJ3x';
 
-var MAX = 12;   /* 한 번에 부를 수 있는 쪽 수 — api/collect.js 와 같아야 합니다 */
+/* ★ api/collect.js 의 MAX_PAGES 와 <b>같아야 합니다.</b>
+     12 이면 504 Gateway Timeout 이 납니다 (2026-09-12 확인). */
+var MAX = 6;
 
 function $(id){ return document.getElementById(id); }
 function say(el, s){ el.textContent = s; }

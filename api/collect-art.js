@@ -35,7 +35,14 @@
 
 const API = 'https://openaccess-api.clevelandart.org/api/artworks/';
 const PER = 100;              /* 한 번에 받는 수 — 저쪽 상한 */
-const MAX_SPAN = 1200;        /* 한 번 불렀을 때 훑을 수 (Vercel 이 오래 못 붙듭니다) */
+/* ★★ 2026-09-12 · 1200 에서 <b>300</b>으로 줄였습니다.
+     724건을 한 번에 처리하려다 <b>504 Gateway Timeout</b> 이 났습니다.
+     한 번 부를 때 바깥 API 를 8번 두드리고 담기를 4번 하니 너무 깁니다.
+     ▶ 300 이면 두드리기 3번 · 담기 2번. 전시 수집 때도 같은 일이 있었고
+       12쪽 → 6쪽으로 줄이니 지나갔습니다.
+     ★ 400건은 이미 들어갔습니다 — 시간 초과 전에 앞 묶음이 담깁니다.
+       겹쳐 담아도 cma_id 유일 색인이 덮어쓰기만 합니다. */
+const MAX_SPAN = 300;
 const TIMEOUT_MS = 15000;
 
 /* 아직 안 받은 부서 — 받은 셋(Japanese/Chinese/Korean Art)은 여기 없습니다 */
@@ -254,7 +261,7 @@ export default async function handler (req, res) {
 
   try {
     if (uniq.length) {
-      for (let i = 0; i < uniq.length; i += 200) await upsert(uniq.slice(i, i + 200));
+      for (let i = 0; i < uniq.length; i += 100) await upsert(uniq.slice(i, i + 100));
     }
     요약.한일 = '담음';
     res.status(200).json(요약);

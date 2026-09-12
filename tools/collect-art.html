@@ -111,7 +111,9 @@ var DEPTS = [
   ['Modern European Painting and Sculpture', 486], ['African Art', 384],
   ['American Painting and Sculpture', 297], ['Islamic Art', 294]
 ];
-var SPAN = 1200;   /* 한 번 부를 때 훑는 수 — api/collect-art.js 의 MAX_SPAN 과 같아야 합니다 */
+/* ★ api/collect-art.js 의 MAX_SPAN 과 <b>같아야 합니다.</b>
+     1200 이면 504 Gateway Timeout 이 납니다 (2026-09-12 확인). */
+var SPAN = 300;
 
 function $(id){ return document.getElementById(id); }
 function add(s){ var o=$('out'); o.textContent += s; o.scrollTop = o.scrollHeight; }

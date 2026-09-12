@@ -67,7 +67,11 @@ const SRC = {
 };
 
 const TIMEOUT_MS = 20000;
-const MAX_PAGES  = 12;          /* 한 번에 부를 수 있는 쪽 수 */
+/* ★★ 2026-09-12 · 12 에서 <b>6</b>으로 줄였습니다.
+     12쪽을 한 번에 처리하다 <b>504 Gateway Timeout</b> 이 났습니다
+     (25~36쪽). 손으로 6쪽씩 나눠 부르니 지나갔습니다.
+     ▶ 처음부터 6으로 두면 그 손이 안 듭니다. */
+const MAX_PAGES  = 6;
 
 /* ══════════════════════════════════════════════════════════════════
    아주 작은 XML 읽개
@@ -456,7 +460,7 @@ export default async function handler (req, res) {
   try {
     if (uniq.length) {
       /* 200줄씩 끊어 보냅니다 — 한 번에 너무 크면 저쪽이 거부합니다 */
-      for (let i = 0; i < uniq.length; i += 200) await upsert(uniq.slice(i, i + 200));
+      for (let i = 0; i < uniq.length; i += 100) await upsert(uniq.slice(i, i + 100));
     }
     요약.한일 = '담음';
     res.status(200).json(요약);
