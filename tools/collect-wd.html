@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집</h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 3</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -93,6 +93,7 @@ body{margin:0;background:#fff;color:#17171A;
     <input id="y1" class="cw-in" type="number" value="1975" min="1800" max="2030">
     <span class="cw-lab">~</span>
     <input id="y2" class="cw-in" type="number" value="1977" min="1800" max="2030">
+    <button class="cw-btn cw-gh" id="bTest">길 두드리기</button>
     <button class="cw-btn cw-gh" id="bPre">미리보기</button>
     <button class="cw-btn"       id="bApp">담기</button>
   </div>
@@ -197,22 +198,47 @@ function rowFrom(b){
   };
 }
 
-/* ★★★ 2026-09-13 · <b>GET 으로, 헤더를 하나도 붙이지 않고</b> 부릅니다.
-     처음에 POST + Accept 헤더로 짰더니 화면에서
-       ★ 위키데이터에서 막혔습니다 — Failed to fetch
-     가 났습니다. `Accept: application/sparql-results+json` 은
-     CORS 가 그냥 보내 주는 값이 아니라 <b>사전요청(OPTIONS)</b>이 생기는데,
+/* ★★★ 2026-09-13 · 위키데이터를 부르는 <b>두 길</b>을 차례로 씁니다.
+
+     처음에 POST + `Accept: application/sparql-results+json` 으로 짰더니
+     화면에서 「Failed to fetch」가 났습니다. 그 Accept 값은 브라우저가
+     그냥 보내 주는 값이 아니라 <b>사전요청(OPTIONS)</b>을 만드는데
      위키데이터가 그것을 받아 주지 않습니다.
-   ▶ 헤더를 안 붙이고 GET 으로 부르면 사전요청이 생기지 않습니다.
-     `format=json` 을 주소에 넣어 형식을 고릅니다.
-   ★ 주소 길이는 2,548자입니다. 넉넉합니다.
-   ★ 한 해에 <b>30초~1분</b> 걸립니다. 기다리십시오. */
+
+     ▶ 판 2 에서 GET 한 길로 바꿨는데도 또 막혔다는 말씀을 들었습니다.
+       그래서 판 3 은 <b>두 길을 차례로</b> 씁니다 —
+         ① GET  · 헤더 없음
+         ② POST · Content-Type 만 (이것도 사전요청이 안 생깁니다)
+       그리고 <b>어느 길에서 어떻게</b> 막혔는지 화면에 그대로 찍습니다.
+
+     ★ 둘 다 막히면 브라우저 쪽에서 막는 것입니다 —
+       광고·추적 차단 확장이 query.wikidata.org 를 막는 일이 있습니다.
+       그때는 확장을 잠시 끄고 다시 해 보십시오.
+   ★ 한 해에 <b>30초~1분</b> 걸립니다. */
 async function askYear(year){
-  var u = WDQS + '?format=json&query=' + encodeURIComponent(sparqlFor(year));
-  var r = await fetch(u);
-  if (!r.ok) throw new Error('위키데이터 ' + r.status);
-  var j = await r.json();
-  return j.results.bindings.map(rowFrom).filter(Boolean);
+  var sq = sparqlFor(year);
+  var 길 = [];
+
+  /* ① GET · 헤더를 하나도 붙이지 않습니다 */
+  try {
+    var u = WDQS + '?format=json&query=' + encodeURIComponent(sq);
+    var r1 = await fetch(u);
+    if (r1.ok) return (await r1.json()).results.bindings.map(rowFrom).filter(Boolean);
+    길.push('GET → HTTP ' + r1.status);
+  } catch (e) { 길.push('GET → ' + String(e.message || e)); }
+
+  /* ② POST · Content-Type 만 (Accept 를 안 붙이면 사전요청이 없습니다) */
+  try {
+    var r2 = await fetch(WDQS + '?format=json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'query=' + encodeURIComponent(sq)
+    });
+    if (r2.ok) return (await r2.json()).results.bindings.map(rowFrom).filter(Boolean);
+    길.push('POST → HTTP ' + r2.status);
+  } catch (e) { 길.push('POST → ' + String(e.message || e)); }
+
+  throw new Error('두 길 다 막힘 · ' + 길.join(' / '));
 }
 
 async function run(mode){
@@ -236,7 +262,13 @@ async function run(mode){
       한++; bar(한 / 해수 * 100);
     }
   } catch (e) {
-    add('\n★ 위키데이터에서 막혔습니다 — ' + String(e.message || e) + '\n');
+    add('\n★ 위키데이터에서 막혔습니다\n   ' + String(e.message || e) + '\n\n'
+      + '  볼 곳 —\n'
+      + '  · 이 화면 제목 옆에 「판 3」이 보이십니까? 안 보이면 옛 판입니다.\n'
+      + '    Ctrl+Shift+R (맥은 Cmd+Shift+R) 로 세게 새로 고쳐 주십시오.\n'
+      + '  · 광고·추적 차단 확장이 query.wikidata.org 를 막을 수 있습니다.\n'
+      + '    잠시 꺼 보십시오.\n'
+      + '  · 회사·학교 그물망이 막는 경우도 있습니다.\n');
     q('bPre').disabled = false; q('bApp').disabled = false; return;
   }
 
@@ -256,6 +288,26 @@ async function run(mode){
   }
   q('bPre').disabled = false; q('bApp').disabled = false;
 }
+
+/* ★ 아주 가벼운 조회 하나로 <b>길이 열려 있는지</b>만 봅니다.
+     한 해치를 기다리지 않고 몇 초 만에 답이 나옵니다. */
+q('bTest').addEventListener('click', async function(){
+  say('길을 두드립니다 (판 3)\n\n');
+  var sq = 'SELECT (COUNT(*) AS ?n) WHERE { wd:Q296 wdt:P106 ?o }';
+  try {
+    var r1 = await fetch(WDQS + '?format=json&query=' + encodeURIComponent(sq));
+    add('① GET  → HTTP ' + r1.status + (r1.ok ? ' · 열림' : '') + '\n');
+  } catch (e) { add('① GET  → 막힘 · ' + String(e.message || e) + '\n'); }
+  try {
+    var r2 = await fetch(WDQS + '?format=json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'query=' + encodeURIComponent(sq)
+    });
+    add('② POST → HTTP ' + r2.status + (r2.ok ? ' · 열림' : '') + '\n');
+  } catch (e) { add('② POST → 막힘 · ' + String(e.message || e) + '\n'); }
+  add('\n둘 다 막히면 차단 확장이나 그물망 문제입니다.');
+});
 
 q('bPre').addEventListener('click', function(){ run('preview'); });
 q('bApp').addEventListener('click', function(){
