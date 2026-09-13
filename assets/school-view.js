@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   OPUSFINE 미술대학 상세 · assets/school-view.js · 2026-09-07 고침판
+   OPUSFINE 미술대학 상세 · assets/school-view.js · 2026-09-13 고침판
    ------------------------------------------------------------------
    ★★ 이번에 고친 것 둘
 
@@ -34,6 +34,28 @@
 
         ★ 표가 아직 없거나 그 학교 줄이 없으면 <b>schools.alumni 원본을
           그대로 보여 줍니다.</b> 이관 전에도 화면이 비지 않습니다.
+
+   ══════════════════════════════════════════════════════════════════
+   ★★★ 2026-09-13 에 고친 것 — <b>관계의 방향을 뒤집었습니다</b>
+
+     오퍼스클램 entity_links 를 열어 보니 방향이 <b>반대</b>였습니다.
+
+       오퍼스클램 : person(사람) → alumnus_of → school(학교)   26,374줄
+       오퍼스파인 : school(학교) → alumnus_of → (이름만)          347줄
+
+     오퍼스클램은 사람 쪽에서 학교로 잇고, <b>학교 화면이 그것을 거꾸로
+     읽어</b> 출신 인물을 보여 줍니다. 오퍼스파인만 거꾸로 적고 있었습니다.
+
+     ▶ 고침 — <b>to_type=school &amp; to_id=&lt;이 학교&gt;</b> 로 읽습니다.
+       from_id 가 작가 id 이므로 artists 를 한 번 더 조회해 이름을 얻습니다.
+
+     ★ <b>못 이은 이름은 관계 표에 담기지 않습니다.</b> 새 방향에서는
+       출발점(작가)이 반드시 있어야 하기 때문입니다. 오퍼스클램도 같아서
+       schools.alumni 글자칸(751곳)을 나란히 두고 있습니다.
+       ▶ 그래서 이 화면은 <b>관계 표 + schools.alumni 글자칸</b> 둘을
+         겹쳐 보여 줍니다. 이어진 이름은 링크로, 나머지는 점선으로.
+
+     ★ 이름을 맞대는 norm() 은 <b>NFD 를 쓰지 않습니다.</b> 위 ① 참조.
 
    ★★ 그 밖에 지키는 것
      · hidden 은 <b>not.is.true</b>
@@ -71,6 +93,11 @@
     });
   }
   var hasKo = function (s) { return /[가-힣]/.test(String(s || '')); };
+
+  /* 이름 맞대기용 · NFD 를 쓰지 않습니다 (한글이 자모로 쪼개집니다) */
+  function norm(s) {
+    return String(s == null ? '' : s).normalize('NFC').toLowerCase().replace(/\s+/g, '');
+  }
 
   function head() {
     return { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
@@ -115,15 +142,47 @@
   }
 
   /* ── 동문 · entity_links 에서 읽습니다 ────────────────────────
-     이어진 것 : to_id 있음 → 작가 화면으로 링크
-     이름만    : to_id 비어 있음 → 점선으로 그대로 보임 */
+     방향 : 작가 → alumnus_of → 학교  (오퍼스클램과 같습니다)
+     그래서 이 학교를 찾을 때는 to_id 쪽으로 겁니다.
+
+     돌려주는 것
+       배열  : 이어진 동문들 {id, label, when, keys}
+       []    : 표는 읽었는데 이 학교에 이어진 동문이 없음
+       null  : 표를 못 읽음 → 부르는 쪽이 원본으로 되돌아갑니다  */
   async function loadAlumni(schoolId) {
     try {
       var rows = await get(OF.SB_URL + '/rest/v1/entity_links'
-        + '?select=to_id,to_label,from_year,to_year,date_note,sort_no'
-        + '&from_type=eq.school&from_id=eq.' + encodeURIComponent(schoolId)
+        + '?select=from_id,from_year,to_year,date_note,sort_no'
+        + '&to_type=eq.school&to_id=eq.' + encodeURIComponent(schoolId)
         + '&rel=eq.alumnus_of&order=sort_no.asc&limit=300');
-      return Array.isArray(rows) ? rows : null;
+      if (!Array.isArray(rows)) return null;
+      if (!rows.length) return [];
+
+      var ids = rows.map(function (r) { return r.from_id; })
+        .filter(function (v, i, a) { return v != null && a.indexOf(v) === i; });
+
+      var arts = await get(OF.SB_URL + '/rest/v1/artists'
+        + '?select=id,name_ko,name_en,art_name,name_alt'
+        + '&id=in.(' + ids.join(',') + ')'
+        + '&hidden=not.is.true&limit=300');
+
+      var byId = {};
+      (arts || []).forEach(function (a) { byId[a.id] = a; });
+
+      return rows.map(function (r) {
+        var a = byId[r.from_id];
+        if (!a) return null;            /* 숨긴 작가는 건너뜁니다 */
+        var when = '';
+        if (r.from_year || r.to_year) when = ' ' + (r.from_year || '') + '–' + (r.to_year || '');
+        else if (r.date_note)          when = ' ' + r.date_note;
+        return {
+          id: a.id,
+          label: a.name_ko || a.name_en || '(이름 없음)',
+          when: when,
+          keys: [a.name_ko, a.name_en, a.art_name, a.name_alt]
+        };
+      }).filter(Boolean);
+
     } catch (e) {
       /* 표가 아직 없으면 여기로 옵니다. 원본으로 되돌아갑니다. */
       return null;
@@ -160,23 +219,30 @@
     /* ── 동문 ── */
     h += '<div class="sv-sec"><div class="sv-sk">Alumni · 거쳐 간 작가</div>';
 
+    var raw = s.alumni
+      ? String(s.alumni).split(/\s*,\s*/).filter(Boolean)
+      : [];
+
     var items = null, fromTable = false;
-    if (links && links.length) {
-      items = links.map(function (r) {
-        var when = '';
-        if (r.from_year || r.to_year) {
-          when = ' ' + (r.from_year || '') + '–' + (r.to_year || '');
-        } else if (r.date_note) {
-          when = ' ' + r.date_note;
-        }
-        return { id: r.to_id, label: r.to_label, when: when };
-      });
+
+    if (links === null) {
+      /* 표를 못 읽었습니다 — 원본을 그대로 보여 줍니다 */
+      if (raw.length) {
+        items = raw.map(function (n) { return { id: null, label: n, when: '' }; });
+      }
+    } else {
+      /* 이어진 것 먼저, 그 다음 글자칸에만 있는 이름 */
       fromTable = true;
-    } else if (s.alumni) {
-      /* 표가 아직 없을 때 — 원본을 그대로 보여 줍니다 */
-      items = String(s.alumni).split(/\s*,\s*/).filter(Boolean).map(function (n) {
-        return { id: null, label: n, when: '' };
+      items = links.slice();
+
+      var taken = {};
+      links.forEach(function (it) {
+        (it.keys || []).forEach(function (k) { if (k) taken[norm(k)] = 1; });
       });
+      raw.forEach(function (n) {
+        if (!taken[norm(n)]) items.push({ id: null, label: n, when: '' });
+      });
+      if (!items.length) items = null;
     }
 
     if (items && items.length) {
