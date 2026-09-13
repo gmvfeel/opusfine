@@ -24,7 +24,7 @@
   var PER = 24;
   var grid, cntBox, moreBtn;
   var page = 0, total = 0, busy = false;
-  var q = '', fField = '', fEra = '', fHas = '';
+  var q = '', fField = '', fEra = '', fHas = '', fSort = '';
 
   /* ★★ 2026-08-24 · <b>자료 있는 작가</b>만 고르는 추리개.
        작가 4,600여 명 가운데 볼 것이 있는 사람은 일부입니다.
@@ -77,6 +77,31 @@
     '현대':      [1945, null]
   };
 
+  /* ★★ 2026-09-13 · <b>차례 고르개</b>를 넣었습니다.
+       여태 `quality.desc` 하나로 고정이었습니다. 그런데 그 값이 실제로
+       뜻하는 것은 <b>「한국 작가이면서 초상이 있는 사람」</b>이었습니다 —
+       quality 12점 이상은 초상이 거의 100%이고 전부 한국 사람이며,
+       <b>해외 작가 2,215명은 통째로 0점</b>이라 뒤로 밀렸습니다.
+       그래서 첫 화면이 조선시대 인물로 채워졌습니다.
+
+     ★ 오퍼스클램 인물DB 는 차례 고르개가 <b>열여섯 가지</b>이고
+       첫 칸이 「정보 충실도순」입니다. 같은 자리를 같은 방식으로 둡니다.
+     ★ `birth_year` 가 빈 작가가 4,000명이 넘습니다.
+       <b>nullslast</b> 를 빼면 그들이 앞으로 몰려 옵니다 (7-18 · 빈 칸 주의).
+     ★ 첫 열쇠가 무엇인지 늘 보십시오 — 뒤쪽 열쇠만 고치면 아무 일도
+       일어나지 않습니다 (7-17). */
+  var SORT = {
+    '':       'quality.desc,sort_no.desc,id.desc',
+    'new':    'id.desc',
+    'old':    'id.asc',
+    'ko':     'name_ko.asc.nullslast',
+    'koz':    'name_ko.desc.nullslast',
+    'en':     'name_en.asc.nullslast',
+    'enz':    'name_en.desc.nullslast',
+    'young':  'birth_year.desc.nullslast,id.desc',
+    'oldbir': 'birth_year.asc.nullslast,id.desc'
+  };
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -92,7 +117,7 @@
          그보다 많은 경우는 아직 없습니다(820명). */
     if (fHas && HAS[fHas] && HAS[fHas].length)
       p.push('id=in.(' + HAS[fHas].slice(0, 2000).join(',') + ')');
-    p.push('order=quality.desc,sort_no.desc,id.desc');
+    p.push('order=' + (SORT[fSort] || SORT['']));
 
     if (q) {
       var t = q.replace(/[,()*]/g, ' ').trim();
@@ -223,6 +248,15 @@
     if (groups[1]) chips(groups[1], function (v) { fEra   = v; });
 
     /* ★ 자료 추리개 — 누를 때 <b>번호를 먼저 받아</b> 두고 좁힙니다 */
+    /* ★ 차례 고르개 */
+    var sortSel = document.getElementById('fSort');
+    if (sortSel) {
+      sortSel.addEventListener('change', function () {
+        fSort = sortSel.value || '';
+        load(true);
+      });
+    }
+
     var hasBox = document.getElementById('fHas');
     if (hasBox) hasBox.querySelectorAll('button').forEach(function (b) {
       b.addEventListener('click', async function () {

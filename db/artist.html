@@ -20,6 +20,14 @@
 .vf-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
   font-weight:800;color:var(--accent);background:var(--accent-soft,#E9EFEE);
   padding:3px 9px;border-radius:99px;line-height:1}
+/* ★ 2026-09-13 · 차례 고르개
+     of.css 에 .fsort 가 없는 것을 확인했습니다 (클래스 충돌 주의) */
+.fsort{height:30px;padding:0 26px 0 10px;border:1px solid var(--rule-2);
+  background:var(--bg);color:var(--ink-2);font-size:12px;border-radius:4px;
+  cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M1 3l4 4 4-4' fill='none' stroke='%239B9B9E' stroke-width='1.4'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center}
+.fsort:focus{outline:none;border-color:var(--accent)}
 .demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
   padding:11px 14px;line-height:1.75}
 .demo-note b{color:var(--accent-2);font-weight:600}
@@ -211,6 +219,22 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
       <button class="chip" data-h="exh">전시 있음</button>
     </div>
     <div class="fright">
+      <!-- ★★ 2026-09-13 · 차례 고르개
+           여태 quality 하나로 고정이었는데, 그 값이 사실상
+           「한국 작가 + 초상 있음」을 뜻해 해외 작가 2,215명이
+           통째로 뒤로 밀렸습니다. 오퍼스클램 인물DB 와 같은 자리에
+           같은 방식(드롭다운)으로 둡니다. -->
+      <select class="fsort" id="fSort" aria-label="차례">
+        <option value="">정보 충실도순</option>
+        <option value="young">출생 늦은순</option>
+        <option value="oldbir">출생 빠른순</option>
+        <option value="new">최신순</option>
+        <option value="old">오래된순</option>
+        <option value="ko">가나다순 (ㄱ→ㅎ)</option>
+        <option value="koz">가나다 역순 (ㅎ→ㄱ)</option>
+        <option value="en">이름 A–Z</option>
+        <option value="enz">이름 Z–A</option>
+      </select>
       <div class="srch">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
           <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
