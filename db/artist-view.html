@@ -21,6 +21,11 @@
 .cap-work em{font-style:normal;font-family:var(--serif)}
 .cap-meta{font-size:12px;color:var(--ink-3);margin-top:2px}
 .cap-hold{font-size:12px;color:var(--accent);margin-top:4px;font-weight:600}
+/* ★ 2026-09-13 · 자리마다 다는 자료원 줄
+     of.css 에 같은 이름이 없는지 확인했습니다 (규칙 · 클래스 충돌 주의) */
+.cap-src{font-size:11px;color:var(--ink-3);margin-top:8px;line-height:1.5}
+.dsrc{font-size:11.5px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+.dsrc b{color:var(--accent-2);font-weight:600}
 
 /* ── 옆 세로 탭 ──
    ★ position:fixed 세로 자리는 고정 px 을 쓰지 않습니다.
@@ -213,6 +218,8 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
         <div class="cap-work"><em>《인왕제색도》</em>, 1751</div>
         <div class="cap-meta">종이에 수묵</div>
         <div class="cap-hold">국립중앙박물관 · 국보</div>
+        <!-- ★ 2026-09-13 · 사진 출처 (초상이 있을 때만 채워집니다) -->
+        <div class="cap-src"></div>
       </div>
     </div>
 
@@ -250,8 +257,11 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
 </div>
 
 <div class="wrap">
+  <!-- ★ 2026-09-13 · 자료원 이야기를 뺐습니다.
+       여기에는 「아직 없는 것」만 적습니다. 자료원은 그 자료가 붙은
+       자리에 답니다 — 초상 캡션 · 전시 구역 아래 · 소개문 아래.
+       (오퍼스클램 인물 화면과 같은 방식입니다) -->
   <p class="demo-note" id="demo-note">
-    작가 정보는 <b>위키데이터</b>에서 받은 것입니다 · 그림은 위키미디어 커먼즈 원본을 링크합니다 ·
     작품·전시·소장처·학술 자료는 <b>아직 붙지 않았습니다</b>
   </p>
 </div>
@@ -312,6 +322,9 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
          이제 assets/artist-view.js 의 paintExh 가 exhibition_artists 를
          거쳐 그 작가의 전시를 불러 채웁니다. 없으면 구역을 감춥니다. -->
     <div class="exh"></div>
+    <!-- ★ 2026-09-13 · 그 작가의 전시가 실제로 어느 기관에서 왔는지
+         assets/artist-view.js 의 paintExh 가 채웁니다. -->
+    <div class="dsrc"></div>
   </section>
 
   <!-- ══ 소장처 ══ -->

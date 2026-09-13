@@ -21,6 +21,41 @@
      대표작 도판이 아닙니다 — 작품DB 가 생기면 대표작으로 바꿉니다.
      그때까지는 캡션에 「초상」이라고 정직하게 적습니다.
    ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   ★★★ 2026-09-13 고침 — <b>자료원 안내를 자리마다 나눴습니다</b>
+
+     지금까지 화면 맨 위에 한 줄이 <b>늘 고정</b>으로 떠 있었습니다.
+
+       「작가 정보는 위키데이터에서 받은 것입니다 · 그림은 위키미디어
+         커먼즈 원본을 링크합니다 · …」
+
+     ▶ 이것이 <b>거짓이 되었습니다.</b>
+       · 09-12 에 담은 3,533명과 09-13 에 담은 88명은 <b>전시 자료</b>에서
+         왔습니다. 위키데이터가 아닙니다.
+       · 09-13 에 60명의 위키데이터 정보를 <b>지웠습니다</b>
+         (딴사람 것이 덧씌워져 있었습니다). 그런데도 그 줄은 그대로였습니다.
+       · 초상이 없는 작가에게도 「그림은 커먼즈…」가 떴습니다.
+
+     ★★ 오퍼스클램은 이 자리를 <b>이렇게 쓰지 않습니다.</b>
+       인물 화면(opusclam.com/db/person-view)에 「위키데이터」라는 낱말이
+       <b>한 번도 안 나옵니다.</b> 대신 자료가 붙은 <b>자리마다</b> 답니다 —
+
+         공연 이력 옆 : 자료 · Carnegie Hall Rose Archives (CC0 · 공공영역)
+         사진 옆      : 사진 출처 · 위키미디어 커먼즈 · Public domain
+         음반 옆      : 자료 제공 엘피스탁
+         음원 옆      : 모두 바깥 사이트로 가는 링크입니다
+
+     ▶ 고침 — 같은 방식으로 나눴습니다.
+       · 초상 <b>캡션</b>에 사진 출처 (초상이 있을 때만)
+       · 전시 <b>구역 아래</b>에 그 작가의 전시가 실제로 어느 기관에서
+         왔는지 (`exhibitions.source` 를 읽어 <b>이름을 적습니다</b>)
+       · 소개문 아래 「글 출처 · 위키데이터」는 <b>그대로 둡니다</b> —
+         남이 쓴 글을 그대로 보여 주는 자리라 출처가 <b>꼭 필요합니다</b>
+       · 맨 위 줄에는 <b>아직 없는 것</b>만 남깁니다
+
+     ★ 「이 줄이 낡으면 그것도 거짓이 됩니다」 — 아래 fixNote 주석에
+       이미 적혀 있던 말입니다. 같은 자리를 두 번 밟았습니다.
+   ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
@@ -135,6 +170,15 @@
         cap.querySelector('.cap-work').innerHTML = '<em>작가 도판</em>';
         cap.querySelector('.cap-meta').textContent = a.image_credit || '';
         cap.querySelector('.cap-hold').textContent = '초상이 없으면 대표작이 실립니다';
+        /* ★ 2026-09-13 · 사진 출처를 <b>여기</b>에 답니다.
+             초상이 있을 때만 나옵니다 — 맨 위에 고정으로 두면
+             초상 없는 작가에게도 떠서 거짓이 됩니다. */
+        var src = cap.querySelector('.cap-src');
+        if (src) {
+          src.textContent = /commons\.wikimedia\.org/.test(String(a.image_url || ''))
+            ? '사진 출처 · 위키미디어 커먼즈 · 누르시면 원본에서 저작자와 이용 조건을 보실 수 있습니다'
+            : '';
+        }
       }
     } else {
       if (pl) pl.innerHTML =
@@ -293,7 +337,7 @@
     var rows = [];
     try {
       rows = await get(OF.SB_URL + '/rest/v1/exhibition_artists'
-        + '?select=exhibition_id,exhibitions(id,title,venue,start_date,end_date,poster_url)'
+        + '?select=exhibition_id,exhibitions(id,title,venue,start_date,end_date,poster_url,source)'
         + '&artist_id=eq.' + a.id + '&limit=200');
     } catch (e) { }
 
@@ -342,6 +386,27 @@
         +   (e.venue ? '<span class="exh-v">' + esc(e.venue) + '</span>' : '') + '</span>'
         + '<span class="exh-k ' + kind + '">' + (solo[e.id] ? '개인전' : '단체전') + '</span></a>';
     }).join('');
+
+    /* ★ 2026-09-13 · 자료원을 <b>이 구역 아래</b>에 답니다.
+         그 작가의 전시가 실제로 어디서 왔는지만 적습니다.
+         오퍼스클램 인물 화면의 「자료 · Carnegie Hall Rose Archives」와
+         같은 자리입니다. */
+    var 기관 = { sema: '서울시립미술관',
+                 kcisa145: '문화포털(국립현대미술관·예술의전당 등)',
+                 cultureinfo: '한국문화정보원' };
+    var srcs = [];
+    ex.forEach(function (e) {
+      var nm = 기관[e.source] || null;
+      if (nm && srcs.indexOf(nm) < 0) srcs.push(nm);
+    });
+    var esrc = sec.querySelector('.dsrc');
+    if (esrc) {
+      esrc.innerHTML = srcs.length
+        ? '자료 · ' + esc(srcs.join(' · '))
+          + ' — 공개 자료에서 거둔 것이라 <b>전하는 것의 일부</b>입니다'
+        : '';
+    }
+
     show('sec-exh');
     return ex.length;
   }
@@ -363,23 +428,22 @@
        아직 붙지 않았습니다」가 붙은 뒤에도 그대로 떠 있었습니다.
      ★ 무엇이 <b>아직 없는지</b>도 적습니다. 있는 것만 말하면
        화면이 다 갖춘 것처럼 보입니다. */
+  /* ★★ 2026-09-13 · <b>자료원 이야기를 뺐습니다.</b>
+       여기에는 <b>아직 없는 것</b>만 적습니다.
+       자료원은 그 자료가 붙은 자리에 답니다 (초상 캡션 · 전시 구역 아래 ·
+       소개문 아래). 오퍼스클램과 같은 방식입니다.
+     ▶ 뺀 까닭 — 맨 위에 고정으로 두면 <b>늘 거짓이 될 위험</b>이 있습니다.
+       위키데이터에서 오지 않은 작가가 3,600명이 넘고, 초상이 없는 작가에게도
+       「그림은 커먼즈…」가 떴습니다. */
   function fixNote(hasWorks, hasExh) {
     var n = $('demo-note');
     if (!n) return;
-    var got = [];
-    if (hasWorks) got.push('작품');
-    if (hasExh)   got.push('전시');
     var none = [];
     if (!hasWorks) none.push('작품');
     if (!hasExh)   none.push('전시');
     none.push('소장처', '학술 자료');
 
-    n.innerHTML = '작가 정보는 <b>위키데이터</b>에서 받은 것입니다 · '
-      + '그림은 위키미디어 커먼즈 원본을 링크합니다'
-      + (got.length
-         ? ' · ' + got.join('·') + josa(got[got.length - 1], '은', '는')
-           + ' <b>공개 자료에서 거둔 것</b>이라 전하는 것의 일부입니다' : '')
-      + ' · ' + none.join('·') + josa(none[none.length - 1], '은', '는')
+    n.innerHTML = none.join('·') + josa(none[none.length - 1], '은', '는')
       + ' <b>아직 붙지 않았습니다</b>';
   }
 
