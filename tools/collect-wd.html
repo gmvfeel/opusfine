@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 5</span></h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 6</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -123,6 +123,28 @@ var COMMAS = ART.map(function (q) { return 'wd:' + q; }).join(', ');
 
 var NOT_ART = /위키미디언|위키백과인|축구|야구|농구|배구|배드민턴|탁구|펜싱|골프|피겨|프로게이머|가수|배우|아이돌|래퍼|아나운서|개그맨|성우|모델|정치인|대학생|테러리스트|저격수|군인|의사|간호사|변호사|회계사|요리사|운동선수/;
 
+/* ★★★ 판 6 · <b>YEAR() 을 버리고 날짜 범위로 겁니다</b>
+
+     판 5 에서 「ㄱ 직업만」조차 50초를 넘었습니다. 미술관 계층이
+     아니라 <b>조회의 뿌리</b>가 무거웠던 것입니다.
+
+       FILTER(YEAR(?birth) = 1975)
+
+     이 한 줄이 <b>모든 미술가의 생년월일에 함수를 하나씩</b> 적용합니다.
+     수십만 건에 그러니 느릴 수밖에 없습니다.
+
+     ▶ 고침 — 같은 뜻을 <b>범위 비교</b>로 씁니다.
+
+       FILTER(?birth >= "1975-01-01"^^xsd:dateTime &&
+              ?birth <  "1976-01-01"^^xsd:dateTime)
+
+     범위 비교는 <b>색인을 탑니다.</b> 함수는 못 탑니다.
+   ══════════════════════════════════════════════════════════════ */
+function 해범위(year){
+  return '  FILTER(?birth >= "' + year + '-01-01T00:00:00Z"^^xsd:dateTime && '
+       + '?birth < "' + (year + 1) + '-01-01T00:00:00Z"^^xsd:dateTime)';
+}
+
 function q(id){ return document.getElementById(id); }
 function say(t){ q('out').textContent = t; }
 function add(t){ q('out').textContent += t; }
@@ -162,7 +184,7 @@ function sparqlIds(year){
    'SELECT DISTINCT ?p WHERE {',
    '  VALUES ?occ { ' + VALS + ' }',
    '  ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?anyColl .',
-   '  FILTER(YEAR(?birth) = ' + year + ')',
+   해범위(year),
    '}'
   ].join('\n');
 }
@@ -337,7 +359,7 @@ async function run(mode){
   } catch (e) {
     add('\n★ 위키데이터에서 막혔습니다\n   ' + String(e.message || e) + '\n\n'
       + '  볼 곳 —\n'
-      + '  · 이 화면 제목 옆에 「판 5」가 보이십니까? 안 보이면 옛 판입니다.\n'
+      + '  · 이 화면 제목 옆에 「판 6」이 보이십니까? 안 보이면 옛 판입니다.\n'
       + '    Ctrl+Shift+R (맥은 Cmd+Shift+R) 로 세게 새로 고쳐 주십시오.\n'
       + '  · 광고·추적 차단 확장이 query.wikidata.org 를 막을 수 있습니다.\n'
       + '    잠시 꺼 보십시오.\n'
@@ -386,18 +408,21 @@ q('bTest').addEventListener('click', async function(){
      막히는 자리를 눈으로 짚으려는 것입니다. 담지 않습니다. */
 q('bWeigh').addEventListener('click', async function(){
   var y = parseInt(q('y1').value, 10) || 1975;
-  say('무게를 잽니다 (판 5) · ' + y + '년\n\n');
+  say('무게를 잽니다 (판 6) · ' + y + '년\n\n');
+  var 범위 = 해범위(y);
   var 잴것 = [
-    ['ㄱ 직업만',
+    ['ㄱ 옛 방식 · YEAR() · 직업만',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
-     + ' ?p wdt:P106 ?occ ; wdt:P569 ?b . FILTER(YEAR(?b)=' + y + ') }'],
-    ['ㄴ 직업+소장처 있음 (판 5 의 ①)',
+     + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth . FILTER(YEAR(?birth)=' + y + ') }'],
+    ['ㄴ 새 방식 · 날짜 범위 · 직업만',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
-     + ' ?p wdt:P106 ?occ ; wdt:P569 ?b ; wdt:P6379 ?c . FILTER(YEAR(?b)=' + y + ') }'],
-    ['ㄷ 직업+미술관 계층 (판 4 의 ① · 무거운 쪽)',
+     + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth .' + 범위 + ' }'],
+    ['ㄷ 새 방식 + 소장처 있음 (판 6 의 ①)',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
-     + ' ?p wdt:P106 ?occ ; wdt:P569 ?b ; wdt:P6379 ?m .'
-     + ' ?m wdt:P31/wdt:P279* wd:Q207694 . FILTER(YEAR(?b)=' + y + ') }']
+     + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?c .' + 범위 + ' }'],
+    ['ㄹ 새 방식 · 화가 하나만 (더 가볍게 해야 할 때)',
+     'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE'
+     + ' { ?p wdt:P106 wd:Q1028181 ; wdt:P569 ?birth ; wdt:P6379 ?c .' + 범위 + ' }']
   ];
   for (var i = 0; i < 잴것.length; i++) {
     var t0 = Date.now();
@@ -409,7 +434,9 @@ q('bWeigh').addEventListener('click', async function(){
       add(잴것[i][0] + ' → ★ ' + String(e.message || e) + '\n');
     }
   }
-  add('\nㄴ 이 빠르면 판 5 가 돕니다. ㄴ 도 느리면 알려 주십시오.');
+  add('\n  ㄱ 과 ㄴ 을 견주어 보십시오 — 같은 답인데 걸린 때가 다르면\n'
+    + '  YEAR() 가 범인입니다. ㄷ 이 빠르면 판 6 이 돕니다.\n'
+    + '  ㄷ 도 느리면 ㄹ 처럼 직업을 하나씩 쪼개야 합니다. 알려 주십시오.');
 });
 
 q('bPre').addEventListener('click', function(){ run('preview'); });
