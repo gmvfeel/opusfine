@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 6</span></h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 7</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -73,16 +73,17 @@ body{margin:0;background:#fff;color:#17171A;
   <h2 class="cw-h2">고른 조건</h2>
   <p class="cw-note">
     ① 직업이 <b>미술</b>(화가·조각가·사진가·설치·삽화·판화·도예·서예…)<br>
-    ② 소장처가 <b>미술관</b>(Q207694) — 소장처만 걸면 「위키미디어 공용」이
-       섞여 커먼즈에 사진 올린 사람이 함께 잡힙니다. <b>1만 5천 명이 그랬습니다.</b><br>
+    ② 위키백과 문서가 <b>세 나라 말 이상</b>으로 있음 — 알려진 미술가라는 표입니다<br>
     ③ 태어난 해가 아래 범위<br>
-    ④ 직업에 축구·가수·배우·정치인 같은 것이 섞이면 <b>물립니다</b>
+    ④ 직업에 축구·가수·배우·정치인 같은 것이 섞이면 <b>물립니다</b><br>
+    ★ 소장 미술관은 <b>함께 받아 두되 필수로 걸지 않습니다.</b>
+      소장처(P6379)로 거르면 조회가 <b>50초를 넘겨</b> 못 씁니다.
   </p>
   <p class="cw-note">
-    크기 — 1900년 이후 <b>28,948명</b> · 1950년 이후 <b>8,781명</b>.
-    한 해에 대략 <b>150~300명</b>입니다. 한 해를 <b>여러 조각</b>으로 나눠
-    받으므로 한 걸음은 짧지만 모두 합치면 한 해에 <b>1분 남짓</b> 걸립니다.
-    화면을 닫지 마십시오.
+    크기 — 위키백과 문서 3개 이상이면 1900년 이후 <b>32,363명</b>입니다.
+    한 해에 <b>500~700명</b>이고, 실제로 재어 보니
+    한 해에 <b>40초 남짓</b> 걸립니다(Q 모으기 13.5초 + 상세 4.2초씩).
+    다섯 해면 <b>3분쯤</b> 걸립니다. 화면을 닫지 마십시오.
   </p>
 
   <div class="cw-row">
@@ -90,7 +91,9 @@ body{margin:0;background:#fff;color:#17171A;
     <input id="tok" class="cw-in cw-wide" type="password" placeholder="COLLECT_TOKEN">
   </div>
   <div class="cw-row">
-    <span class="cw-lab">태어난 해</span>
+    <span class="cw-lab">위키백과 문서</span>
+    <input id="sl" class="cw-in" type="number" value="3" min="1" max="30" style="min-width:70px">
+    <span class="cw-lab">개 이상 · 태어난 해</span>
     <input id="y1" class="cw-in" type="number" value="1975" min="1800" max="2030">
     <span class="cw-lab">~</span>
     <input id="y2" class="cw-in" type="number" value="1977" min="1800" max="2030">
@@ -173,20 +176,43 @@ function bar(p){ q('bar').style.width = Math.max(0, Math.min(100, p)) + '%'; }
    ══════════════════════════════════════════════════════════════ */
 
 /* ① 그 해 태어난 미술가의 Q 만
-   ★★ 판 5 · <b>미술관 계층(P31/P279*)을 여기서 뺐습니다.</b>
-     판 4 는 ① 에서 바로 끊겼습니다. `?museum wdt:P31/wdt:P279* wd:Q207694`
-     는 <b>모든 미술관의 윗갈래를 죄다 훑는</b> 조회라 아주 무겁습니다.
-     ▶ ① 은 「소장처가 있기만 하면」으로 두고,
-       <b>미술관인지는 ② 에서</b> 가립니다. ② 는 사람을 100명으로
-       콕 집어 두었으니 같은 계층 조회도 훨씬 가볍습니다. */
+   ★★★ 판 7 · <b>재고 나서 고쳤습니다.</b> 브라우저에서 실제로 잰 값 —
+
+     ㄱ  YEAR() · 직업만                    <b>50초 넘음</b>
+     ㄴ  날짜범위 · 직업만                  32.7초 · 4,103명
+     ㄷ  날짜범위 + <b>소장처(P6379)</b>         <b>50초 넘음</b>
+     ㅁ  날짜범위 + <b>위키문서 3개 이상</b>      <b>13.5초 · 584명</b>
+     ②  상세 100명                          <b>4.2초</b>
+
+   ▶ 두 가지를 배웠습니다.
+     하나 — `FILTER(YEAR(?birth)=1975)` 는 <b>모든 미술가의 생년월일에
+       함수를 하나씩</b> 적용합니다. 날짜 범위로 쓰면 색인을 탑니다.
+     둘 — <b>소장처(P6379)를 여기서 걸면 못 견딥니다.</b> 이것이 판 4·5·6 이
+       내리 막힌 까닭이었습니다. 미술관 계층 때문이 아니라
+       <b>P6379 자체</b>가 무거웠습니다.
+
+   ▶ 그래서 열쇠를 <b>위키백과 문서 수</b>로 바꿨습니다.
+     `wikibase:sitelinks` 는 색인이 잘 되어 있어 가볍고,
+     크기도 비슷합니다 — 1900년 이후 <b>32,363명</b>
+     (소장처로 걸었을 때 28,948명).
+     문서가 세 나라 말 이상으로 있으면 알려진 미술가로 봅니다.
+
+   ★ 소장 미술관은 <b>② 에서</b> 받아 둡니다. 있으면 적고, 없어도 담습니다
+     (1975년생 100명 가운데 24명에게 있었습니다). */
 function sparqlIds(year){
   return [
    'SELECT DISTINCT ?p WHERE {',
    '  VALUES ?occ { ' + VALS + ' }',
-   '  ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?anyColl .',
+   '  ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wikibase:sitelinks ?s .',
    해범위(year),
+   '  FILTER(?s >= ' + 문서수() + ')',
    '}'
   ].join('\n');
+}
+
+function 문서수(){
+  var v = parseInt((document.getElementById('sl') || {}).value, 10);
+  return (isFinite(v) && v >= 1 && v <= 30) ? v : 3;
 }
 
 /* ② 집어 든 사람들의 상세 */
@@ -305,9 +331,8 @@ function rowFrom(b){
   var etc = (b.etcOccs && b.etcOccs.value) ? b.etcOccs.value.trim() : '';
   if (NOT_ART.test(etc)) return null;
 
-  /* ★ 소장처가 미술관인 사람만 데려옵니다 (판 5 · ② 에서 가립니다) */
-  var mus = (b.museums && b.museums.value) ? b.museums.value.trim() : '';
-  if (!mus) return null;
+  /* ★ 판 7 · 소장 미술관은 <b>있으면 반갑고 없어도 담습니다.</b>
+       소장처를 필수로 걸면 조회가 50초를 넘겨 못 씁니다(위 ① 주석). */
 
   var field = [art, etc].filter(Boolean).join(', ') || null;
   var by = yearOf(b.birth && b.birth.value);
@@ -359,7 +384,7 @@ async function run(mode){
   } catch (e) {
     add('\n★ 위키데이터에서 막혔습니다\n   ' + String(e.message || e) + '\n\n'
       + '  볼 곳 —\n'
-      + '  · 이 화면 제목 옆에 「판 6」이 보이십니까? 안 보이면 옛 판입니다.\n'
+      + '  · 이 화면 제목 옆에 「판 7」이 보이십니까? 안 보이면 옛 판입니다.\n'
       + '    Ctrl+Shift+R (맥은 Cmd+Shift+R) 로 세게 새로 고쳐 주십시오.\n'
       + '  · 광고·추적 차단 확장이 query.wikidata.org 를 막을 수 있습니다.\n'
       + '    잠시 꺼 보십시오.\n'
@@ -408,21 +433,22 @@ q('bTest').addEventListener('click', async function(){
      막히는 자리를 눈으로 짚으려는 것입니다. 담지 않습니다. */
 q('bWeigh').addEventListener('click', async function(){
   var y = parseInt(q('y1').value, 10) || 1975;
-  say('무게를 잽니다 (판 6) · ' + y + '년\n\n');
-  var 범위 = 해범위(y);
+  say('무게를 잽니다 (판 7) · ' + y + '년\n\n');
+  var 범위 = 해범위(y), n = 문서수();
   var 잴것 = [
-    ['ㄱ 옛 방식 · YEAR() · 직업만',
+    ['ㄱ 옛 방식 · YEAR() · 직업만 (2026-09-13 실측 50초 넘음)',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
      + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth . FILTER(YEAR(?birth)=' + y + ') }'],
-    ['ㄴ 새 방식 · 날짜 범위 · 직업만',
+    ['ㄴ 날짜범위 · 직업만 (실측 32.7초)',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
      + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth .' + 범위 + ' }'],
-    ['ㄷ 새 방식 + 소장처 있음 (판 6 의 ①)',
+    ['ㄷ 날짜범위 + 소장처 (실측 50초 넘음 · 못 씁니다)',
      'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
      + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?c .' + 범위 + ' }'],
-    ['ㄹ 새 방식 · 화가 하나만 (더 가볍게 해야 할 때)',
-     'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE'
-     + ' { ?p wdt:P106 wd:Q1028181 ; wdt:P569 ?birth ; wdt:P6379 ?c .' + 범위 + ' }']
+    ['ㅁ 날짜범위 + 위키문서 ' + n + '개 이상 (판 7 의 ① · 실측 13.5초)',
+     'SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { VALUES ?occ { ' + VALS + ' }'
+     + ' ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wikibase:sitelinks ?s .'
+     + 범위 + ' FILTER(?s >= ' + n + ') }']
   ];
   for (var i = 0; i < 잴것.length; i++) {
     var t0 = Date.now();
@@ -434,9 +460,8 @@ q('bWeigh').addEventListener('click', async function(){
       add(잴것[i][0] + ' → ★ ' + String(e.message || e) + '\n');
     }
   }
-  add('\n  ㄱ 과 ㄴ 을 견주어 보십시오 — 같은 답인데 걸린 때가 다르면\n'
-    + '  YEAR() 가 범인입니다. ㄷ 이 빠르면 판 6 이 돕니다.\n'
-    + '  ㄷ 도 느리면 ㄹ 처럼 직업을 하나씩 쪼개야 합니다. 알려 주십시오.');
+  add('\n  ㅁ 이 20초 안쪽이면 판 7 이 돕니다.\n'
+    + '  문서 수를 올리면 더 빨라지고 사람은 줄어듭니다.');
 });
 
 q('bPre').addEventListener('click', function(){ run('preview'); });
