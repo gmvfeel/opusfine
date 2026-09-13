@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 9</span></h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 12</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -153,27 +153,34 @@ var ART = [
 var VALS   = ART.map(function (q) { return 'wd:' + q; }).join(' ');
 var COMMAS = ART.map(function (q) { return 'wd:' + q; }).join(', ');
 
-/* ★ 판 9 · <b>체스·사이클·스포츠</b>를 더했습니다. 마지막 빗장입니다.
-     Q 목록을 고쳤어도 여기서 한 번 더 겁니다 — 오늘 겪은 일이 있으니. */
-var NOT_ART = /위키미디언|위키백과인|체스|바둑|포커|축구|야구|농구|배구|배드민턴|탁구|펜싱|골프|피겨|사이클|자전거|수영|육상|스키|바이애슬론|스케이팅|레이스카|스포츠|선수|해설가|캐스터|프로게이머|가수|배우|아이돌|래퍼|아나운서|개그맨|성우|모델|정치인|대학생|테러리스트|저격수|군인|의사|간호사|변호사|회계사|요리사|과학자|언론인/;
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 판 11 · 거르개를 <b>확 좁혔습니다</b>
 
-/* ★★★ 판 6 · <b>YEAR() 을 버리고 날짜 범위로 겁니다</b>
+     판 9·10 의 거르개에는 배우·가수·감독·작가·정치인·과학자가
+     들어 있었습니다. 시험해 보니 —
 
-     판 5 에서 「ㄱ 직업만」조차 50초를 넘었습니다. 미술관 계층이
-     아니라 <b>조회의 뿌리</b>가 무거웠던 것입니다.
+       살바도르 달리 · 그밖[<b>배우</b>, 각본가, 작가, … 영화 배우]
+       파블로 피카소 · 그밖[각본가, 시인, … <b>영화 배우</b>]
 
-       FILTER(YEAR(?birth) = 1975)
+     <b>달리와 피카소가 버려집니다.</b> 미술가는 흔히 다른 일도 겸합니다.
 
-     이 한 줄이 <b>모든 미술가의 생년월일에 함수를 하나씩</b> 적용합니다.
-     수십만 건에 그러니 느릴 수밖에 없습니다.
-
-     ▶ 고침 — 같은 뜻을 <b>범위 비교</b>로 씁니다.
-
-       FILTER(?birth >= "1975-01-01"^^xsd:dateTime &&
-              ?birth <  "1976-01-01"^^xsd:dateTime)
-
-     범위 비교는 <b>색인을 탑니다.</b> 함수는 못 탑니다.
+     ▶ 체스 기사가 들어온 것은 거르개가 약해서가 아니라
+       <b>미술 직업 Q 번호를 잘못 적어서</b>였습니다. 그건 판 9 에서
+       라벨을 하나씩 확인해 고쳤습니다.
+     ▶ 그러니 여기서는 <b>스포츠·게임 선수만</b> 막습니다.
+       혹시 또 샐 때를 위한 빗장이지, 겸업을 벌하는 자리가 아닙니다.
    ══════════════════════════════════════════════════════════════ */
+var NOT_ART = /체스|바둑|포커|축구|야구|농구|배구|핸드볼|배드민턴|탁구|펜싱|골프|피겨|사이클|자전거|수영|육상|스키|스노보드|바이애슬론|스케이팅|레이스카|카레이서|프로게이머|선수|해설가|캐스터|위키미디언|위키백과인|아키비스트|chess player|cyclist|footballer|athlete|swimmer|skier|racing driver|wikimedian/i;
+
+/* ★★★ 판 12 · 되살린 함수
+     판 11 에서 거르개 블록을 갈아끼울 때 이 함수 <b>정의가 함께 지워졌습니다.</b>
+     쓰이는 자리는 둘 남았는데 선언이 없어 <b>첫 줄에서 죽습니다.</b>
+     문법 검사는 통과합니다 — 없는 함수를 부르는 것은 돌려 봐야 압니다.
+     ▶ 앞으로 블록을 갈아끼운 뒤에는 <b>함수 이름을 하나씩 세어</b> 보겠습니다.
+
+   ★ 태어난 해를 <b>날짜 범위</b>로 겁니다.
+     `FILTER(YEAR(?birth)=1975)` 는 모든 미술가의 생년월일에 함수를
+     하나씩 적용해 느립니다(실측 50초 넘음 → 32.7초). */
 function 해범위(year){
   return '  FILTER(?birth >= "' + year + '-01-01T00:00:00Z"^^xsd:dateTime && '
        + '?birth < "' + (year + 1) + '-01-01T00:00:00Z"^^xsd:dateTime)';
@@ -264,13 +271,19 @@ function sparqlDetail(qids){
    '  OPTIONAL { ?p rdfs:label ?en . FILTER(LANG(?en)="en") }',
    '  OPTIONAL { ?p schema:description ?desc . FILTER(LANG(?desc)="ko") }',
    '  OPTIONAL { ?p wdt:P27 ?nat . ?nat rdfs:label ?natL . FILTER(LANG(?natL)="ko") }',
-   /* ★ 판 9 · 직업 라벨을 <b>한국어가 없으면 영어로</b> 받습니다.
-        판 8 은 한국어만 받아 1,611명 가운데 <b>571명의 직업칸이 비었고</b>,
-        비어 있으니 체스 기사인지 아닌지 <b>가릴 수도 없었습니다</b>. */
+   /* ★★ 판 10 · 직업 라벨을 <b>한국어 우선, 없으면 영어</b>로 받습니다.
+        판 9 는 `LANG(?occL) IN ("ko","en")` 으로 둘 다 받아서
+        「조각가, sculptor, 사진가, photographer」처럼 <b>같은 직업이
+        두 번</b> 적혔습니다. BIND + COALESCE 로 하나만 고릅니다.
+        ▶ 판 8 이 한국어만 받아 571명의 직업칸이 비었던 일도 함께 막힙니다. */
    '  OPTIONAL { ?p wdt:P106 ?ao . FILTER(?ao IN (' + COMMAS + '))',
-   '             ?ao rdfs:label ?artOccL . FILTER(LANG(?artOccL) IN ("ko","en")) }',
+   '             OPTIONAL { ?ao rdfs:label ?aoKo . FILTER(LANG(?aoKo)="ko") }',
+   '             OPTIONAL { ?ao rdfs:label ?aoEn . FILTER(LANG(?aoEn)="en") }',
+   '             BIND(COALESCE(?aoKo, ?aoEn) AS ?artOccL) }',
    '  OPTIONAL { ?p wdt:P106 ?eo . FILTER(?eo NOT IN (' + COMMAS + '))',
-   '             ?eo rdfs:label ?etcOccL . FILTER(LANG(?etcOccL) IN ("ko","en")) }',
+   '             OPTIONAL { ?eo rdfs:label ?eoKo . FILTER(LANG(?eoKo)="ko") }',
+   '             OPTIONAL { ?eo rdfs:label ?eoEn . FILTER(LANG(?eoEn)="en") }',
+   '             BIND(COALESCE(?eoKo, ?eoEn) AS ?etcOccL) }',
    '  OPTIONAL { ?article schema:about ?p ; schema:isPartOf <https://ko.wikipedia.org/> }',
    /* ★ 소장처가 <b>미술관</b>인지 여기서 가립니다.
         소장처만 걸면 「위키미디어 공용」이 섞여 커먼즈에 사진 올린
@@ -436,7 +449,7 @@ async function run(mode){
   } catch (e) {
     add('\n★ 위키데이터에서 막혔습니다\n   ' + String(e.message || e) + '\n\n'
       + '  볼 곳 —\n'
-      + '  · 이 화면 제목 옆에 「판 9」가 보이십니까? 안 보이면 옛 판입니다.\n'
+      + '  · 이 화면 제목 옆에 「판 12」가 보이십니까? 안 보이면 옛 판입니다.\n'
       + '    Ctrl+Shift+R (맥은 Cmd+Shift+R) 로 세게 새로 고쳐 주십시오.\n'
       + '  · 광고·추적 차단 확장이 query.wikidata.org 를 막을 수 있습니다.\n'
       + '    잠시 꺼 보십시오.\n'
