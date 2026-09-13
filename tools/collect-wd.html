@@ -80,7 +80,8 @@ body{margin:0;background:#fff;color:#17171A;
   </p>
   <p class="cw-note">
     크기 — 1900년 이후 <b>28,948명</b> · 1950년 이후 <b>8,781명</b>.
-    한 해에 대략 <b>150~300명</b>, 조회에 <b>20~30초</b>씩 걸립니다.
+    한 해에 대략 <b>150~300명</b>이고, 조회가 <b>30초~1분</b>씩 걸립니다.
+    세 해를 고르시면 <b>2~3분</b> 걸립니다. 화면을 닫지 마십시오.
   </p>
 
   <div class="cw-row">
@@ -196,13 +197,19 @@ function rowFrom(b){
   };
 }
 
+/* ★★★ 2026-09-13 · <b>GET 으로, 헤더를 하나도 붙이지 않고</b> 부릅니다.
+     처음에 POST + Accept 헤더로 짰더니 화면에서
+       ★ 위키데이터에서 막혔습니다 — Failed to fetch
+     가 났습니다. `Accept: application/sparql-results+json` 은
+     CORS 가 그냥 보내 주는 값이 아니라 <b>사전요청(OPTIONS)</b>이 생기는데,
+     위키데이터가 그것을 받아 주지 않습니다.
+   ▶ 헤더를 안 붙이고 GET 으로 부르면 사전요청이 생기지 않습니다.
+     `format=json` 을 주소에 넣어 형식을 고릅니다.
+   ★ 주소 길이는 2,548자입니다. 넉넉합니다.
+   ★ 한 해에 <b>30초~1분</b> 걸립니다. 기다리십시오. */
 async function askYear(year){
-  var r = await fetch(WDQS, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-               'Accept': 'application/sparql-results+json' },
-    body: 'query=' + encodeURIComponent(sparqlFor(year))
-  });
+  var u = WDQS + '?format=json&query=' + encodeURIComponent(sparqlFor(year));
+  var r = await fetch(u);
   if (!r.ok) throw new Error('위키데이터 ' + r.status);
   var j = await r.json();
   return j.results.bindings.map(rowFrom).filter(Boolean);
@@ -213,7 +220,7 @@ async function run(mode){
   if (!tok) { say('자물쇠를 넣으십시오.'); return; }
   var y1 = parseInt(q('y1').value, 10), y2 = parseInt(q('y2').value, 10);
   if (!isFinite(y1) || !isFinite(y2) || y2 < y1) { say('해를 바로 넣으십시오.'); return; }
-  if (y2 - y1 + 1 > 10) { say('한 번에 열 해까지만 하십시오. 오래 걸립니다.'); return; }
+  if (y2 - y1 + 1 > 5) { say('한 번에 다섯 해까지만 하십시오. 한 해에 1분씩 걸립니다.'); return; }
 
   q('bPre').disabled = true; q('bApp').disabled = true;
   say((mode === 'apply' ? '담는' : '미리보는') + ' 중 · ' + y1 + '~' + y2 + '\n\n');
