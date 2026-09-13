@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 8</span></h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 9</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -75,7 +75,8 @@ body{margin:0;background:#fff;color:#17171A;
     ① 직업이 <b>미술</b>(화가·조각가·사진가·설치·삽화·판화·도예·서예…)<br>
     ② 위키백과 문서가 <b>세 나라 말 이상</b>으로 있음 — 알려진 미술가라는 표입니다<br>
     ③ 태어난 해가 아래 범위<br>
-    ④ 직업에 축구·가수·배우·정치인 같은 것이 섞이면 <b>물립니다</b><br>
+    ④ 직업에 체스·사이클·축구·가수·배우·정치인 같은 것이 섞이면 <b>물립니다</b><br>
+    ⑤ 미술 직업이 <b>하나도 안 잡히면</b> 물립니다<br>
     ★ 소장 미술관은 <b>함께 받아 두되 필수로 걸지 않습니다.</b>
       소장처(P6379)로 거르면 조회가 <b>50초를 넘겨</b> 못 씁니다.
   </p>
@@ -120,15 +121,41 @@ body{margin:0;background:#fff;color:#17171A;
    ══════════════════════════════════════════════════════════════ */
 var WDQS = 'https://query.wikidata.org/sparql';
 
-/* 미술 직업 (P106) */
-var ART = ['Q1028181','Q1281618','Q33231','Q18074503','Q15296811','Q1925963',
-           'Q10694573','Q483501','Q3391743','Q10873124','Q329439','Q2309784','Q11569986'];
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 판 9 · 미술 직업 (P106)
+
+     판 8 로 1,611명을 담았는데 <b>786명이 체스 기사·사이클 선수</b>였습니다.
+     까닭 — 제가 Q 번호 둘을 <b>뜻도 확인하지 않고</b> 적었습니다.
+
+       Q10873124   주석에 「도예가」        → 실제 <b>체스 기사</b>
+       Q2309784    주석에 「textile artist」 → 실제 <b>사이클 선수</b>
+
+     ▶ 판 9 는 <b>열셋을 전부 위키데이터에 물어</b> 라벨을 확인했습니다.
+       아래 이름은 <b>받아 적은 것</b>이지 제가 지어낸 것이 아닙니다.
+       담은 것은 통째로 걷어냈고(source 한 줄), 다시 담습니다.
+   ══════════════════════════════════════════════════════════════ */
+var ART = [
+  'Q1028181',   /* 화가 · painter            */
+  'Q1281618',   /* 조각가 · sculptor         */
+  'Q33231',     /* 사진가 · photographer     */
+  'Q18074503',  /* 설치 미술가 · installation artist */
+  'Q15296811',  /* 데생화가 · draftsperson   */
+  'Q1925963',   /* 그래픽 예술가 · graphic artist */
+  'Q11569986',  /* 판화가 · printmaker       */
+  'Q483501',    /* 예술가 · artist           */
+  'Q3391743',   /* 시각 예술가 · visual artist */
+  'Q329439',    /* 조각사 · engraver         */
+  'Q10694573'   /* textile artist            */
+  /* ★ 뺀 둘 — Q10873124(체스 기사) · Q2309784(사이클 선수) */
+];
 
 /* ★ NOT IN 은 <b>쉼표</b>로 갈라야 합니다. 공백으로 썼다가 HTTP 400 을 봤습니다. */
 var VALS   = ART.map(function (q) { return 'wd:' + q; }).join(' ');
 var COMMAS = ART.map(function (q) { return 'wd:' + q; }).join(', ');
 
-var NOT_ART = /위키미디언|위키백과인|축구|야구|농구|배구|배드민턴|탁구|펜싱|골프|피겨|프로게이머|가수|배우|아이돌|래퍼|아나운서|개그맨|성우|모델|정치인|대학생|테러리스트|저격수|군인|의사|간호사|변호사|회계사|요리사|운동선수/;
+/* ★ 판 9 · <b>체스·사이클·스포츠</b>를 더했습니다. 마지막 빗장입니다.
+     Q 목록을 고쳤어도 여기서 한 번 더 겁니다 — 오늘 겪은 일이 있으니. */
+var NOT_ART = /위키미디언|위키백과인|체스|바둑|포커|축구|야구|농구|배구|배드민턴|탁구|펜싱|골프|피겨|사이클|자전거|수영|육상|스키|바이애슬론|스케이팅|레이스카|스포츠|선수|해설가|캐스터|프로게이머|가수|배우|아이돌|래퍼|아나운서|개그맨|성우|모델|정치인|대학생|테러리스트|저격수|군인|의사|간호사|변호사|회계사|요리사|과학자|언론인/;
 
 /* ★★★ 판 6 · <b>YEAR() 을 버리고 날짜 범위로 겁니다</b>
 
@@ -237,10 +264,13 @@ function sparqlDetail(qids){
    '  OPTIONAL { ?p rdfs:label ?en . FILTER(LANG(?en)="en") }',
    '  OPTIONAL { ?p schema:description ?desc . FILTER(LANG(?desc)="ko") }',
    '  OPTIONAL { ?p wdt:P27 ?nat . ?nat rdfs:label ?natL . FILTER(LANG(?natL)="ko") }',
+   /* ★ 판 9 · 직업 라벨을 <b>한국어가 없으면 영어로</b> 받습니다.
+        판 8 은 한국어만 받아 1,611명 가운데 <b>571명의 직업칸이 비었고</b>,
+        비어 있으니 체스 기사인지 아닌지 <b>가릴 수도 없었습니다</b>. */
    '  OPTIONAL { ?p wdt:P106 ?ao . FILTER(?ao IN (' + COMMAS + '))',
-   '             ?ao rdfs:label ?artOccL . FILTER(LANG(?artOccL)="ko") }',
+   '             ?ao rdfs:label ?artOccL . FILTER(LANG(?artOccL) IN ("ko","en")) }',
    '  OPTIONAL { ?p wdt:P106 ?eo . FILTER(?eo NOT IN (' + COMMAS + '))',
-   '             ?eo rdfs:label ?etcOccL . FILTER(LANG(?etcOccL)="ko") }',
+   '             ?eo rdfs:label ?etcOccL . FILTER(LANG(?etcOccL) IN ("ko","en")) }',
    '  OPTIONAL { ?article schema:about ?p ; schema:isPartOf <https://ko.wikipedia.org/> }',
    /* ★ 소장처가 <b>미술관</b>인지 여기서 가립니다.
         소장처만 걸면 「위키미디어 공용」이 섞여 커먼즈에 사진 올린
@@ -345,6 +375,11 @@ function rowFrom(b){
 
   var art = (b.artOccs && b.artOccs.value) ? b.artOccs.value.trim() : '';
   var etc = (b.etcOccs && b.etcOccs.value) ? b.etcOccs.value.trim() : '';
+
+  /* ★ 판 9 · <b>미술 직업이 하나도 안 잡히면 버립니다.</b>
+       ① 에서 미술 Q 로 골라 왔으니 여기엔 반드시 무언가 있어야 합니다.
+       비어 있다면 우리가 모르는 자리에서 샌 것입니다. */
+  if (!art) return null;
   if (NOT_ART.test(etc)) return null;
 
   /* ★ 판 7 · 소장 미술관은 <b>있으면 반갑고 없어도 담습니다.</b>
@@ -401,7 +436,7 @@ async function run(mode){
   } catch (e) {
     add('\n★ 위키데이터에서 막혔습니다\n   ' + String(e.message || e) + '\n\n'
       + '  볼 곳 —\n'
-      + '  · 이 화면 제목 옆에 「판 8」이 보이십니까? 안 보이면 옛 판입니다.\n'
+      + '  · 이 화면 제목 옆에 「판 9」가 보이십니까? 안 보이면 옛 판입니다.\n'
       + '    Ctrl+Shift+R (맥은 Cmd+Shift+R) 로 세게 새로 고쳐 주십시오.\n'
       + '  · 광고·추적 차단 확장이 query.wikidata.org 를 막을 수 있습니다.\n'
       + '    잠시 꺼 보십시오.\n'
