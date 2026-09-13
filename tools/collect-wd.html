@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>위키데이터 미술가 수집 · OPUSFINE</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   OPUSFINE · 위키데이터 미술가 수집 · tools/collect-wd.html
+   ★ of.css 를 부르지 않습니다 · 이름 앞에 cw- 를 붙였습니다
+     (collect-artist.html 은 cp- 를 씁니다 · 겹치지 않습니다)
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#17171A;
+  font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cw-wrap{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.cw-h1{font-size:26px;font-weight:600;margin:0 0 8px;letter-spacing:-.02em}
+.cw-lead{color:#5C5C60;font-size:14px;margin:0 0 8px}
+.cw-warn{font-size:13px;color:#1F4B47;border:1px solid #CFDDD9;background:#F6FAF9;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.cw-danger{font-size:13px;color:#8C3A2E;border:1px solid #E4CFCB;background:#FDF7F6;
+  padding:11px 14px;margin:18px 0 26px;line-height:1.75}
+.cw-h2{font-size:17px;font-weight:600;margin:34px 0 6px;
+  padding-top:18px;border-top:1px solid #E6E4DE}
+.cw-note{font-size:13px;color:#7A7A7E;margin:0 0 14px;line-height:1.75}
+.cw-note b{color:#8C3A2E}
+.cw-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.cw-btn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;
+  border:1px solid #17171A;background:#17171A;color:#fff;cursor:pointer;transition:.15s}
+.cw-btn:hover{opacity:.82}
+.cw-btn.cw-gh{background:transparent;color:#17171A}
+.cw-btn:disabled{opacity:.35;cursor:default}
+.cw-in{font:inherit;font-size:13px;padding:8px 11px;border:1px solid #D8D6D0;min-width:110px}
+.cw-in.cw-wide{min-width:320px}
+.cw-lab{font-size:12px;color:#7A7A7E}
+.cw-bar{height:6px;background:#EEECE6;margin:10px 0 4px;overflow:hidden}
+.cw-bar i{display:block;height:100%;width:0;background:#17171A;transition:width .2s}
+.cw-out{margin-top:12px;border:1px solid #E6E4DE;background:#FCFBF9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.7;padding:13px 15px;white-space:pre-wrap;
+  max-height:460px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="cw-wrap">
+
+  <h1 class="cw-h1">위키데이터 미술가 수집</h1>
+  <p class="cw-lead">
+    미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
+    도판은 담지 않습니다 — 소장처로 링크합니다.
+  </p>
+
+  <div class="cw-warn">
+    <b>왜 이 일을 하나</b><br>
+    지금까지는 <b>도판</b>을 따라갔습니다. 클리블랜드·메트·커먼즈는 저작권이
+    풀린 그림이라 옛 작가만 들어왔고, 전시는 서울시립·국립현대 같은
+    <b>한국 기관</b>만 봤으니 한국 작가만 들어왔습니다.<br>
+    2026-09-13 에 세어 보니 <b>해외 현역 작가가 50명</b>뿐이었습니다.
+    위키데이터에는 1950년 이후 태어난 미술가가 <b>87,188명</b> 있습니다.
+  </div>
+
+  <div class="cw-danger">
+    <b>담는 규칙 — 이름으로 맞대지 않습니다</b><br>
+    2026-09-13 에 오윤(민중미술가) 항목에 <b>야구 선수</b>가, 황수연(조각가)에
+    <b>무용가</b>가, 유현미(미술가)에 <b>각본가</b>가 덮여 있는 것을 찾았습니다.
+    전부 <b>이름으로</b> 위키데이터를 찾은 탓입니다.<br>
+    ▶ 여기서는 <b>Q 번호를 열쇠로</b> 담습니다.
+    같은 Q 가 이미 있으면 <b>건너뜁니다</b> — 덮어쓰지 않습니다.
+  </div>
+
+  <h2 class="cw-h2">고른 조건</h2>
+  <p class="cw-note">
+    ① 직업이 <b>미술</b>(화가·조각가·사진가·설치·삽화·판화·도예·서예…)<br>
+    ② 소장처가 <b>미술관</b>(Q207694) — 소장처만 걸면 「위키미디어 공용」이
+       섞여 커먼즈에 사진 올린 사람이 함께 잡힙니다. <b>1만 5천 명이 그랬습니다.</b><br>
+    ③ 태어난 해가 아래 범위<br>
+    ④ 직업에 축구·가수·배우·정치인 같은 것이 섞이면 <b>물립니다</b>
+  </p>
+  <p class="cw-note">
+    크기 — 1900년 이후 <b>28,948명</b> · 1950년 이후 <b>8,781명</b>.
+    한 해에 대략 <b>150~300명</b>, 조회에 <b>20~30초</b>씩 걸립니다.
+  </p>
+
+  <div class="cw-row">
+    <span class="cw-lab">자물쇠</span>
+    <input id="tok" class="cw-in cw-wide" type="password" placeholder="COLLECT_TOKEN">
+  </div>
+  <div class="cw-row">
+    <span class="cw-lab">태어난 해</span>
+    <input id="y1" class="cw-in" type="number" value="1975" min="1800" max="2030">
+    <span class="cw-lab">~</span>
+    <input id="y2" class="cw-in" type="number" value="1977" min="1800" max="2030">
+    <button class="cw-btn cw-gh" id="bPre">미리보기</button>
+    <button class="cw-btn"       id="bApp">담기</button>
+  </div>
+  <div class="cw-bar"><i id="bar"></i></div>
+  <div class="cw-out" id="out">자물쇠를 넣고 해를 고르신 뒤 미리보기부터 눌러 보십시오.</div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ★★ 위키데이터 조회는 <b>여기(브라우저)</b>에서 합니다.
+     한 해치에 27초가 걸려 Vercel 함수로는 못 기다립니다.
+     WDQS 가 CORS 를 열어 두어 곧바로 부를 수 있습니다.
+     담기만 /api/collect-artist-wd 가 service key 로 합니다.
+   ══════════════════════════════════════════════════════════════ */
+var WDQS = 'https://query.wikidata.org/sparql';
+
+/* 미술 직업 (P106) */
+var ART = ['Q1028181','Q1281618','Q33231','Q18074503','Q15296811','Q1925963',
+           'Q10694573','Q483501','Q3391743','Q10873124','Q329439','Q2309784','Q11569986'];
+
+/* ★ NOT IN 은 <b>쉼표</b>로 갈라야 합니다. 공백으로 썼다가 HTTP 400 을 봤습니다. */
+var VALS   = ART.map(function (q) { return 'wd:' + q; }).join(' ');
+var COMMAS = ART.map(function (q) { return 'wd:' + q; }).join(', ');
+
+var NOT_ART = /위키미디언|위키백과인|축구|야구|농구|배구|배드민턴|탁구|펜싱|골프|피겨|프로게이머|가수|배우|아이돌|래퍼|아나운서|개그맨|성우|모델|정치인|대학생|테러리스트|저격수|군인|의사|간호사|변호사|회계사|요리사|운동선수/;
+
+function q(id){ return document.getElementById(id); }
+function say(t){ q('out').textContent = t; }
+function add(t){ q('out').textContent += t; }
+function bar(p){ q('bar').style.width = Math.max(0, Math.min(100, p)) + '%'; }
+
+function sparqlFor(year){
+  return [
+   'SELECT ?p ?ko ?en ?desc ?birth ?death ?img ?article',
+   ' (GROUP_CONCAT(DISTINCT ?natL;separator=", ")     AS ?nats)',
+   ' (GROUP_CONCAT(DISTINCT ?artOccL;separator=", ")  AS ?artOccs)',
+   ' (GROUP_CONCAT(DISTINCT ?etcOccL;separator=", ")  AS ?etcOccs)',
+   'WHERE {',
+   '  VALUES ?occ { ' + VALS + ' }',
+   '  ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?museum .',
+   '  ?museum wdt:P31/wdt:P279* wd:Q207694 .',
+   '  FILTER(YEAR(?birth) = ' + year + ')',
+   '  OPTIONAL { ?p wdt:P570 ?death }',
+   '  OPTIONAL { ?p wdt:P18 ?img }',
+   '  OPTIONAL { ?p rdfs:label ?ko . FILTER(LANG(?ko)="ko") }',
+   '  OPTIONAL { ?p rdfs:label ?en . FILTER(LANG(?en)="en") }',
+   '  OPTIONAL { ?p schema:description ?desc . FILTER(LANG(?desc)="ko") }',
+   '  OPTIONAL { ?p wdt:P27 ?nat . ?nat rdfs:label ?natL . FILTER(LANG(?natL)="ko") }',
+   /* 미술 직업 — 앞에 섭니다 (나혜석이 「시인, 언론인」으로 떴던 자리) */
+   '  OPTIONAL { ?p wdt:P106 ?ao . FILTER(?ao IN (' + COMMAS + '))',
+   '             ?ao rdfs:label ?artOccL . FILTER(LANG(?artOccL)="ko") }',
+   '  OPTIONAL { ?p wdt:P106 ?eo . FILTER(?eo NOT IN (' + COMMAS + '))',
+   '             ?eo rdfs:label ?etcOccL . FILTER(LANG(?etcOccL)="ko") }',
+   '  OPTIONAL { ?article schema:about ?p ; schema:isPartOf <https://ko.wikipedia.org/> }',
+   '} GROUP BY ?p ?ko ?en ?desc ?birth ?death ?img ?article'
+  ].join('\n');
+}
+
+function yearOf(iso){
+  var m = /^(-?\d{1,4})-/.exec(String(iso || ''));
+  if (!m) return null;
+  var y = parseInt(m[1], 10);
+  return (isFinite(y) && y > 0 && y < 2100) ? y : null;
+}
+
+function rowFrom(b){
+  var qid = String(b.p.value).split('/').pop();
+  if (!/^Q\d+$/.test(qid)) return null;
+
+  var ko = b.ko ? b.ko.value.trim() : '';
+  var en = b.en ? b.en.value.trim() : '';
+  if (!ko && !en) return null;
+
+  var art = (b.artOccs && b.artOccs.value) ? b.artOccs.value.trim() : '';
+  var etc = (b.etcOccs && b.etcOccs.value) ? b.etcOccs.value.trim() : '';
+  if (NOT_ART.test(etc)) return null;
+
+  var field = [art, etc].filter(Boolean).join(', ') || null;
+  var by = yearOf(b.birth && b.birth.value);
+  var dy = b.death ? yearOf(b.death.value) : null;
+
+  var img = null;
+  if (b.img && b.img.value) {
+    var f = decodeURIComponent(String(b.img.value).split('/').pop());
+    img = 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(f);
+  }
+
+  return {
+    wikidata_id: qid,
+    name_ko: ko || en,
+    name_en: en || null,
+    bio: (b.desc && b.desc.value) ? b.desc.value.trim() : null,
+    birth_year: by,
+    death_year: dy,
+    life: by ? (by + ' – ' + (dy || '')) : null,
+    nationality: (b.nats && b.nats.value) ? b.nats.value.trim() : null,
+    field: field,
+    image_url: img,
+    image_credit: img ? 'Wikimedia Commons' : null,
+    link_wiki: b.article ? b.article.value : null
+  };
+}
+
+async function askYear(year){
+  var r = await fetch(WDQS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+               'Accept': 'application/sparql-results+json' },
+    body: 'query=' + encodeURIComponent(sparqlFor(year))
+  });
+  if (!r.ok) throw new Error('위키데이터 ' + r.status);
+  var j = await r.json();
+  return j.results.bindings.map(rowFrom).filter(Boolean);
+}
+
+async function run(mode){
+  var tok = q('tok').value.trim();
+  if (!tok) { say('자물쇠를 넣으십시오.'); return; }
+  var y1 = parseInt(q('y1').value, 10), y2 = parseInt(q('y2').value, 10);
+  if (!isFinite(y1) || !isFinite(y2) || y2 < y1) { say('해를 바로 넣으십시오.'); return; }
+  if (y2 - y1 + 1 > 10) { say('한 번에 열 해까지만 하십시오. 오래 걸립니다.'); return; }
+
+  q('bPre').disabled = true; q('bApp').disabled = true;
+  say((mode === 'apply' ? '담는' : '미리보는') + ' 중 · ' + y1 + '~' + y2 + '\n\n');
+
+  var all = [], 해수 = y2 - y1 + 1, 한 = 0;
+  try {
+    for (var y = y1; y <= y2; y++) {
+      add(y + '년 … ');
+      var t0 = Date.now();
+      var rows = await askYear(y);
+      all = all.concat(rows);
+      add(rows.length + '명 (' + ((Date.now() - t0) / 1000).toFixed(1) + '초)\n');
+      한++; bar(한 / 해수 * 100);
+    }
+  } catch (e) {
+    add('\n★ 위키데이터에서 막혔습니다 — ' + String(e.message || e) + '\n');
+    q('bPre').disabled = false; q('bApp').disabled = false; return;
+  }
+
+  add('\n모두 ' + all.length + '명 · 서버로 보냅니다…\n\n');
+
+  try {
+    var res = await fetch('/api/collect-artist-wd?token=' + encodeURIComponent(tok)
+                          + '&mode=' + (mode === 'apply' ? 'apply' : 'preview'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: all })
+    });
+    var j = await res.json();
+    add(JSON.stringify(j, null, 2));
+  } catch (e) {
+    add('★ 서버에서 막혔습니다 — ' + String(e.message || e));
+  }
+  q('bPre').disabled = false; q('bApp').disabled = false;
+}
+
+q('bPre').addEventListener('click', function(){ run('preview'); });
+q('bApp').addEventListener('click', function(){
+  if (!confirm('담습니다. 이미 있는 Q 는 건너뜁니다. 진행할까요?')) return;
+  run('apply');
+});
+</script>
+</body>
+</html>
