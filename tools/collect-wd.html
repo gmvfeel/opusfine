@@ -46,7 +46,7 @@ body{margin:0;background:#fff;color:#17171A;
 <body>
 <div class="cw-wrap">
 
-  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 3</span></h1>
+  <h1 class="cw-h1">위키데이터 미술가 수집 <span style="font-size:13px;color:#7A7A7E;font-weight:400">판 4</span></h1>
   <p class="cw-lead">
     미술관이 소장한 근현대 미술가를 <b>사람 자체로</b> 담습니다.
     도판은 담지 않습니다 — 소장처로 링크합니다.
@@ -80,8 +80,9 @@ body{margin:0;background:#fff;color:#17171A;
   </p>
   <p class="cw-note">
     크기 — 1900년 이후 <b>28,948명</b> · 1950년 이후 <b>8,781명</b>.
-    한 해에 대략 <b>150~300명</b>이고, 조회가 <b>30초~1분</b>씩 걸립니다.
-    세 해를 고르시면 <b>2~3분</b> 걸립니다. 화면을 닫지 마십시오.
+    한 해에 대략 <b>150~300명</b>입니다. 한 해를 <b>여러 조각</b>으로 나눠
+    받으므로 한 걸음은 짧지만 모두 합치면 한 해에 <b>1분 남짓</b> 걸립니다.
+    화면을 닫지 마십시오.
   </p>
 
   <div class="cw-row">
@@ -126,24 +127,57 @@ function say(t){ q('out').textContent = t; }
 function add(t){ q('out').textContent += t; }
 function bar(p){ q('bar').style.width = Math.max(0, Math.min(100, p)) + '%'; }
 
-function sparqlFor(year){
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 판 4 · 조회를 <b>두 단계</b>로 쪼갰습니다
+
+     판 2·3 은 한 해치를 <b>한 번에</b> 받으려 했습니다. 그런데 —
+       제가 잰 시간 : 27초 → 55초 (갈수록 느려졌습니다)
+       위키데이터는 <b>60초에서 끊습니다</b>
+     그 선을 넘으면 상태 코드도 없이 연결이 끊겨
+     브라우저에는 「Failed to fetch」로만 보입니다.
+     ▶ 파트너 화면에서 「길 두드리기」는 GET·POST 둘 다 <b>200</b> 이었습니다.
+       길은 열려 있고 <b>무거운 조회만</b> 막힌 것입니다.
+
+     ▶ 고침 —
+       ① 그 해에 태어난 미술가의 <b>Q 번호만</b> 받습니다.
+          GROUP_CONCAT 도 OPTIONAL 도 없어 훨씬 가볍습니다.
+       ② 받은 Q 를 <b>100개씩 끊어</b> 상세를 받습니다.
+          VALUES 로 사람을 콕 집으면 아주 빠릅니다
+          (2026-09-13 아침에 87명을 몇 초에 받았습니다).
+
+     ★ 한 걸음마다 몇 초 걸렸는지 화면에 찍습니다.
+       어디가 무거운지 눈으로 보실 수 있습니다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ① 그 해 태어난 미술가의 Q 만 */
+function sparqlIds(year){
   return [
-   'SELECT ?p ?ko ?en ?desc ?birth ?death ?img ?article',
-   ' (GROUP_CONCAT(DISTINCT ?natL;separator=", ")     AS ?nats)',
-   ' (GROUP_CONCAT(DISTINCT ?artOccL;separator=", ")  AS ?artOccs)',
-   ' (GROUP_CONCAT(DISTINCT ?etcOccL;separator=", ")  AS ?etcOccs)',
-   'WHERE {',
+   'SELECT DISTINCT ?p WHERE {',
    '  VALUES ?occ { ' + VALS + ' }',
    '  ?p wdt:P106 ?occ ; wdt:P569 ?birth ; wdt:P6379 ?museum .',
    '  ?museum wdt:P31/wdt:P279* wd:Q207694 .',
    '  FILTER(YEAR(?birth) = ' + year + ')',
+   '}'
+  ].join('\n');
+}
+
+/* ② 집어 든 사람들의 상세 */
+function sparqlDetail(qids){
+  var part = qids.map(function (q) { return 'wd:' + q; }).join(' ');
+  return [
+   'SELECT ?p ?ko ?en ?desc ?birth ?death ?img ?article',
+   ' (GROUP_CONCAT(DISTINCT ?natL;separator=", ")    AS ?nats)',
+   ' (GROUP_CONCAT(DISTINCT ?artOccL;separator=", ") AS ?artOccs)',
+   ' (GROUP_CONCAT(DISTINCT ?etcOccL;separator=", ") AS ?etcOccs)',
+   'WHERE {',
+   '  VALUES ?p { ' + part + ' }',
+   '  ?p wdt:P569 ?birth .',
    '  OPTIONAL { ?p wdt:P570 ?death }',
    '  OPTIONAL { ?p wdt:P18 ?img }',
    '  OPTIONAL { ?p rdfs:label ?ko . FILTER(LANG(?ko)="ko") }',
    '  OPTIONAL { ?p rdfs:label ?en . FILTER(LANG(?en)="en") }',
    '  OPTIONAL { ?p schema:description ?desc . FILTER(LANG(?desc)="ko") }',
    '  OPTIONAL { ?p wdt:P27 ?nat . ?nat rdfs:label ?natL . FILTER(LANG(?natL)="ko") }',
-   /* 미술 직업 — 앞에 섭니다 (나혜석이 「시인, 언론인」으로 떴던 자리) */
    '  OPTIONAL { ?p wdt:P106 ?ao . FILTER(?ao IN (' + COMMAS + '))',
    '             ?ao rdfs:label ?artOccL . FILTER(LANG(?artOccL)="ko") }',
    '  OPTIONAL { ?p wdt:P106 ?eo . FILTER(?eo NOT IN (' + COMMAS + '))',
@@ -151,6 +185,49 @@ function sparqlFor(year){
    '  OPTIONAL { ?article schema:about ?p ; schema:isPartOf <https://ko.wikipedia.org/> }',
    '} GROUP BY ?p ?ko ?en ?desc ?birth ?death ?img ?article'
   ].join('\n');
+}
+
+/* GET 으로 먼저, 막히면 POST 로. 둘 다 헤더를 거의 안 붙입니다 —
+   `Accept: application/sparql-results+json` 을 붙이면 사전요청이 생기고
+   위키데이터가 그것을 받아 주지 않습니다 (판 1 에서 겪었습니다). */
+async function ask(sq){
+  var 길 = [];
+  try {
+    var r1 = await fetch(WDQS + '?format=json&query=' + encodeURIComponent(sq));
+    if (r1.ok) return await r1.json();
+    길.push('GET → HTTP ' + r1.status);
+  } catch (e) { 길.push('GET → ' + String(e.message || e)); }
+  try {
+    var r2 = await fetch(WDQS + '?format=json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'query=' + encodeURIComponent(sq)
+    });
+    if (r2.ok) return await r2.json();
+    길.push('POST → HTTP ' + r2.status);
+  } catch (e) { 길.push('POST → ' + String(e.message || e)); }
+  throw new Error(길.join(' / '));
+}
+
+async function askYear(year, log){
+  var t0 = Date.now();
+  var j1 = await ask(sparqlIds(year));
+  var qids = j1.results.bindings.map(function (b) { return b.p.value.split('/').pop(); })
+                .filter(function (q) { return /^Q\d+$/.test(q); });
+  log('  ① Q 모으기 ' + qids.length + '개 · ' + ((Date.now() - t0) / 1000).toFixed(1) + '초\n');
+  if (!qids.length) return [];
+
+  var rows = [];
+  for (var i = 0; i < qids.length; i += 100) {
+    var 조각 = qids.slice(i, i + 100);
+    var t1 = Date.now();
+    var j2 = await ask(sparqlDetail(조각));
+    var got = j2.results.bindings.map(rowFrom).filter(Boolean);
+    rows = rows.concat(got);
+    log('  ② 상세 ' + (i + 조각.length) + '/' + qids.length
+        + ' · ' + ((Date.now() - t1) / 1000).toFixed(1) + '초\n');
+  }
+  return rows;
 }
 
 function yearOf(iso){
@@ -198,49 +275,6 @@ function rowFrom(b){
   };
 }
 
-/* ★★★ 2026-09-13 · 위키데이터를 부르는 <b>두 길</b>을 차례로 씁니다.
-
-     처음에 POST + `Accept: application/sparql-results+json` 으로 짰더니
-     화면에서 「Failed to fetch」가 났습니다. 그 Accept 값은 브라우저가
-     그냥 보내 주는 값이 아니라 <b>사전요청(OPTIONS)</b>을 만드는데
-     위키데이터가 그것을 받아 주지 않습니다.
-
-     ▶ 판 2 에서 GET 한 길로 바꿨는데도 또 막혔다는 말씀을 들었습니다.
-       그래서 판 3 은 <b>두 길을 차례로</b> 씁니다 —
-         ① GET  · 헤더 없음
-         ② POST · Content-Type 만 (이것도 사전요청이 안 생깁니다)
-       그리고 <b>어느 길에서 어떻게</b> 막혔는지 화면에 그대로 찍습니다.
-
-     ★ 둘 다 막히면 브라우저 쪽에서 막는 것입니다 —
-       광고·추적 차단 확장이 query.wikidata.org 를 막는 일이 있습니다.
-       그때는 확장을 잠시 끄고 다시 해 보십시오.
-   ★ 한 해에 <b>30초~1분</b> 걸립니다. */
-async function askYear(year){
-  var sq = sparqlFor(year);
-  var 길 = [];
-
-  /* ① GET · 헤더를 하나도 붙이지 않습니다 */
-  try {
-    var u = WDQS + '?format=json&query=' + encodeURIComponent(sq);
-    var r1 = await fetch(u);
-    if (r1.ok) return (await r1.json()).results.bindings.map(rowFrom).filter(Boolean);
-    길.push('GET → HTTP ' + r1.status);
-  } catch (e) { 길.push('GET → ' + String(e.message || e)); }
-
-  /* ② POST · Content-Type 만 (Accept 를 안 붙이면 사전요청이 없습니다) */
-  try {
-    var r2 = await fetch(WDQS + '?format=json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'query=' + encodeURIComponent(sq)
-    });
-    if (r2.ok) return (await r2.json()).results.bindings.map(rowFrom).filter(Boolean);
-    길.push('POST → HTTP ' + r2.status);
-  } catch (e) { 길.push('POST → ' + String(e.message || e)); }
-
-  throw new Error('두 길 다 막힘 · ' + 길.join(' / '));
-}
-
 async function run(mode){
   var tok = q('tok').value.trim();
   if (!tok) { say('자물쇠를 넣으십시오.'); return; }
@@ -254,11 +288,12 @@ async function run(mode){
   var all = [], 해수 = y2 - y1 + 1, 한 = 0;
   try {
     for (var y = y1; y <= y2; y++) {
-      add(y + '년 … ');
+      add(y + '년\n');
       var t0 = Date.now();
-      var rows = await askYear(y);
+      var rows = await askYear(y, add);
       all = all.concat(rows);
-      add(rows.length + '명 (' + ((Date.now() - t0) / 1000).toFixed(1) + '초)\n');
+      add('  ▶ ' + y + '년 ' + rows.length + '명 · 모두 '
+          + ((Date.now() - t0) / 1000).toFixed(1) + '초\n\n');
       한++; bar(한 / 해수 * 100);
     }
   } catch (e) {
