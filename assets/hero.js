@@ -118,8 +118,12 @@
     var today = new Date().toISOString().slice(0, 10);
     /* ★ 2026-09-12 · organizer 를 더했습니다 —
          예술의전당 832건은 venue 가 비어 있고 기관만 있습니다. */
+    /* ★★ 2026-09-14 · exhibition_artists 를 <b>함께</b> 받습니다.
+         「작가 보기」 단추를 그 전시의 작가로 잇기 위해서입니다(아래 exhibitionSlide).
+         PostgREST 는 이어진 표를 괄호로 함께 줍니다 — 조회가 늘지 않습니다. */
     var sel = 'id,title,subtitle,venue,organizer,start_date,end_date,artists,genre,'
-            + 'summary,poster_url,poster_credit,link_source';
+            + 'summary,poster_url,poster_credit,link_source,'
+            + 'exhibition_artists(artist_id)';
     /* ★★ 2026-09-12 · <b>kind=art 만 겁니다.</b>
          대문 얼굴에 박물관·역사 전시가 걸리지 않게 합니다. */
     var base = OF.SB_URL + '/rest/v1/exhibitions?select=' + sel
@@ -199,6 +203,30 @@
            (그 전에는 주최 기관으로 곧장 보냈습니다) */
       href: '/db/exhibition-view.html?id=' + e.id,
       cta: '전시 자세히',
+      /* ★★ 2026-09-14 · 「작가 보기」 단추.
+           여태 index.html 에 /db/artist.html 이 <b>박혀</b> 있어, 어느 전시를
+           보고 있든 작가 3만 명 목록으로 튕겼습니다(파트너 지적).
+         ★ 지금 열리는 전시 243건 중 작가가 이어진 것은 <b>28건</b>뿐입니다
+           (한 명 13 · 여럿 15 · 없음 215 · 2026-09-14 실측).
+           그래서 <b>이어진 전시에만</b> 단추를 보입니다 — 나머지는 숨깁니다.
+           작가가 <b>하나일 때만</b> 단추를 보입니다.
+         ★ 여럿일 때는 보낼 곳이 없습니다 — db/exhibition-view.html 에
+           <b>작가 구역이 아직 없습니다</b>(2026-09-14 확인 · id 목록에
+           artists 가 없고 「작가」라는 낱말도 없습니다).
+           #artists 를 걸 뻔했는데, 없는 자리로 보내는 것이 됩니다(7-48).
+         ▶ 전시 화면에 작가 구역이 생기면 아래 주석 친 줄을 되살리십시오. */
+      artHref: (function () {
+        var a = (e.exhibition_artists || [])
+                  .map(function (x) { return x && x.artist_id; })
+                  .filter(Boolean);
+        if (!a.length) return null;
+        if (a.length === 1) return '/db/artist-view.html?id=' + a[0];
+        return null;   /* 여럿 — 전시 화면에 작가 구역이 생기면 아래로 바꾸십시오
+                          return '/db/exhibition-view.html?id=' + e.id + '#artists'; */
+      })(),
+      artCta: null,   /* 아래 paint 에서 작가 수에 따라 글자를 정합니다 */
+      artN: ((e.exhibition_artists || []).filter(function (x) {
+               return x && x.artist_id; })).length,
       tTxt: e.title,
       venue: heroPlace(e),
       /* 히어로 그림 — 포스터 */
@@ -308,6 +336,21 @@
          가면 안 됩니다 */
       var b1 = hero.querySelector('.hero-cta .btn');
       if (b1 && d.href) { b1.href = d.href; b1.textContent = d.cta || '자세히'; }
+
+      /* ★★ 2026-09-14 · 둘째 단추(「작가 보기」)도 그 장에 맞춥니다.
+           여태 손대지 않아 늘 /db/artist.html 로만 갔습니다.
+           작가가 이어지지 않은 전시에서는 <b>아예 숨깁니다</b> —
+           눌러도 그 전시와 상관없는 곳으로 가는 단추는 없느니만 못합니다. */
+      var b2 = hero.querySelector('.hero-cta .btn.ghost');
+      if (b2) {
+        if (d.artHref) {
+          b2.href = d.artHref;
+          b2.textContent = '작가 보기';
+          b2.style.display = '';
+        } else {
+          b2.style.display = 'none';
+        }
+      }
 
       /* ★★ 포스터 — 히어로 오른쪽 그림 자리(.plate)에 겁니다.
            그 자리는 art-demo.js 가 <b>작품 도판</b>으로 채우고 있는데,
