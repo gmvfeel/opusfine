@@ -923,8 +923,11 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 /* ════ 미시감 · 지금 살 수 있는 작품 (2026-09-14) ════
    히어로 아래 자리. 아카이브와 섞이지 않도록 가격을 반드시 보입니다.
    자료를 못 받으면 assets/misigam.js 가 구역을 통째로 숨깁니다. */
-.ms-row{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 18px}
-.ms-w{display:block;color:inherit;text-decoration:none}
+/* ★ minmax(0,1fr) 이어야 합니다 — 그냥 1fr 로 두면 「내용보다 작아지지 않는다」는
+     규칙 때문에 긴 제목 하나가 칸을 밀어 버립니다(실측 92·174·263·754px).
+     제목에 white-space:nowrap 이 걸려 있어 한 줄로 쭉 늘어난 탓입니다. */
+.ms-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 18px}
+.ms-w{display:block;color:inherit;text-decoration:none;min-width:0}
 .ms-th{display:block;aspect-ratio:1/1;overflow:hidden;background:var(--rule-2);margin-bottom:9px}
 .ms-th img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s}
 .ms-w:hover .ms-th img{transform:scale(1.03)}
@@ -934,8 +937,8 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 .ms-a{display:block;font-size:12px;color:var(--ink-3);margin-bottom:3px}
 .ms-p{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em}
 .ms-note{margin-top:18px;font-size:12px;color:var(--ink-3)}
-@media(max-width:900px){.ms-row{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:620px){.ms-row{grid-template-columns:repeat(2,1fr);gap:18px 14px}}
+@media(max-width:900px){.ms-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.ms-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px}}
 
 /* ★ 견본 보기 — 주소에 ?misigam=demo 를 붙였을 때만 뜹니다.
      실물이 아니라는 것이 한눈에 보이도록 빗금과 딱지를 답니다.
