@@ -142,8 +142,12 @@
     var box = document.getElementById(BOX);
     if (!box) return;
 
-    /* ★ ?misigam=demo 일 때만 견본. 평소에는 실제 자료만 봅니다. */
-    var isDemo = /[?&]misigam=demo\b/.test(location.search);
+    /* ★★ 2026-09-14 · 견본을 <b>평소 주소에서도</b> 보입니다(파트너 판정).
+         아직 정식으로 문을 연 상태가 아니라, 자리와 모양을 먼저 굳히는 편이 낫습니다.
+         ▶ 실제 미시감 자료가 오면 아래 한 줄을 false 로 바꾸거나
+           demoWorks 블록째 지우십시오. 그러면 fetchWorks() 만 씁니다.
+         ▶ <b>문을 열기 전에 반드시 끄십시오.</b> 손님에게 지어낸 가격이 보입니다. */
+    var isDemo = true;
 
     var works = [];
     try {

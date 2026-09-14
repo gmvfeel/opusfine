@@ -943,10 +943,8 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 /* ★ 견본 보기 — 주소에 ?misigam=demo 를 붙였을 때만 뜹니다.
      실물이 아니라는 것이 한눈에 보이도록 빗금과 딱지를 답니다.
      실제 자료가 오면 assets/misigam.js 의 demoWorks 와 함께 지우십시오. */
-#misigam.is-demo{position:relative;
-  background:repeating-linear-gradient(45deg,transparent,transparent 11px,
-             var(--rule-2) 11px,var(--rule-2) 12px)}
-#misigam.is-demo>.wrap{background:var(--paper);padding-top:14px;padding-bottom:14px}
+/* ★ 빗금 바탕은 뺐습니다(2026-09-14 · 파트너 판정) — 대문에 그대로 걸리는데
+     빗금이 있으면 화면이 어수선합니다. 「견본」 딱지와 아래 안내문으로 충분합니다. */
 #misigam.is-demo .sec-sub{color:var(--accent-2);font-weight:700}
 .ms-w.ms-demo .ms-th{position:relative}
 .ms-w.ms-demo .ms-th::after{content:'견본';position:absolute;left:6px;top:6px;
