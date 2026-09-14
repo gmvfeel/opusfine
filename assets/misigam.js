@@ -63,6 +63,51 @@
     return [];   /* ← 연동 전까지 비어 있습니다. 구역이 뜨지 않습니다. */
   }
 
+  /* ── 견본 보기 ──────────────────────────────────────────────────
+     ★ 주소 뒤에 <b>?misigam=demo</b> 를 붙였을 때만 뜹니다.
+         https://opusfine.vercel.app/?misigam=demo
+
+       평소 주소로는 <b>절대 뜨지 않습니다</b> — 손님에게 가짜가 보이면 안 됩니다.
+       오늘 리쿠르트 구역에서 겪은 일입니다(견본이 평소 화면에 섞여 있으면
+       대문 전체를 못 믿게 됩니다). 주소로 가려 두면 안전합니다.
+
+     ★ 무엇을 보시는 것인가 — <b>모양과 자리</b>입니다.
+       칸 크기 · 몇 점이 한 줄에 들어가는지 · 가격이 어떻게 보이는지 ·
+       제목이 긴 것이 잘리는지 · 좁은 화면에서 어떻게 접히는지.
+
+     ★ 이미지는 오퍼스파인 작품 DB 에서 빌려 씁니다(새로 만들지 않았습니다).
+       작가 이름·작품 이름·가격은 <b>지어낸 것</b>입니다 — 실제 미시감 자료가 아닙니다.
+
+     ▶ 실제 자료가 오면 이 블록(demoWorks 와 아래 isDemo 줄)을 <b>지우십시오.</b> */
+  async function demoWorks() {
+    /* ★ 작가 이름과 제목이 <b>둘 다 있는</b> 것만 씁니다.
+         처음엔 order=id.desc 로 뽑았더니 같은 제목이 세 번 나오고
+         작가 이름이 전부 비어 볼썽사나웠습니다 — 모양 판정이 안 됩니다.
+       ★ 볼 때마다 다른 작품이 뜨도록 <b>아무 데서나</b> 집습니다. */
+    var skip = Math.floor(Math.random() * 20000);
+    var u = OF.SB_URL + '/rest/v1/artworks'
+          + '?select=id,title,artist_name,image_url'
+          + '&hidden=not.is.true&image_url=not.is.null'
+          + '&artist_id=not.is.null'
+          + '&title=neq.&artist_name=neq.'
+          + '&order=id.asc&offset=' + skip + '&limit=' + N;
+    var r = await fetch(u, { headers: { apikey: OF.SB_KEY,
+                                        Authorization: 'Bearer ' + OF.SB_KEY } });
+    if (!r.ok) return [];
+    var rows = await r.json();
+    var price = [180000, 350000, 90000, 1200000, 450000, 260000, 75000, 620000];
+    return rows.map(function (w, i) {
+      return {
+        title:  w.title || '무제',
+        artist: w.artist_name || '작가 미상',
+        price:  price[i % price.length],
+        image:  w.image_url,
+        href:   '#',
+        demo:   true
+      };
+    });
+  }
+
   /* ── 그리기 ──────────────────────────────────────────────────── */
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -83,7 +128,8 @@
     var img = w.image
       ? '<span class="ms-th"><img src="' + esc(w.image) + '" alt="" loading="lazy"></span>'
       : '<span class="ms-th ms-th-none"></span>';
-    return '<a class="ms-w" href="' + esc(w.href || '#') + '"'
+    return '<a class="ms-w' + (w.demo ? ' ms-demo' : '') + '"'
+         + ' href="' + esc(w.href || '#') + '"'
          + ' target="_blank" rel="noopener noreferrer">'
          + img
          + '<span class="ms-t">' + esc(w.title || '무제') + '</span>'
@@ -96,8 +142,13 @@
     var box = document.getElementById(BOX);
     if (!box) return;
 
+    /* ★ ?misigam=demo 일 때만 견본. 평소에는 실제 자료만 봅니다. */
+    var isDemo = /[?&]misigam=demo\b/.test(location.search);
+
     var works = [];
-    try { works = await fetchWorks(); } catch (e) { works = []; }
+    try {
+      works = isDemo ? await demoWorks() : await fetchWorks();
+    } catch (e) { works = []; }
 
     /* ★ 비어 있으면 구역을 통째로 숨깁니다 — 빈 칸을 남기지 않습니다.
          미시감이 죽어도 오퍼스파인 대문은 멀쩡합니다. */
@@ -107,7 +158,23 @@
       return;
     }
 
+    var sec3 = document.getElementById('misigam');
+    if (sec3) sec3.style.display = '';        /* 대문은 기본이 숨김입니다 */
+
     box.innerHTML = works.slice(0, N).map(card).join('');
+
+    if (isDemo) {
+      var sec2 = document.getElementById('misigam');
+      if (sec2) {
+        sec2.classList.add('is-demo');
+        var sub = sec2.querySelector('.sec-sub');
+        if (sub) sub.textContent = '견본 · 실제 미시감 자료가 아닙니다';
+        var note = sec2.querySelector('.ms-note');
+        if (note) note.innerHTML = '<b>견본 화면입니다.</b> 그림은 오퍼스파인 작품 DB 에서 '
+          + '빌려 온 것이고, 작가 이름과 가격은 지어낸 것입니다. '
+          + '미시감 연동이 끝나면 실제 판매작으로 바뀝니다.';
+      }
+    }
   }
 
   if (document.readyState === 'loading')

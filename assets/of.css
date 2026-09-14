@@ -937,6 +937,19 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 @media(max-width:900px){.ms-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:620px){.ms-row{grid-template-columns:repeat(2,1fr);gap:18px 14px}}
 
+/* ★ 견본 보기 — 주소에 ?misigam=demo 를 붙였을 때만 뜹니다.
+     실물이 아니라는 것이 한눈에 보이도록 빗금과 딱지를 답니다.
+     실제 자료가 오면 assets/misigam.js 의 demoWorks 와 함께 지우십시오. */
+#misigam.is-demo{position:relative;
+  background:repeating-linear-gradient(45deg,transparent,transparent 11px,
+             var(--rule-2) 11px,var(--rule-2) 12px)}
+#misigam.is-demo>.wrap{background:var(--paper);padding-top:14px;padding-bottom:14px}
+#misigam.is-demo .sec-sub{color:var(--accent-2);font-weight:700}
+.ms-w.ms-demo .ms-th{position:relative}
+.ms-w.ms-demo .ms-th::after{content:'견본';position:absolute;left:6px;top:6px;
+  background:var(--ink);color:#fff;font-size:10px;font-weight:700;
+  letter-spacing:.06em;padding:2px 6px}
+
 /* ════ 끝나가는 전시 (2026-09-14) ════
    리쿠르트 구역에서 「인재」 칸을 접고 그 자리에 섭니다. .lst 를 그대로 씁니다. */
 /* ★ 줄이 두 개로 보이던 것 — .cm-hd 가 아래 선을 긋고 .lst ul 이 또 위 선을 그어
