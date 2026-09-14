@@ -209,20 +209,24 @@
          ★ 지금 열리는 전시 243건 중 작가가 이어진 것은 <b>28건</b>뿐입니다
            (한 명 13 · 여럿 15 · 없음 215 · 2026-09-14 실측).
            그래서 <b>이어진 전시에만</b> 단추를 보입니다 — 나머지는 숨깁니다.
-           작가가 <b>하나일 때만</b> 단추를 보입니다.
-         ★ 여럿일 때는 보낼 곳이 없습니다 — db/exhibition-view.html 에
-           <b>작가 구역이 아직 없습니다</b>(2026-09-14 확인 · id 목록에
-           artists 가 없고 「작가」라는 낱말도 없습니다).
-           #artists 를 걸 뻔했는데, 없는 자리로 보내는 것이 됩니다(7-48).
-         ▶ 전시 화면에 작가 구역이 생기면 아래 주석 친 줄을 되살리십시오. */
+           작가가 하나면 그 작가 화면으로, <b>여럿이면</b> 전시 화면의
+           참여작가 자리로 보냅니다.
+         ★★ 자리표 이름은 <b>#xv-artists</b> 입니다 — #artists 가 아닙니다.
+           처음에 배포된 db/exhibition-view.html 을 grep 해 보고
+           「작가 구역이 없다」고 판정했는데 <b>틀렸습니다.</b> 그 자리표는
+           HTML 에 박혀 있지 않고 <b>assets/exhibition-view.js 의 facts() 가
+           만들어 냅니다</b>(add('참여작가', '<span id="xv-artists">…')).
+           실제 화면에서 재보니 《젊은 모색 2025》에 16명이 뜨고 14명이
+           눌리고 있었습니다(2026-09-14).
+           ▶ <b>HTML 만 grep 하고 「없다」고 하지 마십시오</b> — JS 가 만드는
+             자리는 안 걸립니다. 화면을 열어 getElementById 로 재십시오. */
       artHref: (function () {
         var a = (e.exhibition_artists || [])
                   .map(function (x) { return x && x.artist_id; })
                   .filter(Boolean);
         if (!a.length) return null;
         if (a.length === 1) return '/db/artist-view.html?id=' + a[0];
-        return null;   /* 여럿 — 전시 화면에 작가 구역이 생기면 아래로 바꾸십시오
-                          return '/db/exhibition-view.html?id=' + e.id + '#artists'; */
+        return '/db/exhibition-view.html?id=' + e.id + '#xv-artists';
       })(),
       artCta: null,   /* 아래 paint 에서 작가 수에 따라 글자를 정합니다 */
       artN: ((e.exhibition_artists || []).filter(function (x) {
@@ -345,7 +349,7 @@
       if (b2) {
         if (d.artHref) {
           b2.href = d.artHref;
-          b2.textContent = '작가 보기';
+          b2.textContent = (d.artN > 1) ? ('참여작가 ' + d.artN + '명') : '작가 보기';
           b2.style.display = '';
         } else {
           b2.style.display = 'none';

@@ -284,6 +284,33 @@
     show('main', true);
     paint(rows[0]);
     await paintArtists(rows[0]);
+
+    /* ★★ 2026-09-14 · 주소 뒤에 #xv-artists 가 붙어 오면 그 자리로 내려 줍니다.
+         대문 히어로의 「참여작가 N명」 단추가 여기로 보냅니다(assets/hero.js).
+       ★ 브라우저에 맡길 수 없습니다 — 그 자리표는 facts() 가 <b>뒤늦게</b>
+         만들어 내서, 주소를 읽는 시점에는 아직 없습니다.
+         실제로 재보니 스크롤이 0 에 머물렀습니다(2026-09-14).
+       ★ 자리표가 <span> 이라 조금 위로 띄워 제목이 가리지 않게 합니다.
+       ★ MCP 배경 탭에서는 <b>어떤 방법으로도 스크롤이 안 됐습니다</b>
+         (scrollTo · scrollIntoView · documentElement.scrollTop 셋 다 0).
+         재는 자리의 한계이지 코드 탓이 아닙니다 — 파트너 화면에서 봐야 압니다.
+         그래서 <b>세 가지를 함께</b> 걸어 어느 하나는 듣게 했습니다. */
+    if (location.hash === '#xv-artists') {
+      var box = $('xv-artists');
+      if (box) {
+        var goArtists = function () {
+          var y = box.getBoundingClientRect().top + window.scrollY - 120;
+          if (y < 0) y = 0;
+          try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch (e2) { }
+          if (!window.scrollY) { try { window.scrollTo(0, y); } catch (e3) { } }
+          if (!window.scrollY) { try { box.scrollIntoView({ block: 'center' }); } catch (e4) { } }
+        };
+        goArtists();
+        /* 그림이 늦게 떠서 자리가 밀릴 수 있습니다 — 한 번 더 맞춥니다 */
+        setTimeout(goArtists, 600);
+      }
+    }
+
     await more(rows[0]);
   }
 
