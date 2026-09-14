@@ -28,6 +28,39 @@
 
      ★ 열쇠를 화면에 박으면 <b>누구나 봅니다</b>. 반드시 읽기 전용이어야 하고
        RLS 로 「판매 중인 작품」만 열려 있어야 합니다. 요청서 2장을 보십시오.
+
+   ══════════════════════════════════════════════════════════════════
+   ★★ 2026-09-14 · 미시감 화면을 직접 뜯어 <b>재본</b> 것들 (misg.co.kr)
+
+     미시감도 Supabase 를 씁니다 — <b>inhfubtnnlpkivjtikty</b>.supabase.co
+     (오퍼스파인 jmankqdbvyrnyhxjmqsa 와 <b>다른 프로젝트</b>입니다).
+
+     미시감 자신이 이렇게 부릅니다(네트워크 기록에서 그대로 옮김) —
+       /rest/v1/artworks
+         ?select=*,images:artwork_images(id,role,r2_key,sort_order),
+                 artwork_keywords(keyword)
+         &artist_id=eq.{uuid}
+         &status=in.(published,on_sale,sold)
+         &order=published_at.desc
+
+     ▶ 표 이름  artworks · 이미지는 <b>별도 표</b> artwork_images
+     ▶ 상태 칸  status — published · on_sale · sold
+     ▶ 차례 칸  published_at
+     ▶ 확인된 칸 id(uuid) · title · code · artist_id · status · published_at
+     ▶ 이미지   r2_key 는 <b>절대 주소가 아닙니다.</b> 앞에 호스트를 붙입니다 —
+                https://img.misg.co.kr/ + r2_key
+                실제 꼴 : artworks/{작품uuid}/main-0-{숫자}.webp
+                role='main' 인 것이 대표 그림입니다.
+     ▶ 작품 주소 https://misg.co.kr/artworks/{id}
+
+     ★ <b>아직 모르는 것 둘</b> — 개발자께 여쭈어야 합니다(docs/미시감_연동_요청서.md)
+       · <b>가격</b> 칸 이름 (price 인지 sale_price 인지 · 숫자인지 글자인지)
+       · <b>작가 이름</b> — artworks 에 artist_id(uuid) 만 있습니다.
+         어느 표를 참조하는지(profiles? artists?), 이름 칸이 무엇인지.
+       아래 F 에 자리를 비워 두었습니다. 알게 되면 그 줄만 고치십시오.
+
+     ★ 2026-09-14 기준 <b>소장 가능 원화가 9점</b>뿐이고 「[시험] 여백의 온도」
+       같은 시험 자료가 섞여 있습니다. <b>스무 점쯤 쌓인 뒤에</b> 켜십시오.
    ════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -59,8 +92,62 @@
 
      ★ 받아 오지 못하면 <b>빈 배열</b>을 주십시오. 구역이 통째로 안 뜹니다 —
        대문에 깨진 자리가 남는 것보다 낫습니다(아래 render 첫 줄). */
+  /* ── 미시감 연결 나사 ────────────────────────────────────────────
+     ★ 고칠 것은 <b>여기 넷</b>뿐입니다. 아래 fetchWorks 본문은 손대지 마십시오. */
+  var MS = {
+    url: 'https://inhfubtnnlpkivjtikty.supabase.co/rest/v1',   /* 재봄 · 2026-09-14 */
+    key: '',            /* ← 읽기 전용 anon 키. <b>비어 있으면 구역이 안 뜹니다.</b> */
+    img: 'https://img.misg.co.kr/',                            /* 재봄 · r2_key 앞에 붙임 */
+    site: 'https://misg.co.kr/artworks/'                       /* 재봄 · 작품 주소 */
+  };
+  /* 칸 이름 — 확인된 것은 그대로, 모르는 것은 <b>여러 이름을 차례로</b> 봅니다.
+     맞는 이름을 아시게 되면 그 줄만 남기고 나머지는 지우십시오. */
+  var F = {
+    price:  ['price', 'sale_price', 'amount', 'price_krw'],    /* ← 아직 모름 */
+    artist: ['artist_name', 'artist', 'nickname', 'name']      /* ← 아직 모름 */
+  };
+
+  function pick(o, names) {
+    for (var i = 0; i < names.length; i++) {
+      var v = o[names[i]];
+      if (v !== undefined && v !== null && v !== '') return v;
+    }
+    return null;
+  }
+
   async function fetchWorks() {
-    return [];   /* ← 연동 전까지 비어 있습니다. 구역이 뜨지 않습니다. */
+    if (!MS.key) return [];      /* 열쇠가 없으면 조용히 물러섭니다 */
+
+    /* ★ status 는 <b>on_sale 만</b> 겁니다 — 미시감 자신은 published·sold 도
+         함께 받지만, 대문에 「지금 살 수 있는 작품」이라 적어 두었으므로
+         팔린 것을 걸면 거짓말이 됩니다. */
+    var u = MS.url + '/artworks'
+          + '?select=*,images:artwork_images(role,r2_key,sort_order)'
+          + '&status=eq.on_sale'
+          + '&order=published_at.desc'
+          + '&limit=' + N;
+
+    var r = await fetch(u, { headers: { apikey: MS.key,
+                                        Authorization: 'Bearer ' + MS.key } });
+    if (!r.ok) return [];
+    var rows = await r.json();
+    if (!Array.isArray(rows)) return [];
+
+    return rows.map(function (w) {
+      /* 대표 그림 — role 이 main 인 것, 없으면 sort_order 가 가장 앞선 것 */
+      var imgs = (w.images || []).slice().sort(function (a, b) {
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      });
+      var main = imgs.filter(function (x) { return x.role === 'main'; })[0] || imgs[0];
+
+      return {
+        title:  w.title || '무제',
+        artist: pick(w, F.artist) || '',
+        price:  pick(w, F.price),
+        image:  main && main.r2_key ? MS.img + main.r2_key : null,
+        href:   MS.site + w.id
+      };
+    });
   }
 
   /* ── 견본 보기 ──────────────────────────────────────────────────
