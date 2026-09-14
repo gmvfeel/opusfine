@@ -918,3 +918,31 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
   .grid-ex,.mini{column-count:1}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+
+/* ════ 미시감 · 지금 살 수 있는 작품 (2026-09-14) ════
+   히어로 아래 자리. 아카이브와 섞이지 않도록 가격을 반드시 보입니다.
+   자료를 못 받으면 assets/misigam.js 가 구역을 통째로 숨깁니다. */
+.ms-row{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 18px}
+.ms-w{display:block;color:inherit;text-decoration:none}
+.ms-th{display:block;aspect-ratio:1/1;overflow:hidden;background:var(--rule-2);margin-bottom:9px}
+.ms-th img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s}
+.ms-w:hover .ms-th img{transform:scale(1.03)}
+.ms-th-none{background:var(--rule-2)}
+.ms-t{display:block;font-size:13.5px;line-height:1.35;margin-bottom:2px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-a{display:block;font-size:12px;color:var(--ink-3);margin-bottom:3px}
+.ms-p{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em}
+.ms-note{margin-top:18px;font-size:12px;color:var(--ink-3)}
+@media(max-width:900px){.ms-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.ms-row{grid-template-columns:repeat(2,1fr);gap:18px 14px}}
+
+/* ════ 끝나가는 전시 (2026-09-14) ════
+   리쿠르트 구역에서 「인재」 칸을 접고 그 자리에 섭니다. .lst 를 그대로 씁니다. */
+#closing .dday.now{color:var(--accent-2);font-weight:800}
+#closing .cl-t{white-space:normal;overflow:visible}
+#closing .cl-t a{color:inherit;text-decoration:none;display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#closing .cl-t a:hover{color:var(--accent)}
+#closing .cl-v{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+#closing .lst li{align-items:flex-start}

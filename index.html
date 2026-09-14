@@ -133,6 +133,27 @@
   </div>
 </section>
 
+<!-- ════ 미시감 · 지금 살 수 있는 작품 ════
+     ★ 2026-09-14 · 히어로 바로 아래 자리입니다.
+       미시감(misigam)은 신진·아마추어 작가의 작품을 파는 자매 플랫폼입니다.
+       오퍼스파인이 담은 작가 3만 3천 명은 거의 다 기성·작고 작가입니다.
+       <b>지금 살아서 그리고 있는 사람</b>이 대문에 설 자리가 여기입니다.
+     ★ 아카이브와 커머스를 섞는 일이라 경계를 분명히 했습니다 —
+       구역을 따로 세우고 · 가격을 반드시 보이고 · 출처를 답니다.
+     ★ 자료를 못 받으면 assets/misigam.js 가 이 구역을 <b>통째로 숨깁니다</b>.
+       (지금은 연동 전이라 뜨지 않습니다) -->
+<section class="sec" id="misigam" style="display:none">
+  <div class="wrap">
+    <div class="sec-hd">
+      <div><div class="label">Misigam</div><div class="sec-t">지금 살 수 있는 작품</div></div>
+      <span class="sec-sub">신진 작가 · 미시감</span>
+      <a class="sec-more" href="https://misigam.com" target="_blank" rel="noopener noreferrer">미시감에서 더 보기 →</a>
+    </div>
+    <div class="ms-row" id="misigam-row"></div>
+    <p class="ms-note">작품과 가격은 <b>미시감</b>에서 받은 것입니다. 사시려면 미시감으로 이어집니다.</p>
+  </div>
+</section>
+
 <!-- ════ 오늘의 소장품 + 새로 들어온 작품 ════ -->
 <section class="sec band">
   <div class="wrap pickrow">
@@ -476,39 +497,22 @@
         </a>
       </div>
 
-      <div>
-        <div class="cm-hd">
-          <span class="cm-t">인재</span>
-          <span class="cm-s">사람이 자리를 찾습니다</span>
-          <a class="sec-more" href="#">더 보기 →</a>
-        </div>
-        <a class="jperson" href="#">
-          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#EEEBE1"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#8C8271"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#4A4A46"/></svg></span>
-          <span><span class="jn">한지우</span><span class="jc">큐레이터 · 경력 6년 · 근현대 회화</span></span>
-          <span class="jw">서울 · 정규직</span>
-        </a>
-        <a class="jperson" href="#">
-          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#F1EBDE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#9A8C74"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#6B6250"/></svg></span>
-          <span><span class="jn">서민재</span><span class="jc">보존·복원 · 경력 3년 · 지류</span></span>
-          <span class="jw">경기 · 계약직 가능</span>
-        </a>
-        <a class="jperson" href="#">
-          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#F3ECE0"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#A08C78"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#3E5A56"/></svg></span>
-          <span><span class="jn">노아린</span><span class="jc">전시 디자인 · 경력 8년</span></span>
-          <span class="jw">서울 · 프리랜스</span>
-        </a>
-        <a class="jperson" href="#">
-          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#ECE9DE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#8E8574"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#524C40"/></svg></span>
-          <span><span class="jn">임세훈</span><span class="jc">에듀케이터 · 경력 2년 · 아동 교육</span></span>
-          <span class="jw">부산 · 정규직</span>
-        </a>
-        <a class="jperson" href="#">
-          <span class="jf" data-art="ar" data-q="portrait"><svg viewBox="0 0 40 40" role="img" aria-label="견본"><rect width="40" height="40" fill="#EFEADE"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#94897A"/><path d="M5 40 q2 -14 15 -14 q13 0 15 14Z" fill="#5E5648"/></svg></span>
-          <span><span class="jn">배결</span><span class="jc">아트핸들러 · 경력 5년 · 운송·설치</span></span>
-          <span class="jw">전국 · 프로젝트</span>
-        </a>
-        </div>
+      <!-- ★★ 2026-09-14 · 여기 있던 「인재」 칸을 접고 <b>끝나가는 전시</b>를 넣었습니다.
+         까닭 — 이 구역은 채용도 인재도 <b>전부 견본</b>입니다(자료원이 아직 없습니다).
+         견본이 오래 걸려 있으면 대문 전체를 못 믿게 됩니다. 위쪽은 다 실제 자료입니다.
+         ▶ 실제 자료가 있는 것만 넣었습니다 — 이번 주 마감 35건 · 보름 안 69건,
+           그 69건 전부 포스터가 있습니다(2026-09-14 실측).
+         ▶ 리쿠르트에 실제 자료가 붙으면 그때 인재 칸을 되살리시면 됩니다.
+           옛 마크업은 git 이력에 남아 있습니다. -->
+    <div id="closing">
+      <div class="cm-hd">
+        <span class="cm-t">끝나가는 전시</span>
+        <span class="cm-s">지금 안 가면 못 봅니다</span>
+        <a class="sec-more" href="/db/exhibition.html">전시 전체 →</a>
+      </div>
+      <div class="lst" id="closing-list"></div>
     </div>
+  </div>
   </div>
 </section>
 
@@ -565,6 +569,8 @@
 <script src="/assets/hero.js"></script>
 <script src="/assets/counts.js"></script>
 <script src="/assets/home-exh.js"></script>
+<script src="/assets/misigam.js"></script>
+<script src="/assets/home-closing.js"></script>
 <script src="/assets/art-demo.js"></script>
 </body>
 </html>
