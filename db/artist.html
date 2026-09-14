@@ -196,6 +196,15 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
 
 <div class="filters">
   <div class="wrap frow">
+    <!-- ★★ 2026-09-14 · <b>나라 고르개</b>. 오퍼스클램처럼 맨 앞에 둡니다.
+         국적 칸만 보면 「국내」가 544명뿐입니다 — 전시 참여작가·동문은 국적이 비어 있습니다.
+         그래서 국적이 없으면 <b>이름 글자</b>로 가릅니다(한글 → 국내 · 로마자 → 국외).
+         표본 12명씩 봤습니다 — 정은정·박고석·최진욱 / Boudin·Michelangelo·Hiroshige. 맞았습니다.
+         잣대는 assets/artist-list.js 의 NATION 에 있습니다. -->
+    <div class="fgrp">
+      <span class="fl">나라</span>
+      <button class="chip on">전체</button><button class="chip">국내</button><button class="chip">국외</button>
+    </div>
     <div class="fgrp">
       <span class="fl">분야</span>
       <button class="chip on">전체</button><button class="chip">회화</button>

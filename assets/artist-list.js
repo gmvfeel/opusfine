@@ -24,7 +24,7 @@
   var PER = 24;
   var grid, cntBox, moreBtn;
   var page = 0, total = 0, busy = false;
-  var q = '', fField = '', fEra = '', fHas = '', fSort = '';
+  var q = '', fNation = '', fField = '', fEra = '', fHas = '', fSort = '';
 
   /* ★★ 2026-08-24 · <b>자료 있는 작가</b>만 고르는 추리개.
        작가 4,600여 명 가운데 볼 것이 있는 사람은 일부입니다.
@@ -69,6 +69,17 @@
     '공예·도자':  ['도예가', '공예가'],
     '설치·영상':  ['설치 미술가', '비디오 아티스트', '행위 예술가',
                  'video installation artist', 'multimedia artist']
+  };
+  /* ★★ 2026-09-14 · <b>나라</b> 잣대 (db/artist.html 의 나라 고르개 주석 참고)
+       KO 는 국적 칸의 한국 표기 — 조선·고려는 옛 작가, 조선민주주의…도 여기 듭니다.
+       국적이 비었으면 name_ko 에 한글이 있는가로 가릅니다.
+       ★ 값에 괄호·쉼표를 쓰면 PostgREST 의 or=(…) 가 깨집니다 — 정규식은 맨 위 | 만 씁니다. */
+  var NATION_KO = '대한민국|한국|조선|고려|신라|백제|가야|Korea';
+  var NATION = {
+    '국내': 'or=(nationality.imatch.' + NATION_KO
+          + ',and(nationality.is.null,name_ko.match.[가-힣]))',
+    '국외': 'or=(and(nationality.not.is.null,nationality.not.imatch.' + NATION_KO + ')'
+          + ',and(nationality.is.null,name_ko.not.match.[가-힣]))'
   };
   var ERA = {
     '조선 이전': [null, 1391],
@@ -123,6 +134,7 @@
       var t = q.replace(/[,()*]/g, ' ').trim();
       if (t) p.push('or=(name_ko.ilike.*' + t + '*,name_en.ilike.*' + t + '*,name_han.ilike.*' + t + '*)');
     }
+    if (fNation && NATION[fNation]) p.push(NATION[fNation]);
     if (fField && FIELD[fField]) {
       p.push('or=(' + FIELD[fField].map(function (w) { return 'field.ilike.*' + w + '*'; }).join(',') + ')');
     }
@@ -210,7 +222,7 @@
       }
       if (cntBox && page === 0) {
         cntBox.innerHTML = '<b>' + total.toLocaleString() + '</b>명'
-          + (q || fField || fEra || fHas ? ' · 추린 것' : '');
+          + (q || fNation || fField || fEra || fHas ? ' · 추린 것' : '');
       }
       if (!rows.length && page === 0) {
         grid.innerHTML = '<div class="demo-note" style="grid-column:1/-1">' +
@@ -244,8 +256,10 @@
     if (!grid) return;
 
     var groups = document.querySelectorAll('.filters .fgrp');
-    if (groups[0]) chips(groups[0], function (v) { fField = v; });
-    if (groups[1]) chips(groups[1], function (v) { fEra   = v; });
+    /* ★ 2026-09-14 · 나라 고르개가 맨 앞에 들어와 자리가 하나씩 밀렸습니다 */
+    if (groups[0]) chips(groups[0], function (v) { fNation = v; });
+    if (groups[1]) chips(groups[1], function (v) { fField  = v; });
+    if (groups[2]) chips(groups[2], function (v) { fEra    = v; });
 
     /* ★ 자료 추리개 — 누를 때 <b>번호를 먼저 받아</b> 두고 좁힙니다 */
     /* ★ 차례 고르개 */
