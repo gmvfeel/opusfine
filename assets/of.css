@@ -973,3 +973,27 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
      두 칸이 되어 한 칸으로 안 내려갑니다. 그래서 넓은 화면에만 걸립니다.
      ▶ 뒤에 덮어쓰는 규칙을 더할 때는 <b>미디어쿼리를 함께</b> 보십시오. */
 @media(min-width:901px){ .jobrow{grid-template-columns:1fr 1.5fr} }
+
+
+/* ════ 목록 번호 (2026-09-14 · 파트너 요청) ════
+   대문의 .lst 목록 <b>여섯 군데</b>에 번호를 답니다 —
+   지금 열리는 전시 · 공모 · 뉴스 · 미술시장(둘) · 끝나가는 전시.
+
+   ★ HTML 을 여섯 군데 고치지 않고 <b>CSS counter</b> 로 붙입니다.
+     자료가 바뀌어도 알아서 다시 매겨지고, JS 도 HTML 도 손댈 것이 없습니다.
+   ★ 구조가 두 갈래라 그렇습니다 —
+       · li 바로 안에 span (공모·뉴스·미술시장·끝나가는 전시)
+       · li 안을 <a> 가 통째로 감쌈 (지금 열리는 전시)
+     ::before 를 li 에 붙이면 <b>둘 다</b> 걸립니다.
+   ★ li 는 display:flex 라 ::before 도 flex 칸이 됩니다 — flex:0 0 auto 로 고정합니다.
+   ★ 셈은 ul 에서 시작합니다(.lst ul). 목록마다 1 부터 다시 셉니다. */
+.lst ul{counter-reset:lstno}
+.lst li{counter-increment:lstno}
+.lst li::before{
+  content:counter(lstno,decimal-leading-zero);
+  flex:0 0 auto;align-self:baseline;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  color:var(--ink-3);font-variant-numeric:tabular-nums;
+  min-width:17px}
+/* 끝나가는 전시는 제목이 두 줄(제목+장소)이라 번호를 살짝 내립니다 */
+#closing .lst li::before{align-self:flex-start;padding-top:1px}
