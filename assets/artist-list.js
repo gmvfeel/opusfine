@@ -24,7 +24,7 @@
   var PER = 24;
   var grid, cntBox, moreBtn;
   var page = 0, total = 0, busy = false;
-  var q = '', fNation = '', fField = '', fEra = '', fHas = '', fSort = '';
+  var q = '', fKind = '', fNation = '', fField = '', fEra = '', fHas = '', fSort = '';
 
   /* ★★ 2026-08-24 · <b>자료 있는 작가</b>만 고르는 추리개.
        작가 4,600여 명 가운데 볼 것이 있는 사람은 일부입니다.
@@ -123,6 +123,10 @@
     var p = [];
     p.push('select=id,name_ko,name_en,name_han,art_name,field,genre,birth_year,death_year,life,nationality,image_url,is_oc,quality,rep_work');
     p.push('hidden=not.is.true');
+    /* ★ 2026-09-14 · 갈래 — 기본은 사람만. 'group' 은 팀·공방만, 'all' 은 안 겁니다.
+         (db/artist.html 의 갈래 고르개 주석 참고) */
+    if (fKind === 'group')     p.push('kind=eq.group');
+    else if (fKind !== 'all')  p.push('kind=eq.person');
     /* ★ 자료 있는 작가만 — 번호 목록으로 좁힙니다.
          목록이 길면 주소가 길어지므로 <b>앞 2,000명</b>만 씁니다.
          그보다 많은 경우는 아직 없습니다(820명). */
@@ -222,7 +226,7 @@
       }
       if (cntBox && page === 0) {
         cntBox.innerHTML = '<b>' + total.toLocaleString() + '</b>명'
-          + (q || fNation || fField || fEra || fHas ? ' · 추린 것' : '');
+          + (q || fKind || fNation || fField || fEra || fHas ? ' · 추린 것' : '');
       }
       if (!rows.length && page === 0) {
         grid.innerHTML = '<div class="demo-note" style="grid-column:1/-1">' +
@@ -257,9 +261,22 @@
 
     var groups = document.querySelectorAll('.filters .fgrp');
     /* ★ 2026-09-14 · 나라 고르개가 맨 앞에 들어와 자리가 하나씩 밀렸습니다 */
-    if (groups[0]) chips(groups[0], function (v) { fNation = v; });
-    if (groups[1]) chips(groups[1], function (v) { fField  = v; });
-    if (groups[2]) chips(groups[2], function (v) { fEra    = v; });
+    /* ★ 2026-09-14 · 갈래 고르개가 맨 앞에 들어와 자리가 또 하나 밀렸습니다.
+         갈래만 data-k 로 값을 받습니다 — 화면 글자(「팀·공방」)와 표의 값(group)이 다르기 때문입니다. */
+    var kindBox = document.getElementById('fKind');
+    if (kindBox) {
+      kindBox.querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          kindBox.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+          b.classList.add('on');
+          fKind = b.dataset.k || '';
+          load(true);
+        });
+      });
+    }
+    if (groups[1]) chips(groups[1], function (v) { fNation = v; });
+    if (groups[2]) chips(groups[2], function (v) { fField  = v; });
+    if (groups[3]) chips(groups[3], function (v) { fEra    = v; });
 
     /* ★ 자료 추리개 — 누를 때 <b>번호를 먼저 받아</b> 두고 좁힙니다 */
     /* ★ 차례 고르개 */

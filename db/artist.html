@@ -201,6 +201,17 @@ html[data-theme="dark"] .more button:hover{background:var(--ink);color:var(--pap
          그래서 국적이 없으면 <b>이름 글자</b>로 가릅니다(한글 → 국내 · 로마자 → 국외).
          표본 12명씩 봤습니다 — 정은정·박고석·최진욱 / Boudin·Michelangelo·Hiroshige. 맞았습니다.
          잣대는 assets/artist-list.js 의 NATION 에 있습니다. -->
+    <!-- ★★ 2026-09-14 · <b>사람</b>과 <b>팀</b>을 가릅니다.
+         오퍼스클램은 인물DB 와 음악단체DB 가 아예 <b>따로</b>입니다(오케스트라를 인물에 섞지 않습니다).
+         오퍼스파인은 팀이 41곳뿐이라 표를 나누지 않고 artists.kind 칸 하나로 갈랐습니다.
+         언메이크랩·옥인 콜렉티브 같은 콜렉티브 5, Tiffany Studios·Meissen 같은 공방·제조소 36.
+         ★ 기본은 <b>사람</b>입니다 — 목록 첫 화면에 공장 이름이 끼지 않게. -->
+    <div class="fgrp" id="fKind">
+      <span class="fl">갈래</span>
+      <button class="chip on" data-k="">사람</button>
+      <button class="chip" data-k="group">팀·공방</button>
+      <button class="chip" data-k="all">전체</button>
+    </div>
     <div class="fgrp">
       <span class="fl">나라</span>
       <button class="chip on">전체</button><button class="chip">국내</button><button class="chip">국외</button>
