@@ -32,30 +32,17 @@
      ★ PostgREST 로는 「다른 표에 줄이 있는 작가」를 한 번에 못 고릅니다.
        그래서 <b>번호를 먼저 받아</b> 두고 걸러 냅니다.
        한 번만 받아 두고 다시 쓰므로 느려지지 않습니다. */
-  var HAS = { work: null, exh: null };
 
-  async function idsWith(kind) {
-    if (HAS[kind]) return HAS[kind];
-    var url = kind === 'work'
-      ? OF.SB_URL + '/rest/v1/artworks?select=artist_id'
-        + '&hidden=not.is.true&artist_id=not.is.null&limit=20000'
-      : OF.SB_URL + '/rest/v1/exhibition_artists?select=artist_id'
-        + '&artist_id=not.is.null&limit=20000';
-    var set = [];
-    try {
-      var r = await fetch(url, { headers: { apikey: OF.SB_KEY,
-        Authorization: 'Bearer ' + OF.SB_KEY } });
-      if (r.ok) {
-        var rows = await r.json();
-        var seen = {};
-        rows.forEach(function (x) {
-          if (x.artist_id && !seen[x.artist_id]) { seen[x.artist_id] = 1; set.push(x.artist_id); }
-        });
-      }
-    } catch (e) { }
-    HAS[kind] = set;
-    return set;
-  }
+  /* ★★★ 2026-09-14 · idsWith() 를 <b>없앴습니다.</b>
+       작품·전시를 통째로 받아 작가 번호를 모아 주소에 늘어놓는 방식이었는데 —
+         · Supabase 는 limit=20000 을 적어도 <b>1,000줄</b>에서 자릅니다
+           (content-range 가 「0-999/4929」 였습니다 · 재본 값)
+         · 그래서 「작품 있음」이 1,957명 중 <b>288명</b>, 「전시 있음」이 2,415명 중 <b>327명</b>만 보였습니다
+         · 「앞 2,000명만」 이라는 자름도 또 있었습니다
+       ▶ 이제 artists.artworks_count / exhibitions_count 칸을 씁니다(마이그레이션
+         artists_add_counts_columns_20260914). 주소도 짧고 자를 것도 없습니다.
+       ★ 그 칸은 quality 재산정과 <b>같은 자리</b>에서 함께 채워야 합니다. */
+
 
   /* ── 잣대 ──
      ★ 표에 담긴 <b>그 글자</b>로 거릅니다. 위키데이터가 준 직업 이름을
@@ -130,8 +117,8 @@
     /* ★ 자료 있는 작가만 — 번호 목록으로 좁힙니다.
          목록이 길면 주소가 길어지므로 <b>앞 2,000명</b>만 씁니다.
          그보다 많은 경우는 아직 없습니다(820명). */
-    if (fHas && HAS[fHas] && HAS[fHas].length)
-      p.push('id=in.(' + HAS[fHas].slice(0, 2000).join(',') + ')');
+    if (fHas === 'work')     p.push('artworks_count=gt.0');
+    else if (fHas === 'exh') p.push('exhibitions_count=gt.0');
     p.push('order=' + (SORT[fSort] || SORT['']));
 
     if (q) {
@@ -290,15 +277,10 @@
 
     var hasBox = document.getElementById('fHas');
     if (hasBox) hasBox.querySelectorAll('button').forEach(function (b) {
-      b.addEventListener('click', async function () {
+      b.addEventListener('click', function () {
         hasBox.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
         b.classList.add('on');
         fHas = b.dataset.h || '';
-        if (fHas) {
-          b.textContent = '불러오는 중…';
-          await idsWith(fHas);
-          b.textContent = fHas === 'work' ? '작품 있음' : '전시 있음';
-        }
         load(true);
       });
     });
