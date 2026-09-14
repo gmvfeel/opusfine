@@ -366,33 +366,26 @@
     </div>
 
     <!-- 아래 — 사람이 보이는 줄 -->
-    <div class="cm-hd" style="margin-top:34px">
+    <!-- ★★ 2026-09-14 · <b>작가 소개</b> — 견본 넷(이수현·박도연·정하람·윤가온)을 걷어냈습니다.
+       DB 에 없는 사람들이었습니다(이수현만 우연히 동명이인이 있었습니다).
+
+     ★ 이 자리의 <b>본래 주인은 작가회원</b>입니다(파트너 확인) — 기성작가만이 아니라
+       오퍼스파인에 작가로 등록한 회원을 함께 무작위로 보이는 자리입니다.
+       그런데 <b>회원 구조가 아직 없습니다</b>(members 표 없음).
+     ▶ 그래서 지금은 <b>아카이브 작가</b>에서 뽑습니다. 회원 표가 생기면
+       assets/home-pr.js 에 조회 한 줄만 더하면 회원이 앞서고 모자란 만큼
+       아카이브가 채우게 됩니다. 코드를 다시 짤 일이 없습니다.
+
+     ★★ 문구를 바꿨습니다 — 「이번 주에 인사를 건넨 작가들」은 <b>회원이 직접 쓴 말</b>을
+       뜻하는데, 지금 DB 의 소개문은 위키데이터가 붙인 설명문입니다
+       (「네덜란드의 삽화가 (1927-2017)」). 그대로 두면 작고한 분이
+       「이번 주에 인사를 건넸다」가 됩니다. 자료에 맞게 고쳤습니다. -->
+    <div class="cm-hd" style="margin-top:34px" id="pr-hd">
       <span class="cm-t">작가 소개</span>
-      <span class="cm-s">이번 주에 인사를 건넨 작가들</span>
-      <a class="sec-more" href="#">SELF PR 전체 →</a>
+      <span class="cm-s">아카이브에서 무작위로</span>
+      <a class="sec-more" href="/db/artist.html">작가 전체 →</a>
     </div>
-    <div class="prrow">
-      <a class="pr" href="#">
-        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#EEEBE1"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#8C8271"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#4A4A46"/></svg></span>
-        <span><span class="pn">이수현</span><span class="pm">회화 · 서울</span>
-        <span class="pw">“첫 개인전을 앞두고 인사드립니다”</span></span>
-      </a>
-      <a class="pr" href="#">
-        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#F1EBDE"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#9A8C74"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#6B6250"/></svg></span>
-        <span><span class="pn">박도연</span><span class="pm">도자 · 여주</span>
-        <span class="pw">“도자 작업 10년, 이번에 신작을”</span></span>
-      </a>
-      <a class="pr" href="#">
-        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#F3ECE0"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#A08C78"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#3E5A56"/></svg></span>
-        <span><span class="pn">정하람</span><span class="pm">판화 · 부산</span>
-        <span class="pw">“판화 공방을 열었습니다”</span></span>
-      </a>
-      <a class="pr" href="#">
-        <span class="pf" data-art="ar" data-q="portrait"><svg viewBox="0 0 120 140" role="img" aria-label="견본"><rect width="120" height="140" fill="#ECE9DE"/><ellipse cx="60" cy="54" rx="24" ry="28" fill="#8E8574"/><path d="M16 140 q6 -44 44 -44 q38 0 44 44Z" fill="#524C40"/></svg></span>
-        <span><span class="pn">윤가온</span><span class="pm">영상 설치 · 대구</span>
-        <span class="pw">“영상 설치 작업을 합니다”</span></span>
-      </a>
-    </div>
+    <div class="prrow" id="pr-row"></div>
   </div>
 </section>
 
@@ -465,56 +458,20 @@
       <a href="#">사무·행정<b>14</b></a>
     </div>
 
-    <div class="jobrow">
-      <div>
-        <div class="cm-hd">
-          <span class="cm-t">채용</span>
-          <span class="cm-s">기관이 사람을 찾습니다</span>
-          <a class="sec-more" href="#">더 보기 →</a>
-        </div>
-        <a class="job" href="#">
-          <span><span class="jt">2027 학예연구사(큐레이터) 채용</span>
-          <span class="jm">국립현대미술관 · 정규직 · 학예 3년 이상</span></span>
-          <span class="jd hot">D-5</span>
-        </a>
-        <a class="job" href="#">
-          <span><span class="jt">소장품 관리 담당(레지스트라)</span>
-          <span class="jm">리움미술관 · 계약직 2년 · 경력 무관</span></span>
-          <span class="jd hot">D-9</span>
-        </a>
-        <a class="job" href="#">
-          <span><span class="jt">전시 교육 프로그램 기획·운영</span>
-          <span class="jm">서울시립미술관 · 공무직 · 미술교육 전공</span></span>
-          <span class="jd">D-14</span>
-        </a>
-        <a class="job" href="#">
-          <span><span class="jt">갤러리 어시스턴트 (전시·응대)</span>
-          <span class="jm">삼청동 소재 갤러리 · 정규직 · 신입 가능</span></span>
-          <span class="jd">D-18</span>
-        </a>
-        <a class="job" href="#">
-          <span><span class="jt">지류 보존처리 연구원</span>
-          <span class="jm">국립문화유산연구원 · 계약직 · 보존과학 석사</span></span>
-          <span class="jd">D-23</span>
-        </a>
-      </div>
+    <!-- ★★★ 2026-09-14 · 여기 있던 <b>「채용」·「인재」</b>를 걷어냈습니다(파트너 판정).
+       까닭 —
+         ① 채용 다섯 줄도 인재 다섯 줄도 <b>전부 견본</b>입니다. 자료원이 없습니다.
+            견본이 실물인 척 섞여 있으면 대문 전체를 못 믿게 됩니다.
+         ② 한때 인재 자리에 「끝나가는 전시」를 넣었다가 도로 뺐습니다 —
+            제목이 「리쿠르트 · 일자리와 사람」인데 아래 절반이 전시라 결이 맞지 않았고,
+            무엇보다 <b>#ex 구역에 「곧 끝나는 전시」가 이미 있어</b> 같은 전시가
+            대문에 두 번 떴습니다(이태량·함석헌기념관·볼로냐).
 
-      <!-- ★★ 2026-09-14 · 여기 있던 「인재」 칸을 접고 <b>끝나가는 전시</b>를 넣었습니다.
-         까닭 — 이 구역은 채용도 인재도 <b>전부 견본</b>입니다(자료원이 아직 없습니다).
-         견본이 오래 걸려 있으면 대문 전체를 못 믿게 됩니다. 위쪽은 다 실제 자료입니다.
-         ▶ 실제 자료가 있는 것만 넣었습니다 — 이번 주 마감 35건 · 보름 안 69건,
-           그 69건 전부 포스터가 있습니다(2026-09-14 실측).
-         ▶ 리쿠르트에 실제 자료가 붙으면 그때 인재 칸을 되살리시면 됩니다.
-           옛 마크업은 git 이력에 남아 있습니다. -->
-    <div id="closing">
-      <div class="cm-hd">
-        <span class="cm-t">끝나가는 전시</span>
-        <span class="cm-s">지금 안 가면 못 봅니다</span>
-        <a class="sec-more" href="/db/exhibition.html">전시 전체 →</a>
-      </div>
-      <div class="lst" id="closing-list"></div>
-    </div>
-  </div>
+       ▶ 위 제목과 직종 딱지는 <b>남겨 둡니다</b> — 자리를 지켜 두었다가
+         실제 채용 자료가 붙으면 그 아래에 다시 세우십시오.
+         걷어낸 마크업은 git 이력에 그대로 있습니다.
+       ★ 딱지 숫자(큐레이터 18 · 교육 강사 31 …)도 <b>아직 견본</b>입니다.
+         자료가 붙기 전에는 눌러도 갈 곳이 없습니다. -->
   </div>
 </section>
 
@@ -572,7 +529,7 @@
 <script src="/assets/counts.js"></script>
 <script src="/assets/home-exh.js"></script>
 <script src="/assets/misigam.js"></script>
-<script src="/assets/home-closing.js"></script>
+<script src="/assets/home-pr.js"></script>
 <script src="/assets/art-demo.js"></script>
 </body>
 </html>

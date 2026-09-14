@@ -997,3 +997,10 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
   min-width:17px}
 /* 끝나가는 전시는 제목이 두 줄(제목+장소)이라 번호를 살짝 내립니다 */
 #closing .lst li::before{align-self:flex-start;padding-top:1px}
+
+
+/* ════ 작가 소개 · 사진 자리 (2026-09-14) ════
+   .pf 는 원래 <svg> 견본이 들어가 높이를 스스로 정했습니다. 실제 초상 <img> 로
+   바꾸니 세로 비율이 제각각이라(위키데이터 초상은 1:1 부터 1:2 까지) 카드 높이가
+   들쭉날쭉했습니다. 비율을 고정하고 잘라 넣습니다. */
+.pf img{aspect-ratio:66/80;object-fit:cover;background:var(--rule-2)}
