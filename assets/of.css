@@ -939,6 +939,10 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 
 /* ════ 끝나가는 전시 (2026-09-14) ════
    리쿠르트 구역에서 「인재」 칸을 접고 그 자리에 섭니다. .lst 를 그대로 씁니다. */
+/* ★ 줄이 두 개로 보이던 것 — .cm-hd 가 아래 선을 긋고 .lst ul 이 또 위 선을 그어
+     맞닿습니다. 기존 코드에 .cmrow .lst ul{border-top:0} 이 있었는데 이 구역은
+     .cmrow 가 아니라 #closing 이라 안 먹었습니다(2026-09-14 · 파트너 지적). */
+#closing .lst ul{border-top:0}
 #closing .dday.now{color:var(--accent-2);font-weight:800}
 #closing .cl-t{white-space:normal;overflow:visible}
 #closing .cl-t a{color:inherit;text-decoration:none;display:block;
@@ -946,3 +950,12 @@ html[data-theme="dark"] .fm-head svg text{fill:#EDECE8}
 #closing .cl-t a:hover{color:var(--accent)}
 #closing .cl-v{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
 #closing .lst li{align-items:flex-start}
+
+/* ★ 좌우 폭 — 「채용」은 한 줄짜리 목록이라 넓을 까닭이 없고,
+     「끝나가는 전시」는 제목이 길어 자주 잘립니다. 1fr 1fr → <b>1fr 1.5fr</b>.
+     (2026-09-14 · 파트너 지적)
+   ★★ 여기가 파일 <b>맨 뒤</b>라, 그냥 .jobrow{…} 만 쓰면 위쪽
+     @media(max-width:900px) 보다 <b>나중에</b> 적용됩니다 — 좁은 화면에서도
+     두 칸이 되어 한 칸으로 안 내려갑니다. 그래서 넓은 화면에만 걸립니다.
+     ▶ 뒤에 덮어쓰는 규칙을 더할 때는 <b>미디어쿼리를 함께</b> 보십시오. */
+@media(min-width:901px){ .jobrow{grid-template-columns:1fr 1.5fr} }
