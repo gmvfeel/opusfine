@@ -75,13 +75,18 @@ a{color:inherit}
 .state-sub b{color:var(--gold);font-variant-numeric:tabular-nums;font-weight:600}
 .state-err{color:var(--warn)}
 
-/* ── 갈래 머리 ── */
-.group{margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+/* ── 갈래 머리 ── 이름과 설명을 <b>한 줄에</b> 놓습니다.
+     h2 가 덩이(block)라 그냥 두면 설명이 아래로 떨어져,
+     들여쓴 것처럼 어정쩡하게 보였습니다. */
+.group{
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;
+  margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--rule);
+}
 .group h2{
   margin:0;font-family:var(--serif);font-size:15.5px;font-weight:600;
   color:var(--ink);
 }
-.group span{font-size:12.5px;color:var(--ink-3);margin-left:9px;font-family:var(--sans)}
+.group span{font-size:12.5px;color:var(--ink-3);font-family:var(--sans)}
 
 /* ── 도구 목록 ── 카드 격자 대신 서가 목록 ── */
 ul.shelf{list-style:none;margin:0 0 38px;padding:0}
@@ -190,7 +195,9 @@ td.f{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-2
     </table>
     <p class="out">
       적힌 때보다 두세 시간 늦게 도는 일이 잦습니다 — GitHub 쪽 사정이라 정상입니다.<br>
-      기록과 손으로 돌리기 → <a href="https://github.com/gmvfeel/opusfine/actions" target="_blank" rel="noopener">GitHub Actions</a>
+      기록을 보거나 손으로 돌리시려면
+      <a href="https://github.com/gmvfeel/opusfine/actions" target="_blank" rel="noopener">GitHub Actions</a>
+      를 여십시오.
     </p>
   </div>
 
