@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>작업실 · OPUSFINE</title>
+<link rel="icon" href="/assets/ph-logo.svg">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE · 작업실 입구 · admin/index.html
+   ------------------------------------------------------------------
+   ★ 무엇을 하는가
+     tools/ 에 흩어진 관리 화면들의 <b>입구</b>입니다.
+     주소를 외우지 않아도 여기서 다 갑니다.
+
+   ★ of.css 를 <b>부르지 않습니다.</b>
+     tools/cma-proof.html 이 of.css 와 부딪혀 무너진 일이 있어,
+     관리 화면은 모두 제 꾸밈을 안에 지니는 것이 규칙입니다.
+     다만 <b>색과 글꼴은 of.css 와 같은 것</b>을 씁니다 — 뇌록·금·
+     Noto Serif KR·Pretendard. 딴 집처럼 보이지 않게 합니다.
+
+   ★ 여기에는 열쇠가 없습니다.
+     assets/config.js 의 <b>공개키</b>로 숫자만 읽습니다.
+     담기·고치기는 각 도구가 자물쇠 글자를 받아 서버에서 합니다.
+
+   ★★ 지금은 <b>로그인이 없습니다.</b>
+     화면은 누구나 열 수 있고, 실제 쓰기는 COLLECT_TOKEN 이 막습니다.
+     회원(members·is_admin)을 들이는 것은 다음 단계입니다 —
+     오퍼스클램의 assets/admin-guard.js 를 그대로 가져올 수 있습니다.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --paper:#FBFAF7;
+  --ink:#17171A;
+  --ink-2:#5F5F64;
+  --ink-3:#95949A;
+  --rule:#E5E3DC;
+  --nok:#1F4B47;          /* 뇌록 */
+  --nok-pale:#E9F0EE;
+  --gold:#A8863C;
+  --warn:#8C3A2B;
+  --serif:'Noto Serif KR',serif;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.75 var(--sans);word-break:keep-all;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--nok);outline-offset:3px;border-radius:3px}
+
+/* ── 머리 띠 ── 공개 화면과 한눈에 구별되게 뇌록을 깝니다 ── */
+.band{background:var(--nok);color:#F3F6F5}
+.band .in{max-width:940px;margin:0 auto;padding:26px 22px 24px}
+.band h1{
+  margin:0;font-family:var(--serif);font-weight:600;
+  font-size:26px;letter-spacing:.02em;
+}
+.band p{margin:6px 0 0;font-size:13.5px;color:#B9CCC8;line-height:1.7}
+
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+
+/* ── 지금 상태 · 한 문장 ── */
+.state{
+  font-family:var(--serif);font-size:19px;line-height:2;
+  margin:0 0 6px;color:var(--ink);
+}
+.state b{font-weight:600;color:var(--nok);font-variant-numeric:tabular-nums}
+.state .q{color:var(--ink-3);font-weight:400}
+.state-sub{margin:0 0 34px;font-size:13px;color:var(--ink-2)}
+.state-sub b{color:var(--gold);font-variant-numeric:tabular-nums;font-weight:600}
+.state-err{color:var(--warn)}
+
+/* ── 갈래 머리 ── */
+.group{margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+.group h2{
+  margin:0;font-family:var(--serif);font-size:15.5px;font-weight:600;
+  color:var(--ink);
+}
+.group span{font-size:12.5px;color:var(--ink-3);margin-left:9px;font-family:var(--sans)}
+
+/* ── 도구 목록 ── 카드 격자 대신 서가 목록 ── */
+ul.shelf{list-style:none;margin:0 0 38px;padding:0}
+ul.shelf li{border-bottom:1px solid var(--rule)}
+ul.shelf a{
+  display:grid;grid-template-columns:200px 1fr;gap:18px;
+  padding:15px 8px 15px 2px;text-decoration:none;align-items:baseline;
+  transition:background .12s;
+}
+ul.shelf a:hover{background:var(--nok-pale)}
+ul.shelf .nm{font-family:var(--serif);font-size:16px;font-weight:600}
+ul.shelf .ds{font-size:13.5px;color:var(--ink-2);line-height:1.65}
+ul.shelf .ds em{font-style:normal;color:var(--warn)}
+@media(max-width:620px){
+  ul.shelf a{grid-template-columns:1fr;gap:3px;padding:14px 8px 14px 2px}
+}
+
+/* ── 날마다 도는 것 ── */
+.cron{border:1px solid var(--rule);border-radius:9px;padding:18px 20px;background:#fff}
+.cron h2{margin:0 0 4px;font-family:var(--serif);font-size:15.5px;font-weight:600}
+.cron>p{margin:0 0 14px;font-size:13px;color:var(--ink-2)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--rule)}
+th{font-size:12px;color:var(--ink-3);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.t{font-variant-numeric:tabular-nums;color:var(--gold);white-space:nowrap}
+td.f{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-2)}
+.cron .out{margin:14px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.8}
+.cron .out a{color:var(--nok);font-weight:600}
+
+/* ── 알림 ── */
+.note{
+  margin:34px 0 0;padding:14px 16px;border-left:3px solid var(--gold);
+  background:#FBF7EE;font-size:13px;color:#6B5A31;line-height:1.85;
+}
+.note b{color:var(--warn)}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="in">
+    <h1>작업실</h1>
+    <p>자료를 담고 살피는 자리입니다. 여기서 한 일은 곧바로 사이트에 나타납니다.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <p class="state" id="state">
+    지금 <span class="q">세어 보는 중입니다…</span>
+  </p>
+  <p class="state-sub" id="stateSub"></p>
+
+  <!-- ══ 담기 ══════════════════════════════════════════════════ -->
+  <div class="group">
+    <h2>담기</h2><span>바깥 자료원에서 받아 DB 에 넣습니다</span>
+  </div>
+  <ul class="shelf">
+    <li><a href="/tools/collect.html">
+      <span class="nm">전시</span>
+      <span class="ds">12개 기관 전시정보와 한눈에보는문화정보에서 받습니다. 미리보기로 무엇이 담길지 먼저 보십시오.</span>
+    </a></li>
+    <li><a href="/tools/collect-art.html">
+      <span class="nm">작품</span>
+      <span class="ds">클리블랜드 미술관에서 CC0 작품과 도판을 부서별로 받습니다.</span>
+    </a></li>
+    <li><a href="/tools/collect-wd.html">
+      <span class="nm">작가</span>
+      <span class="ds">위키데이터에서 미술가를 받습니다. 태어난 해로 끊어 조금씩 받으십시오.</span>
+    </a></li>
+    <li><a href="/tools/collect-artist.html">
+      <span class="nm">작가 초상</span>
+      <span class="ds">빈 초상을 채웁니다. <em>한국 현대 작가는 위키데이터에 초상이 거의 없습니다</em> — 생몰년을 채우는 데는 잘 듣습니다.</span>
+    </a></li>
+  </ul>
+
+  <!-- ══ 살피기 ════════════════════════════════════════════════ -->
+  <div class="group">
+    <h2>살피기</h2><span>담지 않습니다. 무엇이 오는지 눈으로 봅니다</span>
+  </div>
+  <ul class="shelf">
+    <li><a href="/tools/probe.html">
+      <span class="nm">자료원 정찰</span>
+      <span class="ds">바깥 자료원을 두드려 응답을 그대로 봅니다. 담기가 0건일 때 여기서 까닭을 찾습니다.</span>
+    </a></li>
+    <li><a href="/tools/cma-proof.html">
+      <span class="nm">클리블랜드 확인</span>
+      <span class="ds">도판이 실제로 뜨는지 눈으로 봅니다.</span>
+    </a></li>
+  </ul>
+
+  <!-- ══ 날마다 도는 것 ════════════════════════════════════════ -->
+  <div class="cron">
+    <h2>날마다 도는 것</h2>
+    <p>GitHub Actions 가 새벽에 알아서 돕니다. 눌러서 돌릴 수도 있습니다.</p>
+    <table>
+      <thead><tr><th>때</th><th>무엇</th><th>어느 파일</th></tr></thead>
+      <tbody>
+        <tr><td class="t">03:20</td><td>작가 — 위키데이터</td><td class="f">scripts/collect-artists.mjs</td></tr>
+        <tr><td class="t">04:40</td><td>작품 — 클리블랜드</td><td class="f">scripts/collect-works-cma.mjs</td></tr>
+        <tr><td class="t">05:10</td><td>전시 — 서울시립미술관</td><td class="f">scripts/collect-exh-seoul.mjs</td></tr>
+      </tbody>
+    </table>
+    <p class="out">
+      적힌 때보다 두세 시간 늦게 도는 일이 잦습니다 — GitHub 쪽 사정이라 정상입니다.<br>
+      기록과 손으로 돌리기 → <a href="https://github.com/gmvfeel/opusfine/actions" target="_blank" rel="noopener">GitHub Actions</a>
+    </p>
+  </div>
+
+  <p class="note">
+    이 화면에는 <b>로그인이 없습니다.</b> 주소를 아는 사람은 누구나 열 수 있습니다.
+    다만 실제로 담고 고치는 일은 자물쇠 글자(COLLECT_TOKEN)를 아는 사람만 됩니다.
+    회원과 로그인을 들이는 것은 다음 차례입니다.
+  </p>
+
+</div>
+
+<script src="/assets/config.js"></script>
+<script>
+/* ── 지금 상태를 한 문장으로 ──────────────────────────────────
+   ★ 공개키로 <b>세기만</b> 합니다 (head:true — 줄은 안 받아옵니다).
+   ★★ 여기 나오는 수는 <b>사이트에 보이는 것</b>입니다.
+     DB 자물쇠(RLS)가 숨긴 줄을 이미 걸러 주므로, 이 화면에서
+     따로 걸러 줄 것이 없습니다. 작품은 rights='unknown' 인 것도
+     빠집니다 — 그래서 DB 전체 수보다 작습니다(52,789 → 48,647).
+     전체 수를 보셔야 할 때는 SQL 로 세십시오.
+   ★ 못 읽어도 화면은 그대로 씁니다. 숫자는 곁들이는 것이지
+     이 화면의 일이 아닙니다. */
+(async function () {
+  var stateEl = document.getElementById('state');
+  var subEl   = document.getElementById('stateSub');
+
+  function num(n) { return Number(n).toLocaleString('ko-KR'); }
+
+  try {
+    if (!window.OF || !OF.lib) throw new Error('config.js 를 못 읽었습니다');
+    var ok = await OF.lib();
+    if (!ok) throw new Error('supabase 라이브러리를 못 실었습니다');
+
+    var sb = window.supabase.createClient(OF.SB_URL, OF.SB_KEY);
+    var 오늘 = new Date().toISOString().slice(0, 10);
+
+    function count(table, build) {
+      var q = sb.from(table).select('*', { count: 'exact', head: true });
+      return (build ? build(q) : q).then(function (r) {
+        if (r.error) throw r.error;
+        return r.count || 0;
+      });
+    }
+
+    var r = await Promise.all([
+      count('artists'),
+      count('artworks'),
+      count('exhibitions'),
+      count('schools'),
+      count('exhibitions', function (q) {
+        return q.lte('start_date', 오늘).gte('end_date', 오늘);
+      }),
+      count('artworks', function (q) { return q.not('artist_id', 'is', null); })
+    ]);
+
+    stateEl.innerHTML =
+      '사이트에 작가 <b>' + num(r[0]) + '</b>명, 작품 <b>' + num(r[1]) + '</b>점, '
+      + '전시 <b>' + num(r[2]) + '</b>건, 학교 <b>' + num(r[3]) + '</b>곳이 나와 있습니다.';
+
+    subEl.innerHTML =
+      '오늘 열려 있는 전시 <b>' + num(r[4]) + '</b>건 · '
+      + '작가와 이어진 작품 <b>' + num(r[5]) + '</b>점';
+
+  } catch (e) {
+    stateEl.innerHTML = '지금 <span class="q">숫자를 못 읽었습니다.</span>';
+    subEl.innerHTML   = '<span class="state-err">' + String(e.message || e)
+                      + ' — 도구는 그대로 쓰실 수 있습니다.</span>';
+  }
+})();
+</script>
+
+</body>
+</html>
