@@ -285,7 +285,8 @@ async function realmOne(code){
   var j   = await res.json();
   if(!res.ok) return { code: code, 오류: JSON.stringify(j).slice(0,80) };
   return { code: code, 전체건수: j.전체건수, 받은줄: j.받은줄,
-           갈래: j.갈래 || {} };
+           갈래: j.갈래 || {},
+           맛보기: (j.맛보기 || []).slice(0, 4) };
 }
 
 async function realmScan(codes){
@@ -305,6 +306,14 @@ async function realmScan(codes){
         add(out, c + ' · 전체 ' + (r.전체건수==null?'?':r.전체건수)
                + ' · 맛보기 10줄 중 미술 ' + (g.art||0)
                + ' · 박물관 ' + (g.museum||0) + ' · 그밖 ' + (g.other||0) + '\n');
+        /* ★★ 2026-09-15 · 수를 세는 것만으로는 <b>무엇인지</b> 모릅니다.
+             「미술 10」이 진짜 미술인지, 갈래 판정이 헐거워 다 미술로 본 것인지
+             가려야 합니다. 그래서 <b>제목 넷</b>을 함께 보입니다.
+             (어제 오윤에게 야구 선수가 덮여 있던 것을 「직업 한 줄」만 보고
+              지나칠 뻔한 일과 같은 자리입니다 · 7-37) */
+        if (r.맛보기 && r.맛보기.length) {
+          r.맛보기.slice(0,4).forEach(function (t) { add(out, '      · ' + t + '\n'); });
+        }
       }
     }catch(e){ add(out, c + ' · 오류 · ' + e + '\n'); }
     await new Promise(function(f){ setTimeout(f, 600); });
