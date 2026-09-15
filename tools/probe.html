@@ -219,14 +219,26 @@ body{margin:0;background:#fff;color:#17171A;
     /* ── 같은 문 뒤의 다른 자료 ── */
     onenc: async function () {
       put('out-kcisa', '한눈에보는문화정보를 두드리는 중…');
-      var r = await call({ to: 'culture', path: '/openapi/API_CCA_144/request',
-                           numOfRows: $('pbRows').value || 5, pageNo: 1, key: 1 });
-      var h = '<b>한눈에보는문화정보</b>\n' + show(r);
+      /* ★★ 2026-09-15 · 주소를 <b>고쳤습니다</b>.
+           여태 api.kcisa.kr 의 API_CCA_144 를 짚고 있었는데 그건 짐작이었고,
+           실제로 수집기(api/collect.js)가 쓰는 곳은 <b>apis.data.go.kr</b> 입니다.
+           열쇠도 다릅니다 — CULTURE_KEY 가 아니라 <b>DATA_GO_KR_KEY</b>.
+           그래서 여기서 나오는 401 이 수집기 사정과 아무 상관이 없었습니다.
+         ★ 쪽 인자는 <b>대문자 PageNo</b> 라야 먹습니다 (소문자는 1쪽만 옵니다).
+         ★ 한 쪽에 10줄이 상한입니다 — 더 달라 해도 10만 옵니다. */
+      var r = await call({ to: 'apis', path: '/B553457/cultureinfo/realm2',
+                           realmCode: 'D000',
+                           numOfRows: $('pbRows').value || 5, PageNo: 1, key: 1 });
+      var h = '<b>한눈에보는문화정보</b> <span class="pb-dim">apis.data.go.kr · DATA_GO_KR_KEY</span>\n' + show(r);
       var t = r.본문 ? guessTotal(r.본문) : null;
       if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
-      h += '\n\n<span class="pb-dim">★ 경로가 틀릴 수 있습니다 — API_CCA_144 는 짐작입니다.\n'
-         + '  404·500 이 나오면 data.go.kr 의 그 자료 화면에서\n'
-         + '  <b>요청주소(엔드포인트)</b>를 확인해 알려 주십시오.</span>';
+      h += '\n\n<span class="pb-dim">── 읽는 법 ──\n'
+         + '200 + 전시 제목들 → 열쇠 멀쩡. 담기가 0이었다면 원인은 딴 데 있습니다\n'
+         + '<b>SERVICE_KEY_IS_NOT_REGISTERED</b> → 열쇠가 이 자료에 등록 안 됨\n'
+         + '<b>LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS</b> → 오늘 치를 다 썼습니다.\n'
+         + '  내일 0시에 풀립니다. 이것이면 담기가 0이었던 것이 설명됩니다\n'
+         + '<b>SERVICE_ACCESS_DENIED</b> → 활용신청이 끝났거나 반려된 것\n'
+         + '401·403 → 열쇠가 안 갔거나 틀림. Vercel 의 DATA_GO_KR_KEY 를 보십시오</span>';
       put('out-kcisa', h);
     },
     localmuseum: async function () {
