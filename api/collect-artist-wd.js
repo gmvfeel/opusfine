@@ -108,10 +108,20 @@ function clean (r) {
   if (!o.image_url) o.image_credit = null;
 
   o.source  = SOURCE;
-  o.hidden  = false;
   o.is_oc   = false;
-  o.quality = 0;
-  o.sort_no = 0;
+
+  /* ★★★ 2026-09-15 · hidden · quality · sort_no 를 <b>더 이상 넣지 않습니다.</b>
+       까닭 — 이 값들은 <b>새로 담는 사람</b>에게만 뜻이 있는데, 같은 Q 가 이미
+       있으면 upsert 가 <b>기존 행을 덮어써</b> 애써 해 둔 일을 지웠습니다.
+
+       실제로 벌어진 일(Supabase edge 로그로 확인 · 2026-09-14 21:54 UTC) —
+         · 숨겨 둔 연예인 14명이 <b>이틀 연속</b> 풀렸습니다(hidden=false 로 덮임)
+         · quality 도 0 으로 덮일 뻔했습니다(이번엔 마침 무사)
+
+       ★ 새로 담기는 행은 DB 기본값이 대신합니다 —
+         hidden 은 기본 false · quality·sort_no 는 재산정이 채웁니다
+         (sql/20260914_재산정_표준.sql 을 담기 뒤에 돌리십시오).
+       ★ DB 쪽에도 방아쇠를 걸어 두었습니다(of_keep_hidden_trg) — 두 겹으로 막습니다. */
   return o;
 }
 
@@ -123,6 +133,11 @@ async function sbInsert (rows) {
     headers: {
       apikey: key, Authorization: 'Bearer ' + key,
       'Content-Type': 'application/json',
+      /* ★★ 2026-09-15 · <b>ignore-duplicates</b> 여야 합니다.
+           2026-09-14 에 배포된 판은 merge-duplicates 였습니다(로그로 확인).
+           merge 는 같은 Q 가 있으면 기존 행을 <b>통째로 덮어씁니다</b>.
+           ▶ 이 파일을 고친 뒤 <b>배포가 실제로 됐는지</b> 확인하십시오 —
+             GitHub 에는 ignore 라 적혀 있는데 돌던 것은 merge 였습니다. */
       Prefer: 'resolution=ignore-duplicates,return=minimal'
     },
     body: JSON.stringify(rows)
