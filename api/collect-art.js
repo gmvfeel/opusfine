@@ -118,19 +118,43 @@ function rowOf (x) {
     link_source: x.url || ('https://clevelandart.org/art/' + (x.accession_number || '')),
     credit_line: x.creditline || null,
     provenance: x.provenance || null,
-    quality: q,
-    hidden: false,
-    sort_no: 0
+    quality: q
+    /* ★ 2026-09-15 · hidden·sort_no 를 여기서 뺐습니다.
+         손으로 숨긴 작품이 아침마다 풀리던 일을 막습니다.
+         새 행은 DB 기본값(hidden=false · sort_no=0)이 채웁니다.
+         artist_id 는 원래도 여기 없습니다 — 아래 COLS 로 한 번 더 못박습니다. */
   };
 }
 
-/* ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
+
+   몸통에서 칸을 빼는 것만으로는 모자랍니다. 배포된 판이 GitHub 판과
+   다를 수 있기 때문입니다(2026-09-14 작가 수집기가 그랬습니다).
+   `columns=` 는 몸통에 무엇이 들었든 <b>여기 적힌 칸만</b> 쓰게 합니다.
+   그래서 옛 판이 되살아나도 artist_id·hidden·sort_no 는 안 덮입니다.
+
+   ※ 칸을 새로 늘리면 <b>이 목록에도 넣어야</b> 담깁니다. 안 넣으면 조용히 빠집니다.
+   ══════════════════════════════════════════════════════════════════ */
+const COLS = [
+  'cma_id',
+  'title', 'title_en', 'year_text', 'year_from', 'year_to',
+  'medium', 'dimensions', 'genre', 'artist_name',
+  'image_url', 'image_small', 'image_credit',
+  'rights', 'holder', 'holder_dept', 'accession',
+  'link_source', 'credit_line', 'provenance',
+  'quality'
+  /* 일부러 뺀 것 — artist_id · hidden · sort_no (손으로 손보는 칸) */
+];
+
 async function upsert (rows) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) throw new Error('SUPABASE_URL 또는 SUPABASE_SERVICE_KEY 가 서버에 없습니다');
 
-  const r = await fetch(url.replace(/\/+$/, '') + '/rest/v1/artworks?on_conflict=cma_id', {
+  const r = await fetch(url.replace(/\/+$/, '') + '/rest/v1/artworks'
+    + '?on_conflict=cma_id'
+    + '&columns=' + encodeURIComponent(COLS.join(',')), {
     method: 'POST',
     headers: {
       'apikey': key, 'Authorization': 'Bearer ' + key,

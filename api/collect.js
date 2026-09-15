@@ -305,12 +305,33 @@ function rowFromCulture (c) {
 /* ══════════════════════════════════════════════════════════════════
    Supabase 로 보내기 — service key 는 <b>여기 서버 안에서만</b>
    ══════════════════════════════════════════════════════════════════ */
+/* ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
+
+   전시에도 손으로 손보는 칸이 있습니다 — <b>kind_manual</b> 입니다.
+   지금은 그 7건이 cultureinfo 에만 있어 무사하지만, sema·kcisa 전시를
+   하나라도 손으로 고치면 다음 다시담기 때 조용히 지워집니다.
+
+   ※ kind_final 은 COALESCE(kind_manual, kind) 로 된 <b>생성 칼럼</b>이라
+     애초에 쓸 수 없습니다. 목록에 넣으면 오히려 오류가 납니다.
+   ※ 칸을 새로 늘리면 <b>이 목록에도 넣어야</b> 담깁니다. */
+const COLS = [
+  'source', 'source_id',
+  'title', 'subtitle', 'venue', 'venue_dept', 'organizer',
+  'start_date', 'end_date',
+  'artists', 'open_time', 'charge', 'body',
+  'poster_url', 'poster_credit', 'link_source',
+  'genre', 'kind', 'region', 'rights'
+  /* 일부러 뺀 것 — kind_manual · kind_final(생성칼럼) · hidden · quality · sort_no */
+];
+
 async function upsert (rows) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) throw new Error('SUPABASE_URL 또는 SUPABASE_SERVICE_KEY 가 서버에 없습니다');
 
-  const r = await fetch(url.replace(/\/+$/, '') + '/rest/v1/exhibitions?on_conflict=source,source_id', {
+  const r = await fetch(url.replace(/\/+$/, '') + '/rest/v1/exhibitions'
+    + '?on_conflict=source,source_id'
+    + '&columns=' + encodeURIComponent(COLS.join(',')), {
     method: 'POST',
     headers: {
       'apikey': key,
