@@ -272,7 +272,7 @@ $('r_try').addEventListener('click', function(){
   realmScan([c]);
 });
 
-async /* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    분야 코드 재보기 · 2026-09-15
    ★ /api/collect 에 &realm=코드 를 붙여 <b>미리보기</b>로만 부릅니다.
      서버가 realm 을 A-Z0-9 네 자리로 가려 받습니다(api/collect.js).
@@ -319,7 +319,7 @@ async function realmScan(codes){
   lock(false);
 }
 
-function count(){
+async function count(){
   var box = $('s_out');
   box.innerHTML = '<div class="cl-out">헤아리는 중…</div>';
   var 오늘 = new Date().toISOString().slice(0,10);
