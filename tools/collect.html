@@ -132,6 +132,23 @@ body{margin:0;background:#fff;color:#17171A;
   <div class="cl-bar"><i id="c_bar"></i></div>
   <div class="cl-out" id="c_out"></div>
 
+  <!-- ── 분야 코드 재보기 ───────────────────────────────
+       ★★ 2026-09-15 · 한눈에보는문화정보(realm2)는 <b>분야 코드</b>로 나뉩니다.
+         여태 <b>D000 하나만</b> 불러 298건이 전부였습니다.
+         다른 코드에 미술 전시가 더 있는지 <b>담지 않고 세어만</b> 봅니다.
+       ★ 담기가 아닙니다 — 미리보기만 부릅니다. DB 를 건드리지 않습니다. -->
+  <h2 class="cl-h2">분야 코드 재보기 · 한눈에보는문화정보</h2>
+  <p class="cl-note">
+    코드마다 <b>1쪽만</b> 불러 「전체건수」를 봅니다. 담지 않습니다.<br>
+    지금 쓰는 것은 <b>D000</b> 하나입니다. 더 큰 것이 있으면 그쪽도 담을 값이 있습니다.
+  </p>
+  <div class="cl-row">
+    <button class="cl-btn cl-gh" id="r_scan">A000 ~ Z000 훑기</button>
+    <input id="r_one" placeholder="코드 하나 (예 A000)" style="width:150px">
+    <button class="cl-btn cl-gh" id="r_try">이 코드만</button>
+  </div>
+  <div class="cl-out" id="r_out"></div>
+
   <!-- ── 지금 담긴 것 ───────────────────────────────────── -->
   <h2 class="cl-h2">지금 담긴 것</h2>
   <p class="cl-note">DB 를 읽기만 합니다. 아무 때나 눌러 보셔도 됩니다.</p>
@@ -244,7 +261,65 @@ async function run(src, mode){
 /* ── 헤아리기 ───────────────────────────────────────────── */
 $('stat').addEventListener('click', count);
 
-async function count(){
+$('r_scan').addEventListener('click', function(){
+  var codes = [];
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(ch){ codes.push(ch + '000'); });
+  realmScan(codes);
+});
+$('r_try').addEventListener('click', function(){
+  var c = ($('r_one').value || '').trim().toUpperCase();
+  if(!/^[A-Z]\d{3}$/.test(c)){ say($('r_out'), '코드는 영문 한 글자 + 숫자 셋입니다 (예 A000).'); return; }
+  realmScan([c]);
+});
+
+async /* ══════════════════════════════════════════════════════════════
+   분야 코드 재보기 · 2026-09-15
+   ★ /api/collect 에 &realm=코드 를 붙여 <b>미리보기</b>로만 부릅니다.
+     서버가 realm 을 A-Z0-9 네 자리로 가려 받습니다(api/collect.js).
+   ★ 초당 호출 제한이 있어 사이를 <b>600ms</b> 띄웁니다.
+   ══════════════════════════════════════════════════════════════ */
+async function realmOne(code){
+  var url = '/api/collect?token=' + encodeURIComponent(tok.value)
+          + '&src=cultureinfo&mode=preview&from=1&to=1&realm=' + code;
+  var res = await fetch(url);
+  var j   = await res.json();
+  if(!res.ok) return { code: code, 오류: JSON.stringify(j).slice(0,80) };
+  return { code: code, 전체건수: j.전체건수, 받은줄: j.받은줄,
+           갈래: j.갈래 || {} };
+}
+
+async function realmScan(codes){
+  var out = $('r_out');
+  if(!tok.value){ say(out, '자물쇠를 먼저 넣어 주십시오.'); return; }
+  lock(true);
+  say(out, '재는 중 · ' + codes.length + '개 코드\n\n');
+  var rows = [];
+  for(var i=0;i<codes.length;i++){
+    var c = codes[i];
+    try{
+      var r = await realmOne(c);
+      rows.push(r);
+      if(r.오류) add(out, c + ' · 막힘 · ' + r.오류 + '\n');
+      else {
+        var g = r.갈래 || {};
+        add(out, c + ' · 전체 ' + (r.전체건수==null?'?':r.전체건수)
+               + ' · 맛보기 10줄 중 미술 ' + (g.art||0)
+               + ' · 박물관 ' + (g.museum||0) + ' · 그밖 ' + (g.other||0) + '\n');
+      }
+    }catch(e){ add(out, c + ' · 오류 · ' + e + '\n'); }
+    await new Promise(function(f){ setTimeout(f, 600); });
+  }
+  var best = rows.filter(function(r){ return r.전체건수 > 0; })
+                 .sort(function(a,b){ return (b.전체건수||0)-(a.전체건수||0); });
+  add(out, '\n══ 큰 것부터 ══\n');
+  best.slice(0,8).forEach(function(r){
+    add(out, '  ' + r.code + ' · ' + r.전체건수 + '건'
+           + (r.code === 'D000' ? '   ← 지금 쓰는 것' : '') + '\n');
+  });
+  lock(false);
+}
+
+function count(){
   var box = $('s_out');
   box.innerHTML = '<div class="cl-out">헤아리는 중…</div>';
   var 오늘 = new Date().toISOString().slice(0,10);

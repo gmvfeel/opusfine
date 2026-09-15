@@ -380,6 +380,17 @@ export default async function handler (req, res) {
 
   for (let p = from; p <= to; p++) {
     const params = new URLSearchParams(spec.extra);
+
+    /* ★★ 2026-09-15 · realmCode 를 <b>바깥에서 바꿀 수 있게</b> 했습니다.
+         한눈에보는문화정보(realm2)는 분야 코드로 나뉘는데 여태 D000 하나만
+         불러 <b>298건</b>이 전부였습니다(2026-09-15 미리보기로 확인).
+         다른 코드에 미술 전시가 더 있는지 <b>재보려고</b> 엽니다.
+       ★ 안 주면 예전 그대로 D000 입니다 — 여태 담은 것과 어긋나지 않습니다.
+       ★ 글자를 가려 받습니다(A-Z0-9 네 자리) — 아무 값이나 저쪽에 넘기지 않습니다. */
+    if (q.realm && /^[A-Z]\d{3}$/.test(String(q.realm))) {
+      params.set('realmCode', String(q.realm));
+    }
+
     params.set(spec.keyName, apiKey);
     params.set('numOfRows', String(spec.rows));
     params.set(spec.pageParam, String(p));
