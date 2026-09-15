@@ -266,8 +266,16 @@ function build(o, byName) {
     provenance:  provenanceText(o),
     credit_line: String(o.creditline || '').trim() || null,
     artist_id:   null,
-    link_status: 'none',
-    hidden:      false
+    link_status: 'none'
+    /* ★★ 2026-09-15 · <b>hidden 을 여기서 뺐습니다.</b>
+         날마다 hidden:false 를 보내고 있어서, 손으로 숨긴 작품이
+         다음 날 아침이면 도로 나타났습니다. 새 행은 DB 기본값
+         (false)이 채우므로 잃는 것이 없습니다.
+       ★ artist_id 는 <b>그대로 둡니다.</b> 여기서 빼면 새 작품에
+         작가를 이어 붙이는 일(아래 「작가 잇기」)까지 죽습니다.
+         이미 이어 둔 것이 null 로 지워지는 일은 DB 방아쇠
+         of_keep_artwork_link_trg 가 막습니다 — 지우는 것만 막고
+         다른 작가로 고치는 것은 허용합니다. */
   };
 
   /* ── 작가 잇기 — 이름이 꼭 같고 하나뿐일 때만 ──
@@ -290,9 +298,30 @@ function build(o, byName) {
   return w;
 }
 
+/* ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
+
+   이 스크립트는 GitHub Actions(collect-works.yml)가 날마다 새벽에
+   부릅니다. 손으로 돌리는 tools/collect-art.html 과 <b>다른 파일</b>입니다.
+   2026-09-14 에 작품 1,307건의 작가 연결이 풀린 것은 이 쪽이 한 일입니다.
+
+   ※ sort_no 는 목록에 없습니다 — 손으로 매기는 차례이므로 건드리지 않습니다.
+   ※ 칸을 새로 늘리면 <b>이 목록에도 넣어야</b> 담깁니다. */
+const COLS = [
+  'cma_id',
+  'title', 'title_en', 'title_han',
+  'year_text', 'year_from', 'year_to',
+  'medium', 'dimensions', 'genre', 'artist_name',
+  'image_url', 'image_small', 'image_credit',
+  'rights', 'holder', 'holder_dept', 'accession', 'link_source',
+  'wikidata_id', 'exhibition_history', 'provenance', 'credit_line',
+  'artist_id', 'link_status', 'quality'
+  /* 일부러 뺀 것 — hidden · sort_no */
+];
+
 async function upsert(rows) {
   if (!rows.length) return { ok: 0, msg: '' };
-  const r = await fetch(SB_URL + '/rest/v1/artworks?on_conflict=cma_id', {
+  const r = await fetch(SB_URL + '/rest/v1/artworks?on_conflict=cma_id'
+    + '&columns=' + encodeURIComponent(COLS.join(',')), {
     method: 'POST',
     headers: {
       apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,

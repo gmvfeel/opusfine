@@ -204,7 +204,11 @@ function build(r) {
     link_source: String(r.DP_LNK || r.DP_HOMEPAGE || '').trim() || null,
     /* ★ 공공누리 제1유형 — 출처표시만 하면 상업적 이용·변경 가능 */
     rights:      'public',
-    hidden:      false,
+    /* ★★ 2026-09-15 · <b>hidden 을 여기서 뺐습니다.</b>
+         날마다 hidden:false 를 보내고 있어서, 손으로 내린 전시가
+         다음 날이면 도로 올라왔습니다. 새 행은 DB 기본값이 채웁니다.
+       ※ 아래 「내려간 전시 살피기」가 hidden 을 보고 판단하므로,
+         이제 그 값은 손으로 정한 것만 남습니다 — 오히려 정확해집니다. */
     /* ★★ 2026-08-24 · <b>언제 받은 것인지</b> 적습니다.
          날마다 도는데 이것이 없으면 「이 전시 정보가 언제 것인지」를
          알 길이 없습니다. 자료원이 조용히 멈춰도 모릅니다. */
@@ -216,9 +220,33 @@ function build(r) {
   return e;
 }
 
+/* ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
+
+   이 스크립트는 GitHub Actions(collect-exh.yml)가 날마다 새벽에 부릅니다.
+   전시DB 3,365건 가운데 <b>source='sema' 879건</b>이 이 쪽에서 옵니다
+   (서울 열린데이터광장 · 서울시립미술관).
+
+   ※ kind · kind_manual 은 목록에 없습니다 — 갈래는 담은 뒤에 따로
+     정하는 것이고, kind_manual 은 손으로 고친 값입니다. 건드리지 않습니다.
+     (kind_final 은 COALESCE(kind_manual, kind) 로 된 생성 칼럼이라
+      목록에 넣으면 오히려 오류가 납니다.)
+   ※ region · sort_no 도 뺍니다.
+   ※ 칸을 새로 늘리면 <b>이 목록에도 넣어야</b> 담깁니다. */
+const COLS = [
+  'source', 'source_id',
+  'title', 'subtitle', 'venue', 'venue_dept',
+  'start_date', 'end_date',
+  'artists', 'organizer', 'genre', 'work_count',
+  'summary', 'body', 'open_time', 'charge',
+  'poster_url', 'poster_credit', 'link_source',
+  'rights', 'updated_at', 'quality'
+  /* 일부러 뺀 것 — hidden · kind · kind_manual · kind_final · region · sort_no */
+];
+
 async function upsert(rows) {
   if (!rows.length) return { ok: 0, msg: '' };
-  const r = await fetch(SB_URL + '/rest/v1/exhibitions?on_conflict=source,source_id', {
+  const r = await fetch(SB_URL + '/rest/v1/exhibitions?on_conflict=source,source_id'
+    + '&columns=' + encodeURIComponent(COLS.join(',')), {
     method: 'POST',
     headers: {
       apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,

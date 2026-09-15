@@ -336,8 +336,11 @@ async function build(qid, e, look) {
     image_credit: val(e, 'P18') ? 'Wikimedia Commons' : null,
     rep_work:    pick(workQ, 2),
     link_wiki:   wiki,
-    ulan_id:     val(e, 'P245') || null,
-    hidden:      false
+    ulan_id:     val(e, 'P245') || null
+    /* ★★ 2026-09-15 · <b>hidden 을 여기서 뺐습니다.</b>
+         날마다 hidden:false 를 보내고 있어서, 숨기기로 정한 사람이
+         다음 날 아침이면 도로 목록에 나타났습니다(연예인 14명이
+         이틀 연속 풀렸습니다). 새 행은 DB 기본값이 채웁니다. */
   };
   r.quality = quality(r);
 
@@ -348,9 +351,30 @@ async function build(qid, e, look) {
 }
 
 /* ── 담기 ─────────────────────────────────────────────────────── */
+/* ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
+
+   이 스크립트는 GitHub Actions(collect-artists.yml)가 날마다 새벽에
+   부릅니다. 손으로 돌리는 api/collect-artist-wd.js 와 <b>다른 파일</b>입니다.
+   숨긴 사람이 아침마다 풀리던 것은 이 쪽이 한 일입니다.
+
+   ※ sort_no 는 목록에 없습니다 — 손으로 매기는 차례입니다.
+   ※ 칸을 새로 늘리면 <b>이 목록에도 넣어야</b> 담깁니다. */
+const COLS = [
+  'wikidata_id',
+  'name_ko', 'name_en', 'name_han',
+  'field', 'genre', 'medium', 'era_name',
+  'birth_year', 'death_year', 'life', 'nationality',
+  'bio', 'bio_en',
+  'image_url', 'image_credit',
+  'rep_work', 'link_wiki', 'ulan_id',
+  'quality'
+  /* 일부러 뺀 것 — hidden · sort_no */
+];
+
 async function upsert(rows) {
   if (!rows.length) return { ok: 0, msg: '' };
-  const r = await fetch(SB_URL + '/rest/v1/artists?on_conflict=wikidata_id', {
+  const r = await fetch(SB_URL + '/rest/v1/artists?on_conflict=wikidata_id'
+    + '&columns=' + encodeURIComponent(COLS.join(',')), {
     method: 'POST',
     headers: {
       apikey: SB_KEY,
