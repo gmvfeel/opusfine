@@ -128,8 +128,26 @@ body{margin:0;background:#fff;color:#17171A;
   </div>
   <div class="pb-out" id="out-etc"></div>
 
-  <!-- ── ③ 지금 담긴 것 ─────────────────────────────────── -->
-  <h2 class="pb-h2">③ 지금 담긴 것</h2>
+  <!-- ── ③ 지역 문화정보 (부산·대구) ───────────────────────── -->
+  <h2 class="pb-h2">③ 지역 문화정보 — 부산·대구</h2>
+  <p class="pb-note">
+    지금 전시DB 에는 <b>지역(광역시·도) 자료원이 하나도 없습니다</b> —
+    전부 국가기관(kcisa145) · 서울시립미술관(sema) 뿐입니다.
+    새로 열쇠를 신청하지 않고, <b>이미 있는 DATA_GO_KR_KEY</b> 로
+    먼저 두드려 봅니다 — data.go.kr 는 열쇠 하나로 여러 자료에
+    한꺼번에 승인되는 경우가 있어, 신청 없이도 열릴 수 있습니다.
+  </p>
+  <div class="pb-row">
+    <button class="pb-btn pb-gh" data-act="busan-etc">부산 · 문화 기타장르</button>
+  </div>
+  <p class="pb-note" style="margin-top:6px">
+    ★ 2026-09-29 부산 요청주소 확인됨 —
+    <span class="pb-dim">apis.data.go.kr/6260000/BusanCultureEtcDetailService/getBusanCultureEtcDetail</span>
+  </p>
+  <div class="pb-out" id="out-region"></div>
+
+  <!-- ── ④ 지금 담긴 것 ─────────────────────────────────── -->
+  <h2 class="pb-h2">④ 지금 담긴 것</h2>
   <p class="pb-note">
     새 자료를 받기 전에 <b>지금 무엇이 얼마나 있는지</b> 봅니다.
     <b>「원천이 가진 수」와 「우리 빈칸에 들어갈 수」는 다릅니다.</b>
@@ -275,6 +293,23 @@ body{margin:0;background:#fff;color:#17171A;
          + '작품명 · 작가명 · 재료 · 규격 · 부문이 온다고 알려져 있습니다.\n'
          + '실제로 무엇이 오는지 위 본문을 보십시오.</span>';
       put('out-etc', h);
+    },
+
+    /* ── 지역 문화정보 ── */
+    'busan-etc': async function () {
+      put('out-region', '부산 문화 기타장르를 두드리는 중…');
+      var r = await call({ to: 'apis', path: '/6260000/BusanCultureEtcDetailService/getBusanCultureEtcDetail',
+                           numOfRows: $('pbRows') ? ($('pbRows').value || 5) : 5, pageNo: 1, key: 1 });
+      var h = '<b>부산광역시 · 문화 기타장르 상세 조회</b> <span class="pb-dim">apis.data.go.kr · DATA_GO_KR_KEY</span>\n' + show(r);
+      var t = r.본문 ? guessTotal(r.본문) : null;
+      if (t) h += '\n\n<span class="pb-ok">★ 전체 ' + Number(t).toLocaleString() + '건으로 보입니다</span>';
+      h += '\n\n<span class="pb-dim">── 읽는 법 ──\n'
+         + '200 + 자료 목록 → <b>신청 없이 바로 열렸습니다</b> — 기존 열쇠로 충분\n'
+         + '<b>SERVICE_KEY_IS_NOT_REGISTERED</b> → 이 자료엔 열쇠가 등록 안 됨 → 별도 활용신청 필요\n'
+         + '<b>LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS</b> → 오늘 호출 한도 다 씀\n'
+         + '401·403 → 열쇠가 안 갔거나 틀림\n'
+         + '무엇보다 <b>본문에 실제 전시/문화행사 자료가 있는지, 필드가 무엇인지</b>를 봅니다</span>';
+      put('out-region', h);
     },
 
     /* ── 지금 담긴 것 ── */
