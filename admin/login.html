@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>관리자 로그인 · OPUSFINE</title>
+<link rel="icon" href="/assets/ph-logo.svg">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE · 관리자 로그인 · admin/login.html
+   ------------------------------------------------------------------
+   ★ 2026-09-29 · 파트너 결정 — 파트너·내부 관계자만. 공개 회원가입
+     화면이 아닙니다. 계정은 api/invite-admin.js 로만 생깁니다.
+   ★ 소셜 로그인 없음, 아이디/비번만. 오퍼스클램보다 훨씬 작습니다 —
+     "회원을 어디까지 열지"는 아직 안 정했으니 지금은 이만큼만.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FBFAF7; --ink:#17171A; --ink-2:#5F5F64; --ink-3:#95949A;
+  --rule:#E5E3DC; --nok:#1F4B47; --nok-pale:#E9F0EE;
+  --gold:#A8863C; --warn:#8C3A2B;
+  --serif:'Noto Serif KR',serif;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.75 var(--sans);word-break:keep-all;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;align-items:center;justify-content:center}
+.box{width:100%;max-width:360px;padding:28px 22px}
+h1{margin:0 0 6px;font-family:var(--serif);font-size:22px;font-weight:600}
+.lede{margin:0 0 24px;font-size:13px;color:var(--ink-2);line-height:1.7}
+.fg{margin:0 0 12px}
+label{display:block;margin:0 0 5px;font-size:12.5px;color:var(--ink-2)}
+input{width:100%;padding:10px 12px;border:1px solid var(--rule);border-radius:6px;
+  font:14px/1.5 var(--sans);background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--nok);outline-offset:1px}
+button{width:100%;margin-top:6px;padding:11px;border:1px solid var(--nok);border-radius:6px;
+  background:var(--nok);color:#fff;font:600 14px/1 var(--sans);cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.err{margin:12px 0 0;font-size:12.5px;color:var(--warn);min-height:1.6em}
+.back{display:inline-block;margin-top:22px;font-size:12.5px;color:var(--ink-3);text-decoration:none}
+.back:hover{color:var(--nok)}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>관리자 로그인</h1>
+  <p class="lede">파트너·내부 관계자 전용입니다. 계정이 없으면 파트너께 요청하십시오.</p>
+
+  <div class="fg">
+    <label for="email">이메일</label>
+    <input id="email" type="email" autocomplete="username">
+  </div>
+  <div class="fg">
+    <label for="pw">비밀번호</label>
+    <input id="pw" type="password" autocomplete="current-password">
+  </div>
+  <button id="go" type="button">로그인</button>
+  <p class="err" id="err"></p>
+
+  <a class="back" href="/admin/">← 작업실</a>
+</div>
+
+<script src="/assets/config.js"></script>
+<script>
+(function () {
+  var emailEl = document.getElementById('email');
+  var pwEl = document.getElementById('pw');
+  var errEl = document.getElementById('err');
+  var btn = document.getElementById('go');
+
+  function nextUrl() {
+    var q = new URLSearchParams(location.search).get('next');
+    return (q && q.indexOf('/') === 0) ? q : '/admin/';
+  }
+
+  async function doLogin() {
+    errEl.textContent = '';
+    var email = emailEl.value.trim(), pw = pwEl.value;
+    if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력해 주십시오.'; return; }
+
+    btn.disabled = true; btn.textContent = '확인 중…';
+    try {
+      var sb = await OF.sb();
+      if (!sb) throw new Error('접속 객체를 못 만들었습니다');
+      var r = await sb.auth.signInWithPassword({ email: email, password: pw });
+      if (r.error) { errEl.textContent = '로그인 실패 — ' + r.error.message; return; }
+
+      /* members 에 없거나 is_admin 이 아니면 여기서 막습니다 */
+      var uid = r.data.user.id;
+      var m = await sb.from('members').select('is_admin').eq('id', uid).maybeSingle();
+      if (m.error || !m.data || m.data.is_admin !== true) {
+        errEl.textContent = '이 계정은 관리자가 아닙니다.';
+        await sb.auth.signOut();
+        return;
+      }
+      location.href = nextUrl();
+    } catch (e) {
+      errEl.textContent = String(e.message || e);
+    } finally {
+      btn.disabled = false; btn.textContent = '로그인';
+    }
+  }
+
+  btn.addEventListener('click', doLogin);
+  pwEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  emailEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') pwEl.focus(); });
+})();
+</script>
+</body>
+</html>

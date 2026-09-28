@@ -133,6 +133,9 @@ td.f{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-2
   <div class="in">
     <h1>작업실</h1>
     <p>자료를 담고 살피는 자리입니다. 여기서 한 일은 곧바로 사이트에 나타납니다.</p>
+    <p id="who" style="margin-top:10px;font-size:12.5px;color:#B9CCC8">
+      <a href="/admin/login.html" style="color:#F3F6F5;text-decoration:underline">로그인</a>
+    </p>
   </div>
 </div>
 
@@ -206,14 +209,17 @@ td.f{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-2
   </div>
 
   <p class="note">
-    이 화면에는 <b>로그인이 없습니다.</b> 주소를 아는 사람은 누구나 열 수 있습니다.
-    다만 실제로 담고 고치는 일은 자물쇠 글자(COLLECT_TOKEN)를 아는 사람만 됩니다.
-    회원과 로그인을 들이는 것은 다음 차례입니다.
+    로그인(<a href="/admin/login.html">여기</a>)은 파트너·내부 관계자만 씁니다.
+    <b>화면 보기 자체는 여전히 누구나</b> 됩니다 — 로그인은 "누가 들어와 있나"를
+    보여주는 것이지, 화면을 잠그는 것이 아닙니다. 실제로 담고 고치는 일은
+    지금도 자물쇠 글자(COLLECT_TOKEN)를 아는 사람만 됩니다(2026-09-29 이전과 같음).
+    계정은 스스로 못 만듭니다 — 파트너가 <code>api/invite-admin.js</code>로 만들어 줍니다.
   </p>
 
 </div>
 
 <script src="/assets/config.js"></script>
+<script src="/assets/admin-guard.js"></script>
 <script>
 /* ── 지금 상태를 한 문장으로 ──────────────────────────────────
    ★ 공개키로 <b>세기만</b> 합니다 (head:true — 줄은 안 받아옵니다).
