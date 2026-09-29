@@ -122,7 +122,7 @@
          「작가 보기」 단추를 그 전시의 작가로 잇기 위해서입니다(아래 exhibitionSlide).
          PostgREST 는 이어진 표를 괄호로 함께 줍니다 — 조회가 늘지 않습니다. */
     var sel = 'id,title,subtitle,venue,organizer,start_date,end_date,artists,genre,'
-            + 'summary,poster_url,poster_credit,link_source,'
+            + 'summary,poster_url,poster_credit,link_source,source,'
             + 'exhibition_artists(artist_id)';
     /* ★★ 2026-09-12 · <b>kind=art 만 겁니다.</b>
          대문 얼굴에 박물관·역사 전시가 걸리지 않게 합니다. */
@@ -151,6 +151,20 @@
       /* ★ 지금 열리는 것을 앞에. 모자라면 곧 열릴 것, 그다음 지난 것 */
       var all = live.concat(next, back);
       var seen = {}, out = [];
+
+      /* ★★ 2026-09-29 · 해외(aicExh 등) 한 장을 <b>먼저 자리 잡습니다</b>
+           (파트너 요청 · home-exh.js 와 같은 결). 히어로는 넉 장뿐이라
+           비율(현재 6.7%)로만 뽑으면 거의 늘 국내만 돕니다. */
+      var FOREIGN_SRC = { aicExh: 1 };
+      for (var f = 0; f < live.length; f++) {
+        if (live[f] && FOREIGN_SRC[live[f].source]) {
+          seen[live[f].id] = 1;
+          live[f]._live = true; live[f]._soon = false;
+          out.push(live[f]);
+          break;
+        }
+      }
+
       for (var i = 0; i < all.length && out.length < 4; i++) {
         var e = all[i];
         if (!e || seen[e.id]) continue;
@@ -159,7 +173,7 @@
         e._soon = (e.start_date || '') > today;
         out.push(e);
       }
-      return out;
+      return shuffle(out);
     });
   }
 

@@ -30,7 +30,15 @@
   var today = new Date().toISOString().slice(0, 10);
   /* ★ 2026-09-12 · organizer 를 더했습니다 —
        예술의전당 832건은 <b>venue 가 비어 있고</b> 기관만 있습니다. */
-  var SEL = 'id,title,venue,organizer,start_date,end_date,poster_url';
+  var SEL = 'id,title,venue,organizer,start_date,end_date,poster_url,source';
+
+  /* ★★ 2026-09-29 · 해외 전시원 섞기 — 파트너 요청.
+       aicExh(시카고 미술관)이 붙었는데, 지금 열린 것이 13건뿐이라
+       (국내 합쳐 193건 중 <b>6.7%</b>) 무작위로만 뽑으면 대부분 화면에
+       안 보입니다. ▶ 자리 하나(또는 둘)는 <b>해외에서 먼저 뽑고</b>
+       나머지를 채웁니다 — 비율이 아니라 <b>자리를 못박습니다.</b>
+     ★ 자료원을 더 붙이면 이 목록에 이름만 더하면 됩니다. */
+  var FOREIGN_SRC = { aicExh: 1 };
 
   /* ── 카드에 찍을 자리 이름 ──
      자료원마다 어디에 들었는지가 달라 둘을 겹치지 않게 잇습니다.
@@ -172,8 +180,18 @@
     var used = {};
     pickSoon.forEach(function (e) { used[e.id] = 1; });
 
-    /* ★ 섞은 <b>뒤에</b> 자릅니다. 자르고 섞으면 늘 같은 12개 안에서만 돕니다. */
-    var pickNow = shuffle(now.filter(function (e) { return !used[e.id]; })).slice(0, 12);
+    var pool = now.filter(function (e) { return !used[e.id]; });
+
+    /* ★★ 2026-09-29 · 해외를 <b>먼저 못박고</b>, 나머지는 그대로 섞습니다.
+         paintNow 는 화면에 <b>6장만</b> 찍습니다(rows.slice(0,n), n 최대 6) —
+         12개를 건네 봤자 뒤 6개는 버려집니다. 그래서 여기서 바로
+         「보일 6장」을 만들고, 그중 최대 2장을 해외로 예약합니다.
+         (guarantee 뒤에 shuffle 하지 않으면 보일 자리에서 밀려날 수 있어
+         반드시 6장을 다 채운 뒤 마지막에 한 번만 섞습니다.) */
+    var foreignPool = shuffle(pool.filter(function (e) { return FOREIGN_SRC[e.source]; }));
+    var domesticPool = shuffle(pool.filter(function (e) { return !FOREIGN_SRC[e.source]; }));
+    var guarantee = Math.min(2, foreignPool.length);
+    var pickNow = shuffle(foreignPool.slice(0, guarantee).concat(domesticPool.slice(0, 6 - guarantee)));
 
     /* 지금 열리는 것이 적어 다 겹치면, 겹침을 허락합니다 —
        빈 자리를 남기는 것보다 낫습니다. */
