@@ -165,25 +165,30 @@ jobs:
               node scripts/collect-works-aic.mjs --peek
               ;;
             si-peek)
-              # ★ 2026-09-29 · <부서> 칸(비우면 <무엇으로 찾을까요> 칸)에
-              #   유닛 코드를 적으면 그 기관을 봅니다
-              #   (SAAM · NMAA · NPG · CHNDM · HMSG · NMAfA). 둘 다 비우면 SAAM.
-              SI_UNIT="SAAM"
-              if [ -n "${IN_DEPT}" ]; then SI_UNIT="${IN_DEPT}";
-              elif [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then SI_UNIT="${IN_Q}"; fi
-              echo "▶ 스미소니언(${SI_UNIT})이 주는 칸 이름을 봅니다"
-              node scripts/collect-works-smithsonian.mjs --unit "${SI_UNIT}" --peek
+              # ★ 2026-09-29 · <부서> 칸에 유닛 코드를 적으면 그 기관을 봅니다
+              #   (SAAM · NMAA · NPG · CHNDM · HMSG · NMAfA · NMAI · NMAAHC).
+              #   비우면 SAAM. <무엇으로 찾을까요> 칸은 이제 object_type
+              #   낱말 필터입니다(NMAI·NMAAHC 처럼 미술 아닌 것이 섞인 유닛에서
+              #   Painting · Prints · Sculpture 만 거를 때 씁니다). 비우면 안 거름.
+              SI_UNIT="${IN_DEPT:-SAAM}"
+              SI_TYPE_ARGS=""
+              if [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then SI_TYPE_ARGS="--type \"${IN_Q}\""; fi
+              echo "▶ 스미소니언(${SI_UNIT}${IN_Q:+ · ${IN_Q}만})이 주는 칸 이름을 봅니다"
+              eval node scripts/collect-works-smithsonian.mjs --unit "${SI_UNIT}" --peek $SI_TYPE_ARGS
               ;;
             si)
               # ★ 2026-09-29 · 파트너가 api.data.gov 열쇠를 직접 받아 붙임.
               #   기본은 SAAM(미국 미술관). 다른 미술 계열 유닛을 받으려면
               #   <부서> 칸에 코드를 적으십시오 — NMAA(국립아시아미술관·구
               #   프리어|새클러) · NPG(초상화) · CHNDM(쿠퍼휴잇 디자인) ·
-              #   HMSG(허시혼·현대미술) · NMAfA(아프리카미술).
-              SI_UNIT="SAAM"
-              if [ -n "${IN_DEPT}" ]; then SI_UNIT="${IN_DEPT}";
-              elif [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then SI_UNIT="${IN_Q}"; fi
-              ARGS="--unit ${SI_UNIT} --limit ${IN_LIMIT:-2000}"
+              #   HMSG(허시혼·현대미술) · NMAfA(아프리카미술) · NMAI(원주민·
+              #   민속박물관이라 <무엇으로 찾을까요> 칸에 Painting·Prints·
+              #   Sculpture 를 하나씩 넣어 걸러야 함) · NMAAHC(흑인역사문화
+              #   박물관·마찬가지로 걸러야 함).
+              SI_UNIT="${IN_DEPT:-SAAM}"
+              SI_TYPE_ARGS=""
+              if [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then SI_TYPE_ARGS="--type \"${IN_Q}\""; fi
+              ARGS="--unit ${SI_UNIT} --limit ${IN_LIMIT:-2000} $SI_TYPE_ARGS"
               if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
               echo "▶ node scripts/collect-works-smithsonian.mjs $ARGS"
               eval node scripts/collect-works-smithsonian.mjs $ARGS

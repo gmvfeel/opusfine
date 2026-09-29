@@ -54,8 +54,19 @@ const UNIT_NAME = {
   NPG:   'National Portrait Gallery',
   CHNDM: 'Cooper Hewitt, Smithsonian Design Museum',
   HMSG:  'Hirshhorn Museum and Sculpture Garden',
-  NMAfA: 'National Museum of African Art'
+  NMAfA: 'National Museum of African Art',
+  NMAI:  'National Museum of the American Indian',
+  NMAAHC: 'National Museum of African American History and Culture'
 };
+
+/* ★ 2026-09-29 · NMAI · NMAAHC 는 미술관이 아니라 민속·역사박물관이라
+     도판 있는 것만 각각 142,930건 · 19,864건이나, 대부분 의상·문서·
+     생활유물입니다. 파트너 판단으로 <b>회화·판화·조각만</b> object_type
+     칸으로 걸러 담습니다 — --type 으로 하나씩 지정합니다.
+     확인된 낱말(단수/복수가 기관마다 다르게 맞습니다):
+       NMAI    Painting(2504) · Prints(1200) · Sculpture(256)
+       NMAAHC  Paintings(179) · Prints(243)  · Sculpture(47)
+   */
 
 const getJSON = makeGetJSON({
   ua: UA, accept: 'application/json',
@@ -65,6 +76,7 @@ const getJSON = makeGetJSON({
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
 const UNIT  = arg('unit', 'SAAM');
+const TYPE  = arg('type', null);   /* ★ object_type 낱말로 거르기 (NMAI·NMAAHC 용) */
 const LIMIT = Number(arg('limit', 2000));
 const DRY   = argv.includes('--dry');
 const PEEK  = argv.includes('--peek');
@@ -215,15 +227,16 @@ async function upsert(rows) {
 }
 
 /* ── 한 쪽 받기 ── */
-function pageUrl(unit, start, rows) {
-  const q = 'unit_code:' + unit + ' AND online_media_type:Images';
+function pageUrl(unit, start, rows, type) {
+  let q = 'unit_code:' + unit + ' AND online_media_type:Images';
+  if (type) q += ' AND object_type:"' + type + '"';
   return API + '?q=' + encodeURIComponent(q)
     + '&start=' + start + '&rows=' + rows + '&api_key=' + SI_KEY;
 }
 
 (async () => {
   if (PEEK) {
-    const j = await getJSON(pageUrl(UNIT, 0, 1));
+    const j = await getJSON(pageUrl(UNIT, 0, 1, TYPE));
     const row = (j?.response?.rows || [])[0];
     console.log('전체건수:', j?.response?.rowCount ?? '(모름)');
     if (!row) { console.log('★ 아무것도 못 받았습니다.'); return; }
@@ -235,7 +248,7 @@ function pageUrl(unit, start, rows) {
     return;
   }
 
-  console.log(`▶ 작품 수집 (스미소니언 ${UNIT}) · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}`);
+  console.log(`▶ 작품 수집 (스미소니언 ${UNIT}${TYPE ? ' · ' + TYPE + '만' : ''}) · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}`);
 
   console.log('  우리 작가DB 를 받는 중…');
   let byName = new Map();
@@ -249,7 +262,7 @@ function pageUrl(unit, start, rows) {
   try {
     for (let start = 0; got < LIMIT; start += PAGE) {
       const take = Math.min(PAGE, LIMIT - got);
-      const j = await getJSON(pageUrl(UNIT, start, take));
+      const j = await getJSON(pageUrl(UNIT, start, take, TYPE));
       const rows = j?.response?.rows || [];
       if (!rows.length) break;                 /* ★ 0줄일 때 끝냅니다 */
 
