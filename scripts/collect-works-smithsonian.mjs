@@ -6,6 +6,8 @@
      node scripts/collect-works-smithsonian.mjs --peek
      node scripts/collect-works-smithsonian.mjs --unit SAAM --limit 2000
      node scripts/collect-works-smithsonian.mjs --unit SAAM --dry
+     node scripts/collect-works-smithsonian.mjs --unit NMAI --start 50000 --limit 50000
+       (--start 로 이어받기 — NMAI 처럼 큰 유닛을 나눠 돌릴 때)
 
    ★ 2026-09-29 · 파트너가 api.data.gov 열쇠를 즉시 받아 붙임.
      확인된 자료원 — Smithsonian American Art Museum(SAAM) 13,006건,
@@ -61,12 +63,17 @@ const UNIT_NAME = {
 
 /* ★ 2026-09-29 · NMAI · NMAAHC 는 미술관이 아니라 민속·역사박물관이라
      도판 있는 것만 각각 142,930건 · 19,864건이나, 대부분 의상·문서·
-     생활유물입니다. 파트너 판단으로 <b>회화·판화·조각만</b> object_type
-     칸으로 걸러 담습니다 — --type 으로 하나씩 지정합니다.
-     확인된 낱말(단수/복수가 기관마다 다르게 맞습니다):
-       NMAI    Painting(2504) · Prints(1200) · Sculpture(256)
-       NMAAHC  Paintings(179) · Prints(243)  · Sculpture(47)
+     생활유물입니다. 파트너 판단으로 <b>회화·판화·조각만</b> 담습니다.
+
+     ★★ object_type:"Painting" 같은 것을 쿼리에 얹어 <API 쪽에서> 거르는
+     방법을 먼저 써봤는데, 같은 주소로 몇 시간 새 2,504건 → 0건으로
+     들쭉날쭉했습니다 — 이 API 가 조건 3개(AND) 조합을 못 미더워합니다.
+     그래서 <b>거르지 않고 전량 받은 뒤, 우리 쪽에서</b> 받은 낱개 record 의
+     object_type 칸을 읽어 회화·판화·조각만 남기는 쪽으로 바꿨습니다
+     (ART_FILTER_UNITS). 시간은 더 걸리지만 믿을 수 있습니다.
    */
+const ART_FILTER_UNITS = { NMAI: 1, NMAAHC: 1 };
+const ART_TYPE_RE = /paint|print|sculpt/i;
 
 const getJSON = makeGetJSON({
   ua: UA, accept: 'application/json',
@@ -76,7 +83,7 @@ const getJSON = makeGetJSON({
 const argv = process.argv.slice(2);
 const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[i + 1] || d) : d; };
 const UNIT  = arg('unit', 'SAAM');
-const TYPE  = arg('type', null);   /* ★ object_type 낱말로 거르기 (NMAI·NMAAHC 용) */
+const START = Number(arg('start', 0));   /* ★ 이어받기 — 큰 유닛을 나눠 돌릴 때 */
 const LIMIT = Number(arg('limit', 2000));
 const DRY   = argv.includes('--dry');
 const PEEK  = argv.includes('--peek');
@@ -166,6 +173,15 @@ function build(o, byName) {
   const name = freetextName(o);
   const unitCode = o?.content?.descriptiveNonRepeating?.unit_code || UNIT;
 
+  /* ★ NMAI·NMAAHC 는 미술관이 아니어서, object_type 칸에 회화·판화·
+       조각이 걸리는 것만 남깁니다(민속·의상·문서류는 뺌). API 쿼리로는
+       못 믿어(위 주석) 여기서, 받은 낱개 record 마다 우리가 직접 봅니다. */
+  if (ART_FILTER_UNITS[unitCode]) {
+    const types = o?.content?.indexedStructured?.object_type || [];
+    const hit = types.some((t) => ART_TYPE_RE.test(String(t || '')));
+    if (!hit) return null;
+  }
+
   const w = {
     si_id:       id,
     title,
@@ -226,32 +242,32 @@ async function upsert(rows) {
   return { ok: rows.length, msg: '' };
 }
 
-/* ── 한 쪽 받기 ── */
-function pageUrl(unit, start, rows, type) {
-  let q = 'unit_code:' + unit + ' AND online_media_type:Images';
-  if (type) q += ' AND object_type:"' + type + '"';
+/* ── 한 쪽 받기 ──
+   ★ object_type 을 쿼리에 얹는 건 뺐습니다(위 주석 — 들쭉날쭉함).
+     기관+도판 2개 조건만 씁니다. 회화·판화·조각 거르기는 build() 안,
+     받은 뒤에 합니다. */
+function pageUrl(unit, start, rows) {
+  const q = 'unit_code:' + unit + ' AND online_media_type:Images';
   return API + '?q=' + encodeURIComponent(q)
     + '&start=' + start + '&rows=' + rows + '&api_key=' + SI_KEY;
 }
 
 (async () => {
   if (PEEK) {
-    const url = pageUrl(UNIT, 0, 1, TYPE);
-    console.log('디버그 요청주소:', url.replace(SI_KEY, '(열쇠생략)'));
-    console.log('디버그 UNIT=[' + UNIT + '] TYPE=[' + TYPE + ']');
+    const url = pageUrl(UNIT, START, 1);
     const j = await getJSON(url);
     const row = (j?.response?.rows || [])[0];
     console.log('전체건수:', j?.response?.rowCount ?? '(모름)');
     if (!row) { console.log('★ 아무것도 못 받았습니다.'); return; }
     console.log('\n▶ 우리 표로 바꾼 모습\n');
     const w = build(row, new Map());
-    if (!w) { console.log('  (충실도가 모자라 담지 않습니다)'); return; }
+    if (!w) { console.log('  (충실도가 모자라 담지 않습니다 — object_type 필터에 안 걸렸을 수 있습니다)'); return; }
     for (const [k, v] of Object.entries(w))
       console.log('  ' + String(k).padEnd(14) + (v == null ? '(없음)' : String(v).slice(0, 90)));
     return;
   }
 
-  console.log(`▶ 작품 수집 (스미소니언 ${UNIT}${TYPE ? ' · ' + TYPE + '만' : ''}) · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}`);
+  console.log(`▶ 작품 수집 (스미소니언 ${UNIT}${ART_FILTER_UNITS[UNIT] ? ' · 회화·판화·조각만' : ''}) · start=${START} · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}`);
 
   console.log('  우리 작가DB 를 받는 중…');
   let byName = new Map();
@@ -263,9 +279,9 @@ function pageUrl(unit, start, rows, type) {
   const PAGE = 100;
 
   try {
-    for (let start = 0; got < LIMIT; start += PAGE) {
+    for (let start = START; got < LIMIT; start += PAGE) {
       const take = Math.min(PAGE, LIMIT - got);
-      const j = await getJSON(pageUrl(UNIT, start, take, TYPE));
+      const j = await getJSON(pageUrl(UNIT, start, take));
       const rows = j?.response?.rows || [];
       if (!rows.length) break;                 /* ★ 0줄일 때 끝냅니다 */
 
@@ -284,8 +300,11 @@ function pageUrl(unit, start, rows, type) {
         const res = await upsert(out);
         if (res.msg) errs.push(res.msg); else put += res.ok;
       }
-      console.log(`  ${got}/${LIMIT} · 담을 것 ${kept}${DRY ? '' : ` · 담음 ${put}`}`);
-      if (j?.response?.rowCount != null && start + take >= j.response.rowCount) break;
+      console.log(`  ${got}/${LIMIT} · 담을 것 ${kept}${DRY ? '' : ` · 담음 ${put}`} · 다음 start=${start + take}`);
+      if (j?.response?.rowCount != null && start + take >= j.response.rowCount) {
+        console.log('  ■ 이 유닛 끝까지 다 받았습니다.');
+        break;
+      }
     }
   } catch (e) {
     if (isStop(e)) console.log('  ■ 멈춥니다 — ' + stopReason(e));
