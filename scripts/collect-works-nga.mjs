@@ -135,7 +135,6 @@ function build(o, img, byName) {
     accession:   o.accessionnum || null,
     credit_line: o.creditline || null,
     link_source: 'https://www.nga.gov/collection/art-object-page.' + o.objectid + '.html',
-    wikidata_id: o.wikidataid || null,
     artist_id:   null,
     link_status: 'none',
     hidden:      false
@@ -153,12 +152,19 @@ function build(o, img, byName) {
 }
 
 /* ★★ merge-duplicates 를 columns= 없이 쓰면 묶음 안 행마다 있는 칸이
-     달라 빈 칸이 null 로 덮어써집니다(스미소니언 COLS 와 같은 까닭) */
+     달라 빈 칸이 null 로 덮어써집니다(스미소니언 COLS 와 같은 까닭)
+
+   ★★ 2026-09-29 · wikidata_id 를 뺐습니다. artworks.wikidata_id 에
+     <b>고유 색인(artworks_wd_uk)</b>이 걸려 있는데, 다른 자료원(메트·
+     스미소니언 등)이 <b>이미 같은 Q번호를 쓴 행</b>이 있으면 그 배치가
+     통째로 409 로 튕깁니다 — 실제로 26개 배치(7,758점)가 이렇게
+     빠졌습니다. nga_id 로 이미 우리 것끼리는 잇고 있으니, 다른
+     자료원과의 교차연결은 wikidata_id 없이도 아쉬울 것이 없습니다. */
 const COLS = [
   'nga_id', 'title', 'title_en', 'year_text', 'year_from', 'year_to',
   'medium', 'dimensions', 'genre', 'artist_name', 'image_url', 'image_small',
   'image_credit', 'rights', 'holder', 'holder_dept', 'accession',
-  'credit_line', 'link_source', 'wikidata_id', 'artist_id', 'link_status',
+  'credit_line', 'link_source', 'artist_id', 'link_status',
   'quality', 'hidden'
 ];
 
@@ -186,7 +192,7 @@ async function upsert(rows) {
 const OBJ_FIELDS = [
   'objectid', 'title', 'displaydate', 'beginyear', 'endyear', 'medium',
   'dimensions', 'classification', 'attribution', 'departmentabbr',
-  'accessionnum', 'creditline', 'wikidataid'
+  'accessionnum', 'creditline'
 ];
 
 (async () => {
