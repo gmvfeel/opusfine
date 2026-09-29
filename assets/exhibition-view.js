@@ -141,7 +141,8 @@
     if (po) {
       po.innerHTML = e.poster_url
         ? '<img src="' + esc(e.poster_url) + '" alt="' + esc(e.title) +
-          '" referrerpolicy="no-referrer">'
+          '" referrerpolicy="no-referrer"' +
+          ' onerror="OF.imgFallback(this,\'xv-none\',\'포스터가 아직 없습니다\')">'
         : '<span class="xv-none">포스터가 아직 없습니다</span>';
     }
     /* ★★ 출처 표시 — 공공누리 제1유형은 <b>밝혀야</b> 씁니다.
@@ -258,7 +259,8 @@
     grid.innerHTML = rows.slice(0, 8).map(function (r) {
       var pic = r.poster_url
         ? '<img src="' + esc(r.poster_url) + '" alt="' + esc(r.title) +
-          '" referrerpolicy="no-referrer" loading="lazy">'
+          '" referrerpolicy="no-referrer" loading="lazy"' +
+          ' onerror="OF.imgFallback(this,\'xv-none\')">'
         : '<span class="xv-none"></span>';
       var ti = /[《》]/.test(r.title) ? esc(r.title) : '《' + esc(r.title) + '》';
       return '<a class="xv-mx" href="/db/exhibition-view.html?id=' + r.id + '">'

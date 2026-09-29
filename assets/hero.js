@@ -379,8 +379,13 @@
       var plate = document.querySelector('.hero .plate');
       if (plate && d.img) {
         plate.classList.remove('ph', 'loading');
+        /* ★★ 2026-09-29 · 국내 전시 포스터는 직접 링크라 가끔 깨집니다
+             (파트너 확인). 히어로는 가장 눈에 띄는 자리라, 실패하면
+             불러오기 전의 「자리 표시(.ph.loading)」 모양으로 되돌립니다 —
+             깨진 아이콘보다 이쪽이 훨씬 낫습니다. */
         plate.innerHTML = '<img src="' + esc(d.img) + '" alt="' + esc(d.eb) +
-          '" referrerpolicy="no-referrer" loading="eager">';
+          '" referrerpolicy="no-referrer" loading="eager"' +
+          ' onerror="this.remove();this.parentNode.classList.add(\'ph\',\'loading\')">';
         var cap = document.querySelector('.hero .cap');
         if (cap) {
           var q = function (x) { return cap.querySelector(x); };

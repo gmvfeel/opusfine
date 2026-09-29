@@ -57,7 +57,7 @@
       var pic = OF.img(w.image_small || w.image_url);
       var who = w.artist_name ? esc(w.artist_name) : (w.holder ? esc(w.holder) : '작자 미상');
       return '<a class="mw" href="/db/work-view.html?id=' + w.id + '">'
-        + '<div class="th"><img src="' + esc(pic) + '" alt="' + esc(w.title || '') + '" referrerpolicy="no-referrer" loading="lazy"></div>'
+        + '<div class="th"><img src="' + esc(pic) + '" alt="' + esc(w.title || '') + '" referrerpolicy="no-referrer" loading="lazy" onerror="OF.imgFallback(this)"></div>'
         + '<div class="a">' + who + '</div>'
         + '<div class="w">' + title(w.title_en && !w.title ? w.title_en : w.title) + '</div>'
         + '</a>';

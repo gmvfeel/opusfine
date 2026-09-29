@@ -96,7 +96,8 @@
     box.innerHTML = rows.slice(0, n).map(function (e) {
       var pic = e.poster_url
         ? '<img src="' + esc(e.poster_url) + '" alt="' + esc(e.title) +
-          '" referrerpolicy="no-referrer" loading="lazy">'
+          '" referrerpolicy="no-referrer" loading="lazy"' +
+          ' onerror="OF.imgFallback(this)">'
         : '<span style="display:block;height:220px"></span>';
       return '<a class="ex" href="/db/exhibition-view.html?id=' + e.id + '">'
         + '<div class="th">' + pic + '</div>'

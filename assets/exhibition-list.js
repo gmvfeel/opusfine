@@ -136,7 +136,8 @@
     var f = flagOf(e);
     var pic = e.poster_url
       ? '<img src="' + esc(e.poster_url) + '" alt="' + esc(e.title) +
-        '" referrerpolicy="no-referrer" loading="lazy">'
+        '" referrerpolicy="no-referrer" loading="lazy"' +
+        ' onerror="OF.imgFallback(this,\'xl-none\',\'포스터가 아직 없습니다\')">'
       : '<span class="xl-none">포스터가 아직 없습니다</span>';
     /* ★ 제목에 이미 낫표가 든 것이 많습니다 — 덧씌우지 않습니다 */
     var t = /[《》]/.test(e.title) ? esc(e.title) : '《' + esc(e.title) + '》';

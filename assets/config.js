@@ -73,3 +73,25 @@ OF.img = function (u) {
   var m = /^https?:\/\/www\.artic\.edu\/iiif\/2\/(.+)$/.exec(String(u));
   return m ? '/img/aic/' + m[1] : u;
 };
+
+/* ── 깨진 그림 자리 갈무리 ──────────────────────────────────────
+   ★★ 2026-09-29 · 국내 전시 포스터(mmca.go.kr 등)를 <b>직접 링크</b>로
+     겁니다 — 우리 서버가 담아 두지 않으니, 저쪽 서버가 느리거나
+     잠깐 응답이 없으면 화면에 <b>깨진 그림 아이콘</b>이 뜹니다
+     (파트너 확인: 「가끔 이런 깨진 이미지들이 있어」).
+
+   ▶ 저쪽 서버를 고칠 수는 없으니, <b>실패하면 자리를 감춥니다.</b>
+     각 화면이 이미 「포스터가 아직 없습니다」류의 빈 자리 표시를
+     쓰고 있어, 실패했을 때도 <b>같은 모양</b>으로 갈아 끼웁니다 —
+     깨진 아이콘보다 훨씬 낫습니다.
+
+   ★ img 태그에 onerror="OF.imgFallback(this,'xl-none','포스터가 …')"
+     식으로 답니다. cls 는 그 화면이 이미 쓰는 빈-자리 클래스,
+     text 를 안 주면 빈 span(테두리만 있는 자리)을 남깁니다. */
+OF.imgFallback = function (img, cls, text) {
+  var s = document.createElement('span');
+  if (cls) s.className = cls;
+  if (text) s.textContent = text;
+  else s.style.cssText = 'display:block;height:100%';
+  if (img && img.parentNode) img.replaceWith(s);
+};
