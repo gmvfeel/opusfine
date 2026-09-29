@@ -236,7 +236,10 @@ function pageUrl(unit, start, rows, type) {
 
 (async () => {
   if (PEEK) {
-    const j = await getJSON(pageUrl(UNIT, 0, 1, TYPE));
+    const url = pageUrl(UNIT, 0, 1, TYPE);
+    console.log('디버그 요청주소:', url.replace(SI_KEY, '(열쇠생략)'));
+    console.log('디버그 UNIT=[' + UNIT + '] TYPE=[' + TYPE + ']');
+    const j = await getJSON(url);
     const row = (j?.response?.rows || [])[0];
     console.log('전체건수:', j?.response?.rowCount ?? '(모름)');
     if (!row) { console.log('★ 아무것도 못 받았습니다.'); return; }
