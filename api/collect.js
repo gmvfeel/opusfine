@@ -29,7 +29,16 @@
      /api/collect?token=…&src=kcisa145&mode=preview&from=1&to=3
      /api/collect?token=…&src=kcisa145&mode=apply&from=1&to=97
      /api/collect?token=…&src=cultureinfo&mode=apply&from=1&to=31
+     /api/collect?token=…&src=aicExh&mode=preview&from=1&to=1
      /api/collect?token=…&src=kcisa145&mode=undo
+
+   ★★ 2026-09-29 · aicExh — 시카고 미술관(Art Institute of Chicago)
+     열쇠 없이 열리는 해외 첫 자료원입니다(파트너 결정 · 국내 지자체
+     API 대신 해외 미술관 쪽으로 방향을 틈). 국내 자료원과 응답 꼴이
+     달라(JSON, XML 아님) rowFromAic 를 따로 둡니다.
+     ▶ 부산·대구 공공데이터는 (1) 미술이 아니라 공연 위주였고
+       (2) 2020년에 멈춘 자료라 접었습니다 — tools/probe.html 정찰
+       기록에 남아 있습니다.
 
        mode=preview  담지 않고 <b>무엇이 담길지만</b> 돌려줍니다
        mode=apply    실제로 담습니다 (겹치면 덮어씀)
@@ -63,6 +72,26 @@ const SRC = {
     rows: 10,
     pageParam: 'PageNo',
     extra: { realmCode: 'D000' }
+  },
+  /* 시카고 미술관 전시 API · 6,259건(2026-09-29 정찰 기준) · 열쇠 불필요
+     ★ JSON 입니다 — XML 자료원과 읽는 법이 달라 format:'aic' 로 가릅니다.
+     ★ 인증키가 없으니 env·keyName 을 안 씁니다(handler 에서 이 SRC 만
+       열쇠 확인을 건너뜁니다). */
+  aicExh: {
+    format: 'aic',
+    base: 'https://api.artic.edu',
+    path: '/api/v1/exhibitions',
+    env: null,
+    keyName: null,
+    rows: 100,
+    pageParam: 'page',
+    extra: {
+      fields: [
+        'id', 'title', 'short_description', 'web_url', 'image_id',
+        'gallery_title', 'aic_start_at', 'aic_end_at', 'status',
+        'department_title'
+      ].join(',')
+    }
   }
 };
 
@@ -303,6 +332,54 @@ function rowFromCulture (c) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   시카고 미술관(AIC) · JSON 한 줄 만들기
+   ------------------------------------------------------------------
+   ★ aic_start_at·aic_end_at 는 ISO 이지만 <b>앞 10자만</b> 잘라 씁니다
+     (시각이 붙어 와도 우리 칸은 date 하나만 받습니다).
+   ★ short_description 에 <p> 같은 HTML 태그가 섞여 와서 벗겨냅니다.
+   ★ image_id 는 IIIF 로 붙입니다 — response.config.iiif_url + /{id}/full/843,/0/default.jpg
+     (843 은 AIC 문서 예시 폭 · 세로는 원본 비율대로 옵니다).
+   ★ AIC 는 <b>미술관 하나</b>라 kind 를 따로 안 가리고 art 로 둡니다.
+   ══════════════════════════════════════════════════════════════════ */
+function stripHtml (s) {
+  return String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function isoDateOnly (s) {
+  const m = String(s || '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+function rowFromAic (item, iiifUrl) {
+  const title = item && item.title;
+  const id = item && item.id;
+  if (!title || (id === undefined || id === null)) return null;
+
+  const poster = item.image_id
+    ? (iiifUrl || 'https://www.artic.edu/iiif/2') + '/' + item.image_id + '/full/843,/0/default.jpg'
+    : null;
+
+  return {
+    source: 'aicExh',
+    source_id: String(id),
+    title: title,
+    venue: item.gallery_title || null,
+    organizer: 'Art Institute of Chicago',
+    start_date: isoDateOnly(item.aic_start_at),
+    end_date: isoDateOnly(item.aic_end_at),
+    artists: null,
+    open_time: null,
+    charge: null,
+    body: stripHtml(item.short_description) || null,
+    poster_url: poster,
+    poster_credit: 'Art Institute of Chicago',
+    link_source: item.web_url || null,
+    genre: item.department_title || null,
+    kind: 'art',
+    region: 'Chicago, USA',
+    rights: 'museum-open-access'
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════
    Supabase 로 보내기 — service key 는 <b>여기 서버 안에서만</b>
    ══════════════════════════════════════════════════════════════════ */
 /* ★★★ 2026-09-15 · 덮어도 되는 칸을 <b>바깥에서 못박습니다</b>
@@ -391,13 +468,17 @@ export default async function handler (req, res) {
     return;
   }
 
-  const apiKey = process.env[spec.env];
-  if (!apiKey) { res.status(500).json({ 오류: '서버에 열쇠가 없습니다', 필요한것: spec.env }); return; }
+  /* ★ aicExh 는 열쇠가 없습니다(spec.env === null) — 이때만 건너뜁니다 */
+  let apiKey = null;
+  if (spec.env) {
+    apiKey = process.env[spec.env];
+    if (!apiKey) { res.status(500).json({ 오류: '서버에 열쇠가 없습니다', 필요한것: spec.env }); return; }
+  }
 
   /* ── 받아서 줄로 바꾸기 ───────────────────────────────── */
   const rows = [];
   const 쪽별 = [];
-  let total = null, 버린것 = 0;
+  let total = null, 버린것 = 0, iiifUrl = null;
 
   for (let p = from; p <= to; p++) {
     const params = new URLSearchParams(spec.extra);
@@ -412,13 +493,18 @@ export default async function handler (req, res) {
       params.set('realmCode', String(q.realm));
     }
 
-    params.set(spec.keyName, apiKey);
-    params.set('numOfRows', String(spec.rows));
-    params.set(spec.pageParam, String(p));
+    if (spec.format === 'aic') {
+      params.set('limit', String(spec.rows));
+      params.set(spec.pageParam, String(p));
+    } else {
+      params.set(spec.keyName, apiKey);
+      params.set('numOfRows', String(spec.rows));
+      params.set(spec.pageParam, String(p));
+    }
 
     const ctrl = new AbortController();
     const timer = setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS);
-    let xml = '';
+    let body = '';
     try {
       const up = await fetch(spec.base + spec.path + '?' + params.toString(), {
         signal: ctrl.signal,
@@ -427,7 +513,7 @@ export default async function handler (req, res) {
           'Accept': '*/*'
         }
       });
-      xml = await up.text();
+      body = await up.text();
     } catch (e) {
       쪽별.push({ 쪽: p, 오류: String(e.message || e).slice(0, 80) });
       clearTimeout(timer);
@@ -435,6 +521,28 @@ export default async function handler (req, res) {
     }
     clearTimeout(timer);
 
+    /* ── AIC(JSON) ──────────────────────────────────────── */
+    if (spec.format === 'aic') {
+      let j;
+      try { j = JSON.parse(body); }
+      catch (e) { 쪽별.push({ 쪽: p, 오류: 'JSON 아님 · ' + body.slice(0, 120) }); continue; }
+
+      if (j.error) { 쪽별.push({ 쪽: p, 오류: JSON.stringify(j.error).slice(0, 160) }); continue; }
+      if (total === null && j.pagination) total = j.pagination.total;
+      if (!iiifUrl && j.config) iiifUrl = j.config.iiif_url;
+
+      const items = Array.isArray(j.data) ? j.data : [];
+      let 담김 = 0;
+      items.forEach(function (it) {
+        const row = rowFromAic(it, iiifUrl);
+        if (row) { rows.push(row); 담김++; } else { 버린것++; }
+      });
+      쪽별.push({ 쪽: p, 온것: items.length, 쓸것: 담김 });
+      continue;
+    }
+
+    /* ── 국내(XML) ──────────────────────────────────────── */
+    const xml = body;
     if (total === null) {
       const t = xml.match(/<totalCount>(\d+)<\/totalCount>/i);
       if (t) total = parseInt(t[1], 10);

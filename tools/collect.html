@@ -132,6 +132,29 @@ body{margin:0;background:#fff;color:#17171A;
   <div class="cl-bar"><i id="c_bar"></i></div>
   <div class="cl-out" id="c_out"></div>
 
+  <!-- ── 시카고 미술관(AIC) ──────────────────────────────
+       ★ 2026-09-29 · 열쇠 없이 열리는 첫 해외 자료원(파트너 결정).
+         부산·대구 공공데이터는 미술이 아니거나(공연 위주) 2020년에
+         멈춰 있어 접었습니다 — tools/probe.html 에 기록. -->
+  <h2 class="cl-h2">시카고 미술관(AIC) 전시 · 6,259건</h2>
+  <p class="cl-note">
+    <code>api.artic.edu</code> · <b>열쇠 불필요</b>(익명 분당 60회 제한).
+    2009년부터 <b>지금 열린 전시까지</b> 이어집니다 — <code>status</code> 가
+    Confirmed 인 것은 진행/예정, Closed 는 지난 전시입니다.
+    모든 건에 <b>이미지</b>가 있습니다. 한 쪽에 100줄 · 대략 <b>63쪽</b>입니다.
+  </p>
+  <div class="cl-row">
+    <span class="cl-lab">쪽</span>
+    <input id="a_from" class="cl-in" type="number" value="1" min="1">
+    <span class="cl-lab">~</span>
+    <input id="a_to" class="cl-in" type="number" value="63" min="1">
+    <button class="cl-btn cl-gh" data-src="aicExh" data-mode="preview">미리보기</button>
+    <button class="cl-btn"        data-src="aicExh" data-mode="apply">담기</button>
+    <button class="cl-btn cl-rd"  data-src="aicExh" data-mode="undo">되돌리기</button>
+  </div>
+  <div class="cl-bar"><i id="a_bar"></i></div>
+  <div class="cl-out" id="a_out"></div>
+
   <!-- ── 분야 코드 재보기 ───────────────────────────────
        ★★ 2026-09-15 · 한눈에보는문화정보(realm2)는 <b>분야 코드</b>로 나뉩니다.
          여태 <b>D000 하나만</b> 불러 298건이 전부였습니다.
@@ -191,9 +214,9 @@ document.querySelectorAll('button[data-src]').forEach(function(b){
 });
 
 function ui(src){
-  return src === 'kcisa145'
-    ? { from:$('k_from'), to:$('k_to'), out:$('k_out'), bar:$('k_bar') }
-    : { from:$('c_from'), to:$('c_to'), out:$('c_out'), bar:$('c_bar') };
+  if (src === 'kcisa145') return { from:$('k_from'), to:$('k_to'), out:$('k_out'), bar:$('k_bar') };
+  if (src === 'aicExh')   return { from:$('a_from'), to:$('a_to'), out:$('a_out'), bar:$('a_bar') };
+  return { from:$('c_from'), to:$('c_to'), out:$('c_out'), bar:$('c_bar') };
 }
 
 function lock(on){
