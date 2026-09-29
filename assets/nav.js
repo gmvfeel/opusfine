@@ -31,12 +31,12 @@
     return { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
   };
 
-  /* ★★ 2026-09-29 · artworks 표가 20만 건을 넘고 자동수집이 대량으로
-       쓰는 때는 count=exact 가 statement timeout 을 낼 수 있습니다
-       (counts.js 와 같은 까닭). estimated 로 바꿉니다. */
+  /* ★★ 2026-09-29 · statement timeout 의 진짜 원인과 고침은
+       counts.js 주석 참고 — RLS 조건과 겹치는 색인을 DB 에 두어
+       count=exact 그대로도 빠릅니다. */
   async function countOf(t) {
     var r = await fetch(OF.SB_URL + '/rest/v1/' + t + '?select=id&hidden=not.is.true&limit=1', {
-      method: 'HEAD', headers: Object.assign(head(), { Prefer: 'count=estimated' })
+      method: 'HEAD', headers: Object.assign(head(), { Prefer: 'count=exact' })
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     var m = /\/(\d+)$/.exec(r.headers.get('content-range') || '');

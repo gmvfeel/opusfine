@@ -80,19 +80,21 @@
          + '&limit=' + (to - from + 1) + '&offset=' + from;
   }
 
-  /* ★★ 2026-09-29 · count=exact 가 가끔 「HTTP 500 · statement timeout」
-       으로 화면 전체를 못 뜨게 만들었습니다(파트너 확인). 20만 건을
-       넘긴 표에서, 막 대량으로 쌓은 직후(아직 정리 전이라 건마다
-       눈으로 다시 봐야 하는 줄이 많음)라면 정확한 개수 세기가
-       1초 가까이 걸리기도 합니다 — 자동수집이 도는 새벽마다 이 일이
-       날 수 있습니다.
-     ▶ count=estimated 로 바꿉니다 — 통계로 어림잡아(즉시) 세고,
-       표가 작을 때만 정확히 셉니다(PostgREST 자체 규칙). 화면 위
-       「1,234점」은 어차피 눈대중 숫자로 충분합니다 — 실제로 내려주는
-       작품 목록에는 영향이 없습니다. */
+  /* ★★ 2026-09-29 · 「HTTP 500 · statement timeout」이 가끔 떴던 진짜
+       원인은 count=exact 자체가 아니라, RLS(artworks_read) 가 붙이는
+       조건과 화면이 따로 붙이는 hidden=not.is.true 가 <글자 모양은
+       다른데 뜻은 같아> Postgres 가 둘을 따로 어림잡아 곱해 버리는
+       바람에(실제 21만 건인데 10만 건 정도로 착각) 색인 대신 전체
+       훑기를 골랐던 것이었습니다. count=estimated 로 바꿔 봤더니
+       <똑같이 잘못된 절반 숫자>가 그대로 나와(반쪽 개수로 오해 삼)
+       바로 되돌렸습니다.
+     ▶ 진짜 고침은 DB 쪽입니다 — RLS 조건과 글자 그대로 겹치는
+       색인(artworks_anon_rls_idx)을 두어 Postgres 가 바로 알아보고
+       쓰게 했습니다(index-only scan · 실측 0.2~2초 → 수 ms). 이제
+       count=exact 그대로 두어도 됩니다. */
   function head(withCount) {
     var h = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
-    if (withCount) h.Prefer = 'count=estimated';
+    if (withCount) h.Prefer = 'count=exact';
     return h;
   }
 

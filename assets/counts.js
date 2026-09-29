@@ -25,10 +25,14 @@
     /* venues: 'venues', … */
   };
 
-  /* ★★ 2026-09-29 · count=exact 는 표가 20만 건을 넘고 자동수집이
-       대량으로 쓰는 새벽 시간대에는 statement timeout 을 낼 수 있습니다
-       (작품 목록 화면 work-list.js 에서 실제로 겪음 — 파트너 확인).
-       이 대문 숫자는 어차피 어림수로 충분해 estimated 로 바꿉니다. */
+  /* ★★ 2026-09-29 · statement timeout 의 진짜 원인은 RLS 조건과
+       hidden=not.is.true 가 뜻은 같은데 글자가 달라 Postgres 가
+       중복으로 어림잡아 절반으로 착각, 색인 대신 전체 훑기를 고른
+       것이었습니다(work-list.js 에 자세히 적어 둠). count=estimated
+       로 바꿔 봤자 <똑같이 잘못된 절반 숫자>가 나와 되돌렸습니다.
+     ▶ DB 쪽에 RLS 조건과 글자 그대로 겹치는 색인(artworks_anon_rls_idx)
+       을 두어 고쳤습니다 — count=exact 그대로 두어도 이제 빠릅니다
+       (실측 0.2~2초). */
   async function countOf(t) {
     var url = OF.SB_URL + '/rest/v1/' + t + '?select=id&hidden=not.is.true&limit=1';
     var r = await fetch(url, {
@@ -36,7 +40,7 @@
       headers: {
         apikey: OF.SB_KEY,
         Authorization: 'Bearer ' + OF.SB_KEY,
-        Prefer: 'count=estimated'
+        Prefer: 'count=exact'
       }
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
