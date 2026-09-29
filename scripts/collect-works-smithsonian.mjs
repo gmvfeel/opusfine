@@ -18,9 +18,17 @@
      기관·건마다 있는 칸이 다를 수 있어 모든 접근을 방어적으로(?.) 합니다.
 
    ★ --unit 으로 소장기관을 고릅니다. 기본은 SAAM(미국 미술관)입니다.
-     이 프로젝트가 한중일 미술에 무게를 두는 만큼, 아시아 미술관
-     (프리어|새클러) 쪽 unit_code 를 다음에 더 찾아볼 값어치가 있습니다
-     — 오늘은 <b>실제로 확인된 SAAM</b>만 우선 붙입니다.
+
+   ★ 2026-09-29 · /terms/unit_code 로 전체 코드 목록을 받아 하나씩
+     --peek 으로 확인한 뒤, 도판(online_media_type:Images)이 실제로
+     걸리는 미술 계열 유닛 다섯을 더 넣었습니다. <b>FSG 는 짐작이었고
+     0건이라 틀렸습니다</b> — 프리어|새클러는 2019년에 국립아시아미술관
+     (National Museum of Asian Art)으로 이름이 바뀌었고 코드는 NMAA 입니다.
+       NMAA   국립아시아미술관(구 프리어|새클러) · 4,718건 · CC0 확인
+       NPG    국립초상화미술관 · 15,218건
+       CHNDM  쿠퍼휴잇 디자인박물관 · 54,626건
+       HMSG   허시혼미술관(현대미술) · 449건
+       NMAfA  국립아프리카미술관 · 113건
 
    ★ 저작권 — metadata_usage.access 가 <b>CC0 일 때만</b> 도판을 담고
      rights=public 으로 적습니다. 아니면 도판 없이 rights=linked.
@@ -38,10 +46,15 @@ const SI_KEY = process.env.SMITHSONIAN_KEY;
 const API = 'https://api.si.edu/openaccess/api/v1.0/search';
 const UA  = 'OpusfineBot/1.0 (https://opusfine.com; cser@wixon.co.kr)';
 
-/* ★ 확인된 기관 코드만 우선 넣습니다. 짐작한 코드(FSG 등)는 0건이라
-     뺐습니다 — 나중에 --unit 으로 하나씩 --peek 해서 확인하면 됩니다. */
+/* ★ /terms/unit_code 목록에서 하나씩 --peek 으로 실제 확인한 코드만
+     넣습니다. 짐작한 코드(FSG 등)는 넣지 않습니다. */
 const UNIT_NAME = {
-  SAAM: 'Smithsonian American Art Museum'
+  SAAM:  'Smithsonian American Art Museum',
+  NMAA:  'National Museum of Asian Art (Freer|Sackler)',
+  NPG:   'National Portrait Gallery',
+  CHNDM: 'Cooper Hewitt, Smithsonian Design Museum',
+  HMSG:  'Hirshhorn Museum and Sculpture Garden',
+  NMAfA: 'National Museum of African Art'
 };
 
 const getJSON = makeGetJSON({
