@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -198,6 +198,24 @@ jobs:
               echo "▶ node scripts/collect-works-smithsonian.mjs $ARGS"
               eval node scripts/collect-works-smithsonian.mjs $ARGS
               ;;
+            nga-peek)
+              # ★ 2026-09-29 · 내셔널갤러리(워싱턴) — 열쇠가 필요 없습니다.
+              #   소장품 전체를 깃허브에 CSV 로 공개해 둡니다(CC0).
+              echo "▶ 내셔널갤러리 데이터를 우리 표로 바꾼 모습을 봅니다 (담지 않습니다)"
+              node scripts/collect-works-nga.mjs --peek
+              ;;
+            nga)
+              # ★ 열린-접근 도판이 있는 작품 63,858점(전체 소장품 중) ·
+              #   한 번에 다 받아도 몇 분이면 끝납니다(로컬 CSV 처리라
+              #   API 호출·속도제한이 없습니다). <무엇으로 찾을까요> 칸은
+              #   이어받을 시작 번호(--start)로 씁니다 — si 와 같은 결.
+              NGA_START_ARGS=""
+              if [ -n "${IN_Q}" ] && [ "${IN_Q}" != "Korea" ]; then NGA_START_ARGS="--start ${IN_Q}"; fi
+              ARGS="--limit ${IN_LIMIT:-200000} $NGA_START_ARGS"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-nga.mjs $ARGS"
+              eval node scripts/collect-works-nga.mjs $ARGS
+              ;;
             met)
               ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
               if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
@@ -215,9 +233,9 @@ jobs:
 
       - name: si 결과 알리기
         # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
-        #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek 일 때만, 늘
-        #   (성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
-        if: always() && (github.event.inputs.src == 'si' || github.event.inputs.src == 'si-peek')
+        #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek·nga/nga-peek 일
+        #   때만, 늘(성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
+        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek"]'), github.event.inputs.src)
         uses: actions/github-script@v7
         with:
           script: |
