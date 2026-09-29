@@ -25,6 +25,10 @@
     /* venues: 'venues', … */
   };
 
+  /* ★★ 2026-09-29 · count=exact 는 표가 20만 건을 넘고 자동수집이
+       대량으로 쓰는 새벽 시간대에는 statement timeout 을 낼 수 있습니다
+       (작품 목록 화면 work-list.js 에서 실제로 겪음 — 파트너 확인).
+       이 대문 숫자는 어차피 어림수로 충분해 estimated 로 바꿉니다. */
   async function countOf(t) {
     var url = OF.SB_URL + '/rest/v1/' + t + '?select=id&hidden=not.is.true&limit=1';
     var r = await fetch(url, {
@@ -32,7 +36,7 @@
       headers: {
         apikey: OF.SB_KEY,
         Authorization: 'Bearer ' + OF.SB_KEY,
-        Prefer: 'count=exact'
+        Prefer: 'count=estimated'
       }
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);

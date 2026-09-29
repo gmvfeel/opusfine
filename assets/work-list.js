@@ -80,9 +80,19 @@
          + '&limit=' + (to - from + 1) + '&offset=' + from;
   }
 
+  /* ★★ 2026-09-29 · count=exact 가 가끔 「HTTP 500 · statement timeout」
+       으로 화면 전체를 못 뜨게 만들었습니다(파트너 확인). 20만 건을
+       넘긴 표에서, 막 대량으로 쌓은 직후(아직 정리 전이라 건마다
+       눈으로 다시 봐야 하는 줄이 많음)라면 정확한 개수 세기가
+       1초 가까이 걸리기도 합니다 — 자동수집이 도는 새벽마다 이 일이
+       날 수 있습니다.
+     ▶ count=estimated 로 바꿉니다 — 통계로 어림잡아(즉시) 세고,
+       표가 작을 때만 정확히 셉니다(PostgREST 자체 규칙). 화면 위
+       「1,234점」은 어차피 눈대중 숫자로 충분합니다 — 실제로 내려주는
+       작품 목록에는 영향이 없습니다. */
   function head(withCount) {
     var h = { apikey: OF.SB_KEY, Authorization: 'Bearer ' + OF.SB_KEY };
-    if (withCount) h.Prefer = 'count=exact';
+    if (withCount) h.Prefer = 'count=estimated';
     return h;
   }
 
