@@ -87,7 +87,7 @@ const SRC = {
     pageParam: 'page',
     extra: {
       fields: [
-        'id', 'title', 'short_description', 'web_url', 'image_id',
+        'id', 'title', 'short_description', 'web_url', 'image_id', 'image_url',
         'gallery_title', 'aic_start_at', 'aic_end_at', 'status',
         'department_title'
       ].join(',')
@@ -339,6 +339,13 @@ function rowFromCulture (c) {
    ★ short_description 에 <p> 같은 HTML 태그가 섞여 와서 벗겨냅니다.
    ★ image_id 는 IIIF 로 붙입니다 — response.config.iiif_url + /{id}/full/843,/0/default.jpg
      (843 은 AIC 문서 예시 폭 · 세로는 원본 비율대로 옵니다).
+   ★★ 2026-09-29 · 이미지 칸이 <b>둘</b>입니다 —
+       image_id  소장품(대표 작품) 사진 · IIIF 로 붙여야 함
+       image_url 전시 홍보 배너 사진 · <b>이미 완성된 주소</b>가 옴
+     처음엔 image_id 만 썼더니 「Mary Cassatt: After Impressionism」같은
+     굵직한 <b>최신 전시일수록 image_id 가 비어 있고</b>, 정작 그런
+     전시에 image_url 은 있었습니다(imgix 배너). ▶ <b>image_url 을
+     먼저</b> 쓰고, 없을 때만 image_id 로 대신합니다.
    ★ AIC 는 <b>미술관 하나</b>라 kind 를 따로 안 가리고 art 로 둡니다.
    ══════════════════════════════════════════════════════════════════ */
 function stripHtml (s) {
@@ -353,9 +360,10 @@ function rowFromAic (item, iiifUrl) {
   const id = item && item.id;
   if (!title || (id === undefined || id === null)) return null;
 
-  const poster = item.image_id
-    ? (iiifUrl || 'https://www.artic.edu/iiif/2') + '/' + item.image_id + '/full/843,/0/default.jpg'
-    : null;
+  let poster = item.image_url || null;
+  if (!poster && item.image_id) {
+    poster = (iiifUrl || 'https://www.artic.edu/iiif/2') + '/' + item.image_id + '/full/843,/0/default.jpg';
+  }
 
   return {
     source: 'aicExh',
