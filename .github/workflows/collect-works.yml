@@ -68,6 +68,10 @@ jobs:
           IN_LIMIT: ${{ github.event.inputs.limit || '8000' }}
           IN_DRY:   ${{ github.event.inputs.dry   || 'false' }}
         run: |
+          # ★ 2026-09-29 · 실행 화면을 파일로도 남깁니다 — blob storage
+          #   가 막힌 환경에서 GitHub API(issue 댓글)로 다시 읽으려는
+          #   용도입니다. 아래 <si 결과 알리기> 단계와 짝입니다.
+          exec > >(tee /tmp/run-output.txt) 2>&1
           # ★ 2026-08-22 · 시카고는 Cloudflare 로 바깥 접근을 막습니다.
           #   도판도 안 오고 소장처 링크도 차단됩니다.
           # ★ 2026-08-23 · 예약 실행을 <클리블랜드>로 둡니다.
@@ -207,6 +211,45 @@ jobs:
               eval node scripts/collect-works-aic.mjs $ARGS
               ;;
           esac
+
+      - name: si 결과 알리기
+        # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
+        #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek 일 때만, 늘
+        #   (성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
+        if: always() && (github.event.inputs.src == 'si' || github.event.inputs.src == 'si-peek')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let out = '(출력을 못 읽었습니다)';
+            try { out = fs.readFileSync('/tmp/run-output.txt', 'utf8'); } catch (e) {}
+            if (out.length > 60000) out = '…(앞부분 생략)…\n' + out.slice(-60000);
+            const title = 'si 디버그 로그';
+            const body = [
+              '실행: ' + context.serverUrl + '/' + context.repo.owner + '/' +
+                        context.repo.repo + '/actions/runs/' + context.runId,
+              '입력: src=' + (context.payload.inputs?.src || '') +
+                ' dept=' + (context.payload.inputs?.dept || '') +
+                ' q=' + (context.payload.inputs?.q || '') +
+                ' limit=' + (context.payload.inputs?.limit || ''),
+              '```',
+              out,
+              '```'
+            ].join('\n');
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'si-debug'
+            });
+            const same = open.find(i => i.title === title);
+            if (same) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: same.number, body });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['si-debug'] });
+            }
 
       - name: 실패하면 알리기
         if: failure()
