@@ -33,7 +33,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { readCSV } from './lib/csv.mjs';
+import { streamCSV } from './lib/csv.mjs';
 
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -178,39 +178,60 @@ async function upsert(rows) {
   return { ok: rows.length, msg: '' };
 }
 
+/* ★★ 2026-09-29 · 처음엔 objects.csv 31칸을 다 옮겨 담았다가 GitHub
+     Actions 러너에서 <b>힙 메모리가 넘쳐 죽었습니다</b> —
+     provenancetext 같은 칸은 한 줄에 몇 단락씩 되는데, 그런 큰 칸까지
+     146,099줄을 통째로 붙들고 있었던 탓입니다. ▶ 이 목록에 <b>없는
+     칸은 아예 옮겨 담지 않습니다</b> — 메모리를 줄이는 핵심입니다. */
+const OBJ_FIELDS = [
+  'objectid', 'title', 'displaydate', 'beginyear', 'endyear', 'medium',
+  'dimensions', 'classification', 'attribution', 'departmentabbr',
+  'accessionnum', 'creditline', 'wikidataid'
+];
+
 (async () => {
   ensureData();
 
-  console.log('  objects.csv 읽는 중…');
-  const obj = readCSV(fs, path.join(CLONE_DIR, 'data', 'objects.csv'));
-  console.log('  published_images.csv 읽는 중…');
-  const img = readCSV(fs, path.join(CLONE_DIR, 'data', 'published_images.csv'));
-
   /* ── 작품마다 열린-접근 도판 하나씩 고르기 ──
-     ★ 앞면(primary) 을 앞세우고, 같으면 sequence 가 낮은 쪽(첫 도판) */
+     ★ 앞면(primary) 을 앞세우고, 같으면 sequence 가 낮은 쪽(첫 도판)
+     ★ published_images.csv 를 <b>줄줄이 흘려보내며</b> 바로 이 맵 하나만
+       남깁니다 — 89MB 짜리 낱줄을 통째로 쌓아 두지 않습니다. */
+  console.log('  published_images.csv 읽는 중…');
   const imgByObj = new Map();
-  for (const r of img.rows) {
-    if (r[img.idx.openaccess] !== '1') continue;
-    const oid = r[img.idx.depictstmsobjectid];
-    if (!oid) continue;
+  streamCSV(fs, path.join(CLONE_DIR, 'data', 'published_images.csv'), (row, idx) => {
+    if (row[idx.openaccess] !== '1') return;
+    const oid = row[idx.depictstmsobjectid];
+    if (!oid) return;
     const rec = {
-      iiifurl:      r[img.idx.iiifurl],
-      iiifthumburl: r[img.idx.iiifthumburl],
-      seq:          Number(r[img.idx.sequence]) || 0,
-      primary:      r[img.idx.viewtype] === 'primary'
+      iiifurl:      row[idx.iiifurl],
+      iiifthumburl: row[idx.iiifthumburl],
+      seq:          Number(row[idx.sequence]) || 0,
+      primary:      row[idx.viewtype] === 'primary'
     };
     const cur = imgByObj.get(oid);
-    if (!cur) { imgByObj.set(oid, rec); continue; }
-    if (rec.primary && !cur.primary) { imgByObj.set(oid, rec); continue; }
+    if (!cur) { imgByObj.set(oid, rec); return; }
+    if (rec.primary && !cur.primary) { imgByObj.set(oid, rec); return; }
     if (rec.primary === cur.primary && rec.seq < cur.seq) imgByObj.set(oid, rec);
-  }
+  });
   console.log(`  열린-접근 도판이 있는 작품 ${imgByObj.size}점`);
 
+  /* ── objects.csv 도 흘려보내며, 도판 있는 것만 「가벼운 칸만」 골라
+       옮겨 담습니다 — 나머지(원문·주석 등 큰 칸)는 통째로 버립니다. */
+  console.log('  objects.csv 읽는 중…');
+  let peekRow = null;
+  const withImage = [];
+  streamCSV(fs, path.join(CLONE_DIR, 'data', 'objects.csv'), (row, idx) => {
+    const oid = row[idx.objectid];
+    if (!imgByObj.has(oid)) return;
+    const o = {};
+    for (const f of OBJ_FIELDS) o[f] = row[idx[f]];
+    if (PEEK) { if (!peekRow) peekRow = o; return; }
+    withImage.push(o);
+  });
+
   if (PEEK) {
-    const row = obj.rows.find((r) => imgByObj.has(r[obj.idx.objectid]));
-    if (!row) { console.log('★ 도판 있는 작품을 못 찾았습니다.'); return; }
-    const o = Object.fromEntries(obj.idx ? Object.keys(obj.idx).map((k) => [k, row[obj.idx[k]]]) : []);
-    const w = build(o, imgByObj.get(o.objectid), new Map());
+    if (!peekRow) { console.log('★ 도판 있는 작품을 못 찾았습니다.'); return; }
+    const w = build(peekRow, imgByObj.get(peekRow.objectid), new Map());
     console.log('\n▶ 우리 표로 바꾼 모습\n');
     if (!w) { console.log('  (충실도가 모자라 담지 않습니다)'); return; }
     for (const [k, v] of Object.entries(w))
@@ -226,8 +247,7 @@ async function upsert(rows) {
   console.log(`  이름 ${byName.size}개를 담아 두었습니다`);
 
   /* ★ objectid 순서로 고정 — 재실행 때 --start 로 이어받을 수 있게 */
-  const withImage = obj.rows.filter((r) => imgByObj.has(r[obj.idx.objectid]));
-  withImage.sort((a, b) => Number(a[obj.idx.objectid]) - Number(b[obj.idx.objectid]));
+  withImage.sort((a, b) => Number(a.objectid) - Number(b.objectid));
   console.log(`  도판 있는 작품(전체) ${withImage.length}점 중 ${START}부터`);
 
   const slice = withImage.slice(START, START + LIMIT);
@@ -239,10 +259,8 @@ async function upsert(rows) {
   for (let i = 0; i < slice.length; i += PACK) {
     const part = slice.slice(i, i + PACK);
     const out = [];
-    for (const row of part) {
+    for (const o of part) {
       got++;
-      const o = {};
-      for (const k of Object.keys(obj.idx)) o[k] = row[obj.idx[k]];
       const w = build(o, imgByObj.get(o.objectid), byName);
       if (!w) { thin++; continue; }
       kept++;
