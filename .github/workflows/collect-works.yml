@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -60,6 +60,7 @@ jobs:
           DATA_GO_KEY:          ${{ secrets.DATA_GO_KEY }}
           GONGU_KEY:            ${{ secrets.GONGU_KEY }}
           SEOUL_KEY:            ${{ secrets.SEOUL_KEY }}
+          SMITHSONIAN_KEY:      ${{ secrets.SMITHSONIAN_KEY }}
           EMUSEUM_URL:          ${{ vars.EMUSEUM_URL }}
           IN_SRC:   ${{ github.event.inputs.src   || 'cma' }}
           IN_Q:     ${{ github.event.inputs.q     || 'Korea' }}
@@ -162,6 +163,18 @@ jobs:
             aic-peek)
               echo "▶ 시카고가 주는 칸 이름을 봅니다"
               node scripts/collect-works-aic.mjs --peek
+              ;;
+            si-peek)
+              echo "▶ 스미소니언(SAAM)이 주는 칸 이름을 봅니다"
+              node scripts/collect-works-smithsonian.mjs --peek
+              ;;
+            si)
+              # ★ 2026-09-29 · 스미소니언 아메리칸 아트 뮤지엄(SAAM) —
+              #   파트너가 api.data.gov 열쇠를 직접 받아 붙임.
+              ARGS="--unit SAAM --limit ${IN_LIMIT:-2000}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-works-smithsonian.mjs $ARGS"
+              eval node scripts/collect-works-smithsonian.mjs $ARGS
               ;;
             met)
               ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
