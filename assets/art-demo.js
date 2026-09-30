@@ -370,9 +370,18 @@
        진짜 수를 셀 수 있으면 넣고, 셀 수 없으면 <b>지웁니다.</b>
        거짓 숫자를 남겨 두느니 없는 편이 낫습니다.
      ★ created_at 칸이 있는지 모릅니다. 있으면 세지고, 없으면 요청이
-       실패합니다 — 실패를 신호로 삼아 조용히 지웁니다. */
+       실패합니다 — 실패를 신호로 삼아 조용히 지웁니다.
+
+     ★★ 2026-10-01 · 「매일 거의 같아 보인다」던 것의 <b>진짜 까닭</b>을
+       찾았습니다 (파트너 확인). 이 숫자 자체가 <b>한 번도 바뀐 적이
+       없었습니다</b> — document.querySelector('.sec-sub') 가 페이지에
+       가장 먼저 나오는 .sec-sub(69번째 줄, 「날마다 자동으로 채워집니다」)
+       를 집어, 거기엔 "어제보다"가 없으니 함수가 그 자리에서 조용히
+       멈췄습니다. 정작 작가 자리(#ar 안의 .sec-sub)에는 한 번도 닿지
+       못해, index.html 에 손으로 적힌 견본 「+128명」이 그대로 남아
+       있었던 것입니다. #ar 안으로 <b>자리를 좁혀</b> 고칩니다. */
   function freshCount() {
-    var box = document.querySelector('.sec-sub');
+    var box = document.querySelector('#ar .sec-sub');
     if (!box || !/어제보다/.test(box.textContent)) return;
     var d = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
     fetch(OF.SB_URL + '/rest/v1/artists?select=id&hidden=not.is.true'
