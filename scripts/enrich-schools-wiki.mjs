@@ -61,17 +61,33 @@ function baseUniv(nameKo) {
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-/* ── 위키백과 요약 ── */
+/* ── 위키백과 요약 ──
+   ★ 2026-10-01 · 첫 실행에서 25곳 전부 못 찾았습니다 — 제목이 안 맞는
+     것 치고는 너무 한결같아 <b>HTTP 단계</b>를 의심했습니다. DEBUG=1
+     이면 상태코드·실패 까닭을 그대로 찍습니다. */
+const DEBUG = process.env.DEBUG === '1';
 async function wikiSummary(lang, title) {
   const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
   let r;
   try {
     r = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
-  } catch (e) { return null; }
-  if (!r.ok) return null;
+  } catch (e) {
+    if (DEBUG) console.log('    (요청 실패)', url, '—', e.message);
+    return null;
+  }
+  if (!r.ok) {
+    if (DEBUG) console.log('    (HTTP ' + r.status + ')', url, '—', (await r.text()).slice(0, 200));
+    return null;
+  }
   let j;
-  try { j = await r.json(); } catch (e) { return null; }
-  if (!j || j.type === 'disambiguation' || !j.extract) return null;
+  try { j = await r.json(); } catch (e) {
+    if (DEBUG) console.log('    (JSON 파싱 실패)', url, '—', e.message);
+    return null;
+  }
+  if (!j || j.type === 'disambiguation' || !j.extract) {
+    if (DEBUG) console.log('    (요약 없음/동음이의)', url, '—', j && j.type);
+    return null;
+  }
   return j;
 }
 

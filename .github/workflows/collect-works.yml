@@ -218,16 +218,21 @@ jobs:
               ;;
             school-wiki-peek)
               # ★ 2026-10-01 · 미술학교 소개문 채우기 — 한 곳만 살펴봅니다.
+              #   <무엇으로 찾을까요> 칸에 "debug"를 적으면 실패 까닭을
+              #   그대로 찍습니다.
               echo "▶ 위키백과에서 한 곳만 받아 봅니다 (담지 않습니다)"
+              if [ "${IN_Q}" = "debug" ]; then export DEBUG=1; fi
               node scripts/enrich-schools-wiki.mjs --peek
               ;;
             school-wiki)
               # ★ 2026-10-01 · 한국 101곳(소개문 0곳)·해외 29곳(소개문 빔)을
               #   위키백과(ko/en)에서 받아 <빈칸만> 채웁니다. <무엇으로
-              #   찾을까요> 칸은 이 자리에서 쓰지 않습니다 — 소개문이
-              #   빈 곳을 표에서 직접 골라 옵니다.
+              #   찾을까요> 칸에 "debug"를 적으면 실패 까닭을 그대로
+              #   찍습니다 — 평소엔 비워 두십시오(소개문이 빈 곳을 표에서
+              #   직접 골라 오므로 찾는 말이 따로 필요 없습니다).
               ARGS="--limit ${IN_LIMIT:-400}"
               if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              if [ "${IN_Q}" = "debug" ]; then export DEBUG=1; fi
               echo "▶ node scripts/enrich-schools-wiki.mjs $ARGS"
               eval node scripts/enrich-schools-wiki.mjs $ARGS
               ;;
