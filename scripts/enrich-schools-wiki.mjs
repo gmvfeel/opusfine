@@ -46,7 +46,12 @@ if (!SB_URL || !SB_KEY) {
   process.exit(1);
 }
 
-const UA = 'OpusFineArtArchiveBot/1.0 (https://opusfine.vercel.app; 비영리 미술 아카이브 · 학교 소개문 채우기)';
+/* ★★ 2026-10-01 · 25곳 전부 못 찾던 진짜 까닭 — User-Agent 글자에
+     <b>한글</b>이 섞여 있었습니다. HTTP 헤더값은 ByteString(0~255)만
+     되는데 한글은 그 범위를 넘어 "Cannot convert argument to a
+     ByteString" 으로 매 요청이 <b>보내지도 못하고</b> 죽었습니다.
+     영문·숫자만으로 다시 적습니다. */
+const UA = 'OpusFineArtArchiveBot/1.0 (https://opusfine.vercel.app; non-commercial art archive project)';
 const H = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
 
 /* ── 대학교 본이름만 뽑기 ──
