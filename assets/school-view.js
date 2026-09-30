@@ -104,7 +104,11 @@
   }
 
   async function get(url) {
-    var res = await fetch(url, { headers: head() });
+    /* ★★ 2026-10-01 · 파트너가 소개문을 고쳤는데도 "그대로"라고 지적 —
+         DB 는 이미 고쳐져 있었습니다(직접 확인). fetch() 에 cache 옵션을
+         안 줘서, 브라우저가 예전 응답을 그대로 재사용했을 가능성이
+         큽니다. 앞으로도 이런 일이 없게 매번 새로 받게 합니다. */
+    var res = await fetch(url, { headers: head(), cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 160));
     return await res.json();
   }
