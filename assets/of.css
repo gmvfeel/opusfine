@@ -304,6 +304,20 @@ html[data-theme="dark"] .dd.dd-wide .dd-in{background:var(--paper)}
 @media(hover:none),(max-width:900px){
   .dd{display:none}
 }
+/* ★★ 2026-10-01 · 모바일 가로 스크롤의 <b>진짜 몸통</b>을 찾았습니다
+     (파트너 확인 · 페이지별로 고쳐도 「여전히」 남아 있다고 하셨습니다).
+     db/*.html 각각의 검색창 고침은 실재하는 문제였지만, 더 큰 원인이
+     머리(header)에 있었습니다 — <b>nav 가 좁은 화면에서 한 번도 감춰진
+     적이 없었습니다.</b> 메뉴 일곱 개가 줄바꿈 없는 flex 한 줄로
+     늘어서 있어, 로고·도구와 함께 900px 아래에서 수백 px 를 넘칩니다.
+     모든 화면 머리에 함께 있으므로, 어느 목록 페이지를 고쳐도 이
+     것 때문에 가로 스크롤이 남았던 것입니다.
+   ▶ 하위 펼침(.dd)을 감추는 자리에서 <b>대메뉴 자체</b>도 함께
+     감춥니다 — 이미 있는 「전체 메뉴」(.fm, Menu 단추)가 좁은 화면의
+     제자리 대신입니다. */
+@media(max-width:900px){
+  nav{display:none}
+}
 .hd-r{margin-left:auto;display:flex;gap:15px;align-items:center;font-size:13px;color:var(--ink-2)}
 .hd-r a:hover{color:var(--ink)}
 .hd-btn{border:1px solid var(--ink);padding:6px 15px;font-size:12.5px;font-weight:600;
