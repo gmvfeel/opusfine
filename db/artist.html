@@ -70,10 +70,15 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
 .chip:hover{border-color:var(--ink-3);color:var(--ink)}
 .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.fright{margin-left:auto;display:flex;gap:14px;align-items:center}
-.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+/* ★★ 2026-10-01 · work.html 과 <b>똑같은 자리</b>에서 똑같은 가로 스크롤이
+     생겼습니다 — 검색창을 160px 로 못박아 두면 좁은 화면(360px 안팎)에서
+     .fright 한 칸을 넘칩니다. 자세한 까닭은 work.html 의 같은 자리 주석을
+     참고하십시오. 검색창을 <b>줄어들 수 있게</b> 고칩니다. */
+.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
 .srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
-  color:var(--ink);width:160px;outline:none}
+  color:var(--ink);width:100%;min-width:0;outline:none}
 .srch input::placeholder{color:var(--ink-3)}
 .view{display:flex;border:1px solid var(--rule-2)}
 .view button{border:0;background:transparent;font-family:inherit;font-size:12px;

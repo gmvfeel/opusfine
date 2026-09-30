@@ -58,10 +58,14 @@
   background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
 .xl-chip:hover{border-color:var(--ink-3);color:var(--ink)}
 .xl-chip.xl-on{background:var(--ink);border-color:var(--ink);color:#fff}
-.xl-fright{margin-left:auto;display:flex;gap:14px;align-items:center}
-.xl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.xl-fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+/* ★★ 2026-10-01 · work.html/artist.html 과 <b>같은 자리</b>에서 같은 가로
+     스크롤 — 여기는 검색창이 180px 로 더 넓어 더 쉽게 넘칩니다. 자세한
+     까닭은 work.html 의 같은 자리 주석을 참고하십시오. */
+.xl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
 .xl-srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
-  color:var(--ink);width:180px;outline:none}
+  color:var(--ink);width:100%;min-width:0;outline:none}
 .xl-srch input::placeholder{color:var(--ink-3)}
 
 /* ── 전시 격자 ──
@@ -110,7 +114,11 @@
 .xl-empty{padding:70px 0;text-align:center;font-size:13.5px;color:var(--ink-3);line-height:2}
 
 @media(max-width:1180px){ .xl-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
-@media(max-width:860px){ .xl-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 20px} }
+@media(max-width:860px){
+  .xl-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 20px}
+  .xl-filters{position:static}
+  .xl-fright{margin-left:0;width:100%}
+}
 @media(max-width:520px){ .xl-grid{grid-template-columns:1fr} }
 
 html[data-theme="dark"] .xl-filters{background:rgba(20,20,22,.94)}

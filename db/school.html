@@ -71,10 +71,14 @@
   background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
 .sl-chip:hover{border-color:var(--ink-3);color:var(--ink)}
 .sl-chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.sl-fright{margin-left:auto;display:flex;gap:14px;align-items:center}
-.sl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.sl-fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+/* ★★ 2026-10-01 · work.html/artist.html/exhibition.html 과 <b>같은 자리</b>
+     에서 같은 가로 스크롤. 자세한 까닭은 work.html 의 같은 자리 주석을
+     참고하십시오. */
+.sl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
 .sl-srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
-  color:var(--ink);width:170px;outline:none}
+  color:var(--ink);width:100%;min-width:0;outline:none}
 .sl-srch input::placeholder{color:var(--ink-3)}
 
 /* ── 카드 ──

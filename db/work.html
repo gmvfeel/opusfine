@@ -62,10 +62,19 @@ html[data-theme="dark"] .vf-badge{background:rgba(111,167,158,.16)}
   background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
 .chip:hover{border-color:var(--ink-3);color:var(--ink)}
 .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.fright{margin-left:auto;display:flex;gap:14px;align-items:center}
-.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+.fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+/* ★★ 2026-10-01 · 좁은 화면(360px 안팎)에서 가로 스크롤이 생겼습니다
+     (파트너 확인 · 「약간」 생긴다고 함). 검색창 폭을 160px 로 못박아
+     두었더니, 「캡션 세로/가로」 단추 폭과 더해 .fright 한 칸(위
+     @media 860px 아래에서 width:100% 로 폭 전체를 차지함) 안에서
+     320px 대 화면보다 조금 더 넓어졌습니다. 검색창을 <b>줄어들 수
+     있게</b> 바꿉니다 — min-width:0 이 없으면 flex 아이템은 내용
+     만큼(160px)에서 안 줄어듭니다(위 「격자 칸이 안 줄어드는 것」과
+     같은 결). */
+.srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
 .srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
-  color:var(--ink);width:160px;outline:none}
+  color:var(--ink);width:100%;min-width:0;outline:none}
 .srch input::placeholder{color:var(--ink-3)}
 .view{display:flex;border:1px solid var(--rule-2)}
 .view button{border:0;background:transparent;font-family:inherit;font-size:12px;
