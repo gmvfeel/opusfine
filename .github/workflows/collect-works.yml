@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -236,6 +236,17 @@ jobs:
               echo "▶ node scripts/enrich-schools-wiki.mjs $ARGS"
               eval node scripts/enrich-schools-wiki.mjs $ARGS
               ;;
+            school-wiki-redo-cut)
+              # ★ 2026-10-01 · 파트너가 경기대학교 조형대학에서 "소개문이
+              #   문장 중간에서 끊겼다"고 지적 — 예전엔 1200자에서 무조건
+              #   잘랐던 탓입니다. 이제 자르지 않게 고쳤고, 이미 끊겨
+              #   담긴 곳을 다시 받아 bio 만 덮어씁니다.
+              ARGS="--redo-cut --limit ${IN_LIMIT:-400}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              if [ "${IN_Q}" = "debug" ]; then export DEBUG=1; fi
+              echo "▶ node scripts/enrich-schools-wiki.mjs $ARGS"
+              eval node scripts/enrich-schools-wiki.mjs $ARGS
+              ;;
             met)
               ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
               if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
@@ -255,7 +266,7 @@ jobs:
         # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
         #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek·nga/nga-peek 일
         #   때만, 늘(성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
-        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek"]'), github.event.inputs.src)
+        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut"]'), github.event.inputs.src)
         uses: actions/github-script@v7
         with:
           script: |

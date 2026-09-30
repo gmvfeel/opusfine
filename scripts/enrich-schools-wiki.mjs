@@ -7,6 +7,7 @@
      node scripts/enrich-schools-wiki.mjs --peek
      node scripts/enrich-schools-wiki.mjs --limit 20 --dry
      node scripts/enrich-schools-wiki.mjs --limit 400
+     node scripts/enrich-schools-wiki.mjs --redo-cut --limit 250   (끊긴 곳 다시 받기)
 
    ★★ 2026-10-01 · 「미술대학 → 미술학교」로 메뉴 이름을 바꾼 자리에서
      파트너가 지적 — 기본 정보(이름·소재지·링크)만 있고 소개문 같은
@@ -40,6 +41,14 @@ const arg = (n, d) => { const i = argv.indexOf('--' + n); return i >= 0 ? (argv[
 const LIMIT = Number(arg('limit', 400));
 const DRY   = argv.includes('--dry');
 const PEEK  = argv.includes('--peek');
+/* ★★ 2026-10-01 · 파트너가 경기대학교 조형대학 상세 페이지에서 "문장
+     중간에서 끊겨 있다"고 지적 — bio 를 <b>1200자에서 무조건 잘랐던</b>
+     탓입니다(위키백과 요약 자체가 긴 글이면 중간에 잘림). bio 는 text
+     열이라 길이 제한이 없으므로 이제 자르지 않습니다.
+     --redo-cut 를 주면 "빈 곳"이 아니라 "이미 끊겨 보이는 곳"을 다시
+     찾아 bio 만 덮어씁니다(원칙은 빈칸만 채우기지만, 끊긴 자리는
+     예외로 다시 받아야 온전해집니다). */
+const REDO_CUT = argv.includes('--redo-cut');
 
 if (!SB_URL || !SB_KEY) {
   console.error('★ SUPABASE_URL · SUPABASE_SERVICE_KEY 가 없습니다.');
@@ -121,8 +130,16 @@ async function sbPatch(id, body) {
   if (!r.ok) throw new Error('고치기 실패 ' + r.status + ' ' + (await r.text()).slice(0, 200));
 }
 
+/* 문장이 끝나는 문장부호로 안 끝나면 "끊겨 보임" — school-view.js 의
+   looksCut() 과 같은 규칙입니다. */
+function looksCut(t) {
+  const s = String(t || '').trim();
+  if (!s) return false;
+  return !/[.!?。」』)\]]\s*$/.test(s);
+}
+
 /* ── 한 곳을 채워 봅니다 ── */
-async function enrichOne(row) {
+async function enrichOne(row, forceBio) {
   const isKr = row.source === 'kr-art-schools-2026-09'
     || /대한민국/.test(row.location || '') || row.nat_code === 'kr';
   const lang = isKr ? 'ko' : 'en';
@@ -143,11 +160,13 @@ async function enrichOne(row) {
     if (!j) continue;
 
     const patch = {};
-    if (!row.bio) {
+    if (!row.bio || forceBio) {
       /* ★ 학과 단위 항목이면 「이 소개는 학과가 속한 대학 전체 글입니다」
-           라고 앞에 밝힙니다 — 학과 자체의 소개인 것처럼 보이면 안 됩니다. */
+           라고 앞에 밝힙니다 — 학과 자체의 소개인 것처럼 보이면 안 됩니다.
+         ★★ 2026-10-01 · 더는 1200자로 자르지 않습니다 — bio 는 text
+           열이라 길이 제한이 없고, 자르면 문장 중간에서 끊깁니다. */
       const prefix = c.isDept ? `※ 이 학과가 속한 ${c.title}의 소개입니다.\n\n` : '';
-      patch.bio = (prefix + j.extract).slice(0, 1200);
+      patch.bio = prefix + j.extract;
     }
     if (!row.description) patch.description = (j.description || j.extract || '').slice(0, 300);
     if (!row.link_wiki && j.content_urls?.desktop?.page) patch.link_wiki = j.content_urls.desktop.page;
@@ -176,18 +195,31 @@ async function enrichOne(row) {
 }
 
 (async () => {
-  console.log(`▶ 미술학교 소개문 채우기 · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}${PEEK ? ' · peek' : ''}`);
+  console.log(`▶ 미술학교 소개문 채우기 · limit=${LIMIT}${DRY ? ' · 담지 않고 세어만 봅니다' : ''}${PEEK ? ' · peek' : ''}${REDO_CUT ? ' · redo-cut' : ''}`);
 
-  const rows = await sbGet(
-    'schools?select=id,name_ko,name_en,source,location,nat_code,bio,description,link_wiki,wikidata_id,founded,image_url'
-    + '&hidden=not.is.true&or=(bio.is.null,bio.eq.)&order=id.asc&limit=' + LIMIT
-  );
-  console.log(`  소개문 빈 곳 ${rows.length}곳(이번 자리 한도 안)`);
+  let rows;
+  if (REDO_CUT) {
+    /* ★ "빈 곳"이 아니라 "이미 있지만 끊겨 보이는 곳"을 찾습니다.
+         PostgREST 로 문장부호 정규식까지 걸기보다, bio 있는 곳을 받아
+         looksCut() 으로 이 자리에서 걸러 냅니다. */
+    const all = await sbGet(
+      'schools?select=id,name_ko,name_en,source,location,nat_code,bio,description,link_wiki,wikidata_id,founded,image_url'
+      + '&hidden=not.is.true&bio=not.is.null&order=id.asc'
+    );
+    rows = all.filter((r) => looksCut(r.bio)).slice(0, LIMIT);
+    console.log(`  끊겨 보이는 곳 ${rows.length}곳(전체 ${all.length}곳 가운데, 이번 자리 한도 안)`);
+  } else {
+    rows = await sbGet(
+      'schools?select=id,name_ko,name_en,source,location,nat_code,bio,description,link_wiki,wikidata_id,founded,image_url'
+      + '&hidden=not.is.true&or=(bio.is.null,bio.eq.)&order=id.asc&limit=' + LIMIT
+    );
+    console.log(`  소개문 빈 곳 ${rows.length}곳(이번 자리 한도 안)`);
+  }
 
   if (PEEK) {
     const r = rows[0];
     if (!r) { console.log('  (채울 곳이 없습니다)'); return; }
-    const res = await enrichOne(r);
+    const res = await enrichOne(r, REDO_CUT);
     console.log('\n▶ 한 곳만 살펴봅니다\n');
     console.log('  이름:', r.name_ko);
     console.log('  결과:', JSON.stringify(res, null, 2).slice(0, 1500));
@@ -198,7 +230,7 @@ async function enrichOne(row) {
   const missList = [];
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
-    const res = await enrichOne(r);
+    const res = await enrichOne(r, REDO_CUT);
     if (res.ok) {
       if (res.patch.wikidata_id) usedWikidata.add(res.patch.wikidata_id);
       /* ★ 한 줄이 고치기에서 실패해도(예상 밖 409 등) 나머지 129줄을
