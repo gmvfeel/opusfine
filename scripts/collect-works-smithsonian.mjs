@@ -162,7 +162,70 @@ function quality(w) {
   return n;
 }
 
-function build(o, byName) {
+/* ★★ 2026-10-01 · NGA 의 자동 작가 생성을 여기도 그대로 이식합니다
+     (collect-works-nga.mjs 참조 · 같은 규칙).
+   ★ 스미소니언은 공예·디자인·민속 소장품이 많아, NGA 에는 없던
+     걸러야 할 말들이 더 있었습니다 — "Cooper Union Museum" 같은
+     기관, "Inuit [Iglulik/Igloolik]" 같은 대괄호 붙은 민족 표기,
+     "Dubey et Comp." 같은 회사. 실제 미연결 자료로 샘플을 뽑아
+     확인하며 museum·society·tribe·nation·gallery·trust·association·
+     firm·manufactory·pottery·works·comp.·cie·et·co.·wallpaper 와
+     대괄호[ ]를 추가로 걸렀습니다. */
+const NAME_EXCLUDE_RE = new RegExp(
+  '(century|dynasty|unknown|anonymous|\\bafter\\b|circle of|attributed to' +
+  '|manner of|\\bschool\\b|workshop|follower of|possibly by|style of' +
+  '|copy after|active |probably by|formerly attrib|\\band\\b|\\bor\\b' +
+  '|\\bcalled\\b|studio|imitator of|in the manner|questionably|attrib\\.' +
+  '|master of|^master\\b|institut|company|\\binc\\.?\\b|foundry|\\bmint\\b' +
+  '|\\bpress\\b|museum|\\bsociety\\b|\\btribe\\b|\\bnation\\b|\\binuit\\b' +
+  '|\\bnative\\b|gallery|\\btrust\\b|association|\\bfirm\\b|manufactory' +
+  '|manufacturer|pottery|\\bworks\\b|comp\\.|\\bcie\\b|\\bet\\b|\\bco\\.?\\b' +
+  '|wallpaper)', 'i');
+
+function isCleanPersonName(name) {
+  const nm = String(name || '').trim();
+  if (!nm) return false;
+  if (NAME_EXCLUDE_RE.test(nm)) return false;
+  if (/[(&[\]]/.test(nm)) return false;
+  if (!/\s/.test(nm)) return false;
+  if (/,/.test(nm) && !/,\s*(jr\.?|sr\.?|ii|iii|iv|v)\.?\s*$/i.test(nm)) return false;
+  return true;
+}
+
+async function resolveArtist(name, byName, cache, dry) {
+  const key = String(name).trim().toLowerCase();
+  const hit = byName.get(key);
+  if (hit && hit.length === 1) return { id: hit[0], status: 'auto' };
+  if (hit && hit.length > 1)   return { id: null,   status: 'ambig' };
+  if (cache.has(key))          return { id: cache.get(key), status: 'auto' };
+  if (!isCleanPersonName(name)) return { id: null, status: 'none' };
+  if (dry) return { id: null, status: 'wouldCreate' };
+
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/artists', {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify([{
+        name_ko: name.trim(), name_en: name.trim(), hidden: false,
+        kind: 'person', source: 'si-collect-auto', quality: 0
+      }])
+    });
+    if (!r.ok) return { id: null, status: 'none' };
+    const rows = await r.json();
+    const id = rows && rows[0] && rows[0].id;
+    if (!id) return { id: null, status: 'none' };
+    cache.set(key, id);
+    byName.set(key, [id]);
+    return { id, status: 'auto' };
+  } catch (e) {
+    return { id: null, status: 'none' };
+  }
+}
+
+async function build(o, byName, artistCache, dry) {
   const id = o?.id;
   const title = String(o?.title || '').trim();
   if (!id || !title) return null;
@@ -205,9 +268,9 @@ function build(o, byName) {
   };
 
   if (w.artist_name) {
-    const hit = byName.get(w.artist_name.toLowerCase());
-    if (hit && hit.length === 1) { w.artist_id = hit[0]; w.link_status = 'auto'; }
-    else if (hit && hit.length > 1) { w.link_status = 'ambig'; }
+    const res = await resolveArtist(w.artist_name, byName, artistCache, dry);
+    w.artist_id = res.id;
+    w.link_status = res.status;
   }
 
   w.quality = quality(w);
@@ -260,7 +323,7 @@ function pageUrl(unit, start, rows) {
     console.log('전체건수:', j?.response?.rowCount ?? '(모름)');
     if (!row) { console.log('★ 아무것도 못 받았습니다.'); return; }
     console.log('\n▶ 우리 표로 바꾼 모습\n');
-    const w = build(row, new Map());
+    const w = await build(row, new Map(), new Map(), true);
     if (!w) { console.log('  (충실도가 모자라 담지 않습니다 — object_type 필터에 안 걸렸을 수 있습니다)'); return; }
     for (const [k, v] of Object.entries(w))
       console.log('  ' + String(k).padEnd(14) + (v == null ? '(없음)' : String(v).slice(0, 90)));
@@ -274,9 +337,10 @@ function pageUrl(unit, start, rows) {
   try { byName = await loadArtists(); } catch (e) { console.log('  (작가DB 를 못 받아 잇기는 건너뜁니다)'); }
   console.log(`  이름 ${byName.size}개를 담아 두었습니다`);
 
-  let got = 0, kept = 0, thin = 0, put = 0, pub = 0, linked = 0, auto = 0, ambig = 0;
+  let got = 0, kept = 0, thin = 0, put = 0, pub = 0, linked = 0, auto = 0, ambig = 0, created = 0, wouldCreate = 0;
   const errs = [];
   const PAGE = 100;
+  const artistCache = new Map();  /* ★ 이번 실행에서 새로 만든 작가 — 이름당 한 번만 */
 
   try {
     for (let start = START; got < LIMIT; start += PAGE) {
@@ -288,12 +352,14 @@ function pageUrl(unit, start, rows) {
       const out = [];
       for (const o of rows) {
         got++;
-        const w = build(o, byName);
+        const beforeSize = artistCache.size;
+        const w = await build(o, byName, artistCache, DRY);
         if (!w) { thin++; continue; }
         kept++;
         if (w.rights === 'public') pub++; else linked++;
-        if (w.link_status === 'auto') auto++;
-        if (w.link_status === 'ambig') ambig++;
+        if (w.link_status === 'auto') { auto++; if (artistCache.size > beforeSize) created++; }
+        else if (w.link_status === 'ambig') ambig++;
+        else if (w.link_status === 'wouldCreate') { wouldCreate++; w.link_status = 'none'; }
         out.push(w);
       }
       if (!DRY && out.length) {
@@ -317,6 +383,8 @@ function pageUrl(unit, start, rows) {
   console.log(`  얇아서 뺀 작품   ${thin}`);
   console.log(`  도판 실을 수 있음 ${pub} · 저작권 있어 링크만 ${linked}`);
   console.log(`  작가와 이어짐    ${auto} · 후보 여럿 ${ambig}`);
+  if (!DRY) console.log(`  그 중 새로 만든 작가 ${created}명`);
+  if (DRY && wouldCreate) console.log(`  (--dry 라 만들지 않았지만, 만들었을 이름 ${wouldCreate}개)`);
   if (!DRY) console.log(`  실제로 담음      ${put}`);
   if (errs.length) {
     console.log(`  ★ 문제 ${errs.length}건`);
