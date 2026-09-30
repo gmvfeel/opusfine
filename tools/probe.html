@@ -332,7 +332,7 @@ body{margin:0;background:#fff;color:#17171A;
         ['전시',            await cnt('exhibitions?hidden=not.is.true'), ''],
         ['　지금 열린 것',   await cnt('exhibitions?hidden=not.is.true&end_date=gte.' + today),
                             '<b>여기가 대문 전시 구역을 채웁니다</b>'],
-        ['미술대학',        await cnt('schools?hidden=not.is.true'), '한국 미술대학은 0곳'],
+        ['미술학교',        await cnt('schools?hidden=not.is.true'), ''],
         ['관계(entity_links)', await cnt('entity_links?id=not.is.null'), '동문 347줄']
       ];
       var t = '<table class="pb-tb"><tr><th>갈래</th><th>건수</th><th>비고</th></tr>';
