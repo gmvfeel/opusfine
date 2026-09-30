@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut, exh-aic-artists, exh-aic-artists-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -247,6 +247,19 @@ jobs:
               echo "▶ node scripts/enrich-schools-wiki.mjs $ARGS"
               eval node scripts/enrich-schools-wiki.mjs $ARGS
               ;;
+            exh-aic-artists-peek)
+              # ★ 2026-10-01 · 시카고미술관 전시 참여작가 — 한 곳만 살펴봅니다.
+              echo "▶ AIC 전시 하나로 artist_ids→이름 흐름을 살펴봅니다 (담지 않습니다)"
+              node scripts/enrich-exh-aic-artists.mjs --peek
+              ;;
+            exh-aic-artists)
+              # ★ 2026-10-01 · aicExh 전시 6,259건 중 exhibition_artists 가
+              #   아직 없는 것만 골라, AIC artist_ids 를 이름으로 바꿔 채웁니다.
+              ARGS="--limit ${IN_LIMIT:-7000}"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/enrich-exh-aic-artists.mjs $ARGS"
+              eval node scripts/enrich-exh-aic-artists.mjs $ARGS
+              ;;
             met)
               ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
               if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
@@ -266,7 +279,7 @@ jobs:
         # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
         #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek·nga/nga-peek 일
         #   때만, 늘(성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
-        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut"]'), github.event.inputs.src)
+        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut","exh-aic-artists","exh-aic-artists-peek"]'), github.event.inputs.src)
         uses: actions/github-script@v7
         with:
           script: |
