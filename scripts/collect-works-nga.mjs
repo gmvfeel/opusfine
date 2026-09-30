@@ -107,7 +107,80 @@ function quality(w) {
   return n;
 }
 
-function build(o, img, byName) {
+/* ★★ 2026-10-01 · 작가를 <b>새로 만들 수 있게</b> 했습니다 (파트너 결정).
+     지금까지는 byName 에 없는 이름이면 그냥 link_status='none' 으로
+     두고 지나갔습니다 — 작품은 쌓이는데 <b>작가 표는 그 자리에 멈춰</b>
+     있던 까닭입니다(대문 「오늘 새로 쌓인 작가」가 늘 같아 보이던
+     것도 결국 이 탓이었습니다).
+   ★ 하지만 attribution 칸에는 진짜 사람 이름만 있지 않습니다 —
+     "American 19th Century", "Unknown Artist", "German 16th Century",
+     "Master of the Playing Cards", "X after Y", "circle of Z",
+     "X (엔진레이버), Y 회사 (제작)" 같은 <b>사람이 아닌 표기</b>가 섞여
+     있습니다. 이런 것까지 작가로 만들면 작가 표에 유령이 쌓입니다.
+   ▶ 그래서 <b>사람 이름 꼴</b>인 것만 골라 만듭니다. 못 거른 나머지는
+     지금처럼 link_status='none' 으로 그대로 둡니다 — 만들지 못하느니
+     비워 두는 편이 낫습니다. */
+const NAME_EXCLUDE_RE = new RegExp(
+  '(century|dynasty|unknown|anonymous|\\bafter\\b|circle of|attributed to' +
+  '|manner of|\\bschool\\b|workshop|follower of|possibly by|style of' +
+  '|copy after|active |probably by|formerly attrib|\\band\\b|\\bor\\b' +
+  '|\\bcalled\\b|studio|imitator of|in the manner|questionably|attrib\\.' +
+  '|master of|^master\\b|institut|company|\\binc\\.?\\b|foundry|\\bmint\\b' +
+  '|\\bpress\\b)', 'i');
+
+function isCleanPersonName(name) {
+  const nm = String(name || '').trim();
+  if (!nm) return false;
+  if (NAME_EXCLUDE_RE.test(nm)) return false;
+  if (/[(&]/.test(nm)) return false;
+  if (!/\s/.test(nm)) return false;                 /* 한 낱말뿐이면 너무 옅습니다 */
+  if (/,/.test(nm) && !/,\s*(jr\.?|sr\.?|ii|iii|iv|v)\.?\s*$/i.test(nm)) return false;
+  return true;
+}
+
+/* ★ 이번 수집에서 <b>새로 만든 작가</b>를 이름별로 한 번만 만들도록
+     기억해 둡니다 — 같은 작가의 작품이 여러 장이면 두 번째부터는
+     새로 만들지 않고 <b>여기서 바로</b> 잇습니다. */
+async function resolveArtist(name, byName, cache, dry) {
+  const key = String(name).trim().toLowerCase();
+  const hit = byName.get(key);
+  if (hit && hit.length === 1) return { id: hit[0], status: 'auto' };
+  if (hit && hit.length > 1)   return { id: null,   status: 'ambig' };
+  /* ★ 실패도 캐시에 넣으면(id:null) 다음 줄에서 「캐시에 있으니 auto」로
+       잘못 읽힙니다 — <b>성공한 것만</b> 캐시에 넣습니다. 실패한 이름은
+       다음에 또 나오면 한 번 더 시도합니다(드문 일이라 값싼 재시도). */
+  if (cache.has(key))          return { id: cache.get(key), status: 'auto' };
+  if (!isCleanPersonName(name)) return { id: null, status: 'none' };
+  /* ★ --dry 는 <b>세어만 보는</b> 자리입니다. 여기서 실제로 만들면
+       「담지 않고 세어만 봅니다」라는 약속이 깨집니다 — 만들 것 같은
+       이름인지만 알리고, 실제 작가 표는 건드리지 않습니다. */
+  if (dry) return { id: null, status: 'wouldCreate' };
+
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/artists', {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify([{
+        name_ko: name.trim(), name_en: name.trim(), hidden: false,
+        kind: 'person', source: 'nga-collect-auto', quality: 0
+      }])
+    });
+    if (!r.ok) return { id: null, status: 'none' };
+    const rows = await r.json();
+    const id = rows && rows[0] && rows[0].id;
+    if (!id) return { id: null, status: 'none' };
+    cache.set(key, id);
+    byName.set(key, [id]);
+    return { id, status: 'auto' };
+  } catch (e) {
+    return { id: null, status: 'none' };
+  }
+}
+
+async function build(o, img, byName, artistCache, dry) {
   const title = String(o.title || '').trim();
   if (!title) return null;
 
@@ -141,9 +214,9 @@ function build(o, img, byName) {
   };
 
   if (w.artist_name) {
-    const hit = byName.get(w.artist_name.toLowerCase());
-    if (hit && hit.length === 1) { w.artist_id = hit[0]; w.link_status = 'auto'; }
-    else if (hit && hit.length > 1) { w.link_status = 'ambig'; }
+    const res = await resolveArtist(w.artist_name, byName, artistCache, dry);
+    w.artist_id = res.id;
+    w.link_status = res.status;
   }
 
   w.quality = quality(w);
@@ -237,7 +310,7 @@ const OBJ_FIELDS = [
 
   if (PEEK) {
     if (!peekRow) { console.log('★ 도판 있는 작품을 못 찾았습니다.'); return; }
-    const w = build(peekRow, imgByObj.get(peekRow.objectid), new Map());
+    const w = await build(peekRow, imgByObj.get(peekRow.objectid), new Map(), new Map(), true);
     console.log('\n▶ 우리 표로 바꾼 모습\n');
     if (!w) { console.log('  (충실도가 모자라 담지 않습니다)'); return; }
     for (const [k, v] of Object.entries(w))
@@ -258,20 +331,23 @@ const OBJ_FIELDS = [
 
   const slice = withImage.slice(START, START + LIMIT);
 
-  let got = 0, kept = 0, thin = 0, put = 0, auto = 0, ambig = 0;
+  let got = 0, kept = 0, thin = 0, put = 0, auto = 0, ambig = 0, created = 0, wouldCreate = 0;
   const errs = [];
   const PACK = 300;
+  const artistCache = new Map();  /* ★ 이번 실행에서 새로 만든 작가 — 이름당 한 번만 */
 
   for (let i = 0; i < slice.length; i += PACK) {
     const part = slice.slice(i, i + PACK);
     const out = [];
     for (const o of part) {
       got++;
-      const w = build(o, imgByObj.get(o.objectid), byName);
+      const beforeSize = artistCache.size;
+      const w = await build(o, imgByObj.get(o.objectid), byName, artistCache, DRY);
       if (!w) { thin++; continue; }
       kept++;
-      if (w.link_status === 'auto') auto++;
-      if (w.link_status === 'ambig') ambig++;
+      if (w.link_status === 'auto') { auto++; if (artistCache.size > beforeSize) created++; }
+      else if (w.link_status === 'ambig') ambig++;
+      else if (w.link_status === 'wouldCreate') { wouldCreate++; w.link_status = 'none'; }
       out.push(w);
     }
     if (!DRY && out.length) {
@@ -286,6 +362,8 @@ const OBJ_FIELDS = [
   console.log(`  담을 만한 작품   ${kept}`);
   console.log(`  얇아서 뺀 작품   ${thin}`);
   console.log(`  작가와 이어짐    ${auto} · 후보 여럿 ${ambig}`);
+  if (!DRY) console.log(`  그 중 새로 만든 작가 ${created}명`);
+  if (DRY && wouldCreate) console.log(`  (--dry 라 만들지 않았지만, 만들었을 이름 ${wouldCreate}개)`);
   if (!DRY) console.log(`  실제로 담음      ${put}`);
   if (START + slice.length >= withImage.length) console.log('  ■ 끝까지 다 받았습니다.');
   else console.log(`  다음 start=${START + slice.length}`);
