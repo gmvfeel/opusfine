@@ -198,7 +198,15 @@
     var name  = s.name_ko || s.name_en || '(이름 없음)';
     var roman = !hasKo(name);
     var logo  = s.logo_url || s.image_url;
-    var desc  = s.description || s.bio;
+    /* ★★ 2026-10-01 · 파트너가 "그대로"라고 지적 — DB 의 bio 는 이미
+         고쳤는데, 여기서 <b>description 을 먼저</b> 썼던 것이 진짜
+         원인이었습니다. 위키백과 enrich 스크립트가 이제 description
+         (짧은 한 줄 태그, 예: "대한민국 경기도와 서울특별시의 사립
+         종합대학")까지 함께 채우면서, 마침표 없이 끝나는 그 한 줄이
+         매번 이겨 긴 bio 를 가려 버렸습니다. description 은 목록
+         페이지에서 "소개문 있음" 표시로만 쓰이는 값이라, 상세 화면의
+         본문은 bio 를 먼저 씁니다. */
+    var desc  = s.bio || s.description;
 
     var h = '';
 

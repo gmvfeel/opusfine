@@ -69,8 +69,17 @@
    ★ 이 사이트에는 화면 밖으로 일부러 비어져 나가는 것이 없습니다
      (하위 펼침 .dd-wide 는 폭을 100vw 안으로 스스로 줄이고, 모바일
      에서는 아예 감춰집니다 · 가로쓰기 화제(sidetab)도 1400px 아래에서
-     감춰집니다) — 그래서 이 벽을 세워도 가려지는 내용이 없습니다. */
-html,body{overflow-x:hidden}
+     감춰집니다) — 그래서 이 벽을 세워도 가려지는 내용이 없습니다.
+   ★★ 2026-10-01 · 파트너가 "세로 스크롤이 2개 생겼다"고 지적 — html 과
+     body <b>둘 다</b>에 overflow-x 를 직접 주면, 브라우저가 body 를
+     더는 뷰포트에 그대로 넘겨주지 않고 <b>body 자신도 따로 스크롤되는
+     상자</b>로 만들어 버립니다(overflow-x 를 주면 overflow-y 도 같이
+     auto 로 올라가는 규칙 때문에, html·body 가 각자 세로 스크롤 상자가
+     됩니다) — 그래서 스크롤바가 두 개로 보였습니다.
+   ▶ 고침 — <b>html 에만</b> 겁니다. body 는 손대지 않아야 body 의
+     넘침이 그대로 html(뷰포트) 쪽으로 넘어가 스크롤바가 하나로
+     남습니다. 가로를 막는 효과는 그대로입니다. */
+html{overflow-x:hidden}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:var(--sans);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
