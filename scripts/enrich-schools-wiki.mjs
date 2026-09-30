@@ -54,6 +54,11 @@ if (!SB_URL || !SB_KEY) {
 const UA = 'OpusFineArtArchiveBot/1.0 (https://opusfine.vercel.app; non-commercial art archive project)';
 const H = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
 
+/* ★ 이번 실행에서 이미 붙인 위키번호 — schools.wikidata_id 는 고유
+     색인이라, 같은 대학으로 찾아진 여러 줄이 같은 번호를 다시
+     붙이려 들면 둘째 줄부터 409 로 막힙니다. */
+const usedWikidata = new Set();
+
 /* ── 대학교 본이름만 뽑기 ──
    ★ "가천대학교 미술・디자인학부" → "가천대학교"
    ★ "건국대학교(글로컬) 조형예술학과" → "건국대학교" ( ( 앞에서 끊음 )
@@ -146,7 +151,15 @@ async function enrichOne(row) {
     }
     if (!row.description) patch.description = (j.description || j.extract || '').slice(0, 300);
     if (!row.link_wiki && j.content_urls?.desktop?.page) patch.link_wiki = j.content_urls.desktop.page;
-    if (!row.wikidata_id && j.wikibase_item) patch.wikidata_id = j.wikibase_item;
+    /* ★★ 2026-10-01 · schools.wikidata_id 에 고유 색인이 걸려 있어
+         409 로 실행이 통째로 멈췄습니다 — 학과 단위 항목(isDept)은
+         여러 줄이 <b>같은 대학</b>으로 찾아지므로, 그 대학의 위키
+         번호를 모두에게 붙이면 둘째 줄부터 겹칩니다. 학과 항목에는
+         위키번호를 붙이지 않습니다 — 애초에 그 학과 자체를 가리키는
+         번호가 아니라 겹쳐도 뜻이 없습니다. */
+    if (!c.isDept && !row.wikidata_id && j.wikibase_item && !usedWikidata.has(j.wikibase_item)) {
+      patch.wikidata_id = j.wikibase_item;
+    }
     if (!row.founded) {
       const y = guessFounded(j.extract);
       if (y) patch.founded = y;
@@ -181,15 +194,24 @@ async function enrichOne(row) {
     return;
   }
 
-  let filled = 0, missed = 0;
+  let filled = 0, missed = 0, errored = 0;
   const missList = [];
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     const res = await enrichOne(r);
     if (res.ok) {
-      filled++;
-      if (!DRY) await sbPatch(r.id, res.patch);
-      console.log(`  ${i + 1}/${rows.length} · 채움 · ${r.name_ko}${res.isDept ? ` (→ ${res.title})` : ''}`);
+      if (res.patch.wikidata_id) usedWikidata.add(res.patch.wikidata_id);
+      /* ★ 한 줄이 고치기에서 실패해도(예상 밖 409 등) 나머지 129줄을
+           마저 돌립니다 — 전에는 여기서 죽어 뒤엣것들이 통째로
+           안 됐습니다. */
+      try {
+        if (!DRY) await sbPatch(r.id, res.patch);
+        filled++;
+        console.log(`  ${i + 1}/${rows.length} · 채움 · ${r.name_ko}${res.isDept ? ` (→ ${res.title})` : ''}`);
+      } catch (e) {
+        errored++;
+        console.log(`  ${i + 1}/${rows.length} · ★ 고치기 실패 · ${r.name_ko} — ${e.message}`);
+      }
     } else {
       missed++;
       missList.push(r.name_ko);
@@ -201,6 +223,7 @@ async function enrichOne(row) {
   console.log(`  받은 곳     ${rows.length}`);
   console.log(`  채운 곳     ${filled}`);
   console.log(`  못 찾은 곳  ${missed}`);
+  if (errored) console.log(`  ★ 고치기 실패 ${errored}곳 (찾긴 했는데 담다가 막힘)`);
   if (DRY) console.log('  (--dry 라 실제로 담지 않았습니다)');
   if (missList.length) {
     console.log('  ★ 못 찾은 곳 (앞 20개)');
