@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<title>인재정보 — 리쿠르트 — OPUSFINE</title>
+<meta name="description" content="미술계 채용을 준비하는 단체·기관을 위한 OPUSFINE 리쿠르트의 인재정보입니다.">
+<link rel="stylesheet" href="/assets/board.css">
+<link rel="stylesheet" href="/assets/recruit.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="bb-bc"><a href="/">홈</a> / <a href="/recruit/job.html">리쿠르트</a> / 인재정보</div>
+
+<main class="bb-wrap rc-wrap">
+  <div class="bb-tag-lab">RECRUIT</div>
+  <h1 class="bb-h1">인재정보</h1>
+  <p class="bb-sub">이름과 연락처는 채용하는 단체·학교 회원에게만 열립니다.</p>
+
+  <div class="rc-toolbar">
+    <aside class="rc-finder">
+      <h3>분야로 찾기</h3>
+      <div class="rc-cats" id="rcCats"></div>
+      <div class="rc-fieldset">
+        <label>근무지역</label>
+        <select id="rcR1"></select>
+        <select id="rcR2"></select>
+        <label>고용형태</label>
+        <div id="rcEmp" class="rc-checks"></div>
+        <label>성별</label>
+        <div id="rcGender" class="rc-checks"></div>
+      </div>
+      <div class="rc-finder-btns">
+        <button type="button" id="rcReset">초기화</button>
+        <button type="button" class="rc-go" id="rcGo">찾기</button>
+      </div>
+    </aside>
+
+    <div class="rc-main">
+      <div class="rc-topline">
+        <span class="rc-cnt" id="rcCnt"></span>
+        <span style="display:flex;gap:10px;align-items:center">
+          <span class="rc-kwbox"><input type="text" id="rcKw" placeholder="검색"><button type="button" id="rcSearchBtn">검색</button></span>
+          <select class="rc-sort" id="rcSort"></select>
+          <span class="rc-writegate" id="rcWritegate"></span>
+        </span>
+      </div>
+      <div class="rc-list" id="rcList"></div>
+      <div class="rc-pager" id="rcPager"></div>
+    </div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/recruit.js"></script>
+<script src="/assets/recruit-list.js"></script>
+<script>
+OFRecruitList.init({
+  kind: 'talent',
+  table: 'recruit_talents_public',
+  viewPage: '/recruit/talent-view.html',
+  writePage: '/recruit/talent-write.html',
+});
+</script>
+</body>
+</html>

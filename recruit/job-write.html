@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<title>채용등록 — 리쿠르트 — OPUSFINE</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/assets/account.css">
+<link rel="stylesheet" href="/assets/board.css">
+<link rel="stylesheet" href="/assets/recruit.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="bb-bc"><a href="/">홈</a> / <a href="/recruit/job.html">리쿠르트</a> / 채용등록</div>
+
+<main class="bb-wrap rc-wrap">
+ <div class="rw-layout">
+  <div class="rw-main"><div class="rw-doc" id="rwForm">
+
+    <h1 class="rv-title" id="rwHead">채용등록</h1>
+    <p class="rw-hint">미술관·갤러리·작가 스튜디오 등 단체·기관과 미술학교 회원이 채용 정보를 올리실 수 있습니다.</p>
+
+    <div class="rw-msg" id="rwMsg" role="status" hidden></div>
+    <div class="rw-draftbar" id="rwDraftBar" hidden></div>
+
+    <h2 class="rv-group">모집내용 <em class="rw-req">* 꼭 채워 주십시오</em></h2>
+    <div class="rw-grid">
+      <label class="rw-f rw-f--full"><span>채용제목 <b>*</b></span>
+        <input type="text" id="rwTitle" maxlength="120" placeholder="예 — 전시기획 담당 모집"></label>
+
+      <div class="rw-f rw-f--full"><span>단체 / 기관명 <b>*</b></span>
+        <div class="rw-org-top">
+          <input type="text" id="rwOrgName" maxlength="120" placeholder="단체명을 적고 오른쪽에서 찾으십시오">
+          <button type="button" class="rw-find" id="rwOrgFind">전시공간DB에서 찾기</button>
+        </div>
+        <input type="hidden" id="rwOrgId" value="">
+        <span class="sc-linked" id="rwOrgLinked" hidden>DB 연결됨</span>
+        <div class="sc-results" id="rwOrgRes" hidden></div>
+      </div>
+
+      <label class="rw-f"><span>모집분야 <b>*</b></span><select id="rwCat1"></select></label>
+      <label class="rw-f"><span class="rw-ghost">모집분야</span><select id="rwCat2"></select></label>
+      <label class="rw-f rw-f--full"><span>분야 기타</span><input type="text" id="rwJobEtc" maxlength="80" placeholder="위 분류에 없으면 적어 주십시오"></label>
+
+      <label class="rw-f"><span>근무지역 <b>*</b></span><select id="rwR1"></select></label>
+      <label class="rw-f"><span class="rw-ghost">근무지역</span><select id="rwR2"></select></label>
+
+      <label class="rw-f rw-f--full"><span>담당업무</span><input type="text" id="rwDuty" maxlength="200" placeholder="예 — 기획전 준비 및 도록 편집"></label>
+
+      <label class="rw-f"><span>모집인원</span><span class="rw-inline"><input type="text" id="rwHeadcount" maxlength="4" placeholder="1"><em>명</em></span></label>
+      <label class="rw-f"><span>근무요일</span><select id="rwDays"></select></label>
+
+      <div class="rw-f rw-f--full"><span>고용형태</span><div id="rwEmp" class="rc-checks"></div></div>
+
+      <div class="rw-f rw-f--full"><span>근무시간</span>
+        <span class="rw-inline"><select id="rwStart"></select><em>~</em><select id="rwEnd"></select></span></div>
+
+      <label class="rw-f"><span>급여사항</span><select id="rwPayType"></select></label>
+      <label class="rw-f"><span class="rw-ghost">금액</span>
+        <span class="rw-inline"><input type="text" id="rwPayAmount" maxlength="30" placeholder="예 — 2800만원">
+          <label class="rc-check"><input type="checkbox" id="rwPayDaily"><span>당일지급</span></label></span></label>
+
+      <div class="rw-f rw-f--full"><span>오디션/과제물 여부</span>
+        <div id="rwAud" class="rc-checks"></div>
+        <div class="rw-audlist" id="rwAudList"></div>
+        <button type="button" class="rw-add rw-add--sm" id="rwAudAdd">+ 항목 추가</button>
+      </div>
+    </div>
+
+    <h2 class="rv-group">단체정보 <button type="button" class="rw-pull" id="rwOrgPull">내 단체정보 불러오기</button></h2>
+    <p class="rw-hint">상세 화면 맨 위 머리칸에 보이는 정보입니다. 위에서 <b>전시공간DB에서 찾기</b>로 고르시면 분야가 저절로 채워집니다.</p>
+    <div class="rw-grid">
+      <label class="rw-f"><span>분야</span><input type="text" id="rwOrgField" maxlength="60" placeholder="예 — 사립미술관"></label>
+      <label class="rw-f"><span>웹사이트</span><input type="text" id="rwOrgHome" maxlength="200" placeholder="https://"></label>
+      <div class="rw-f rw-f--full"><span>주소</span>
+        <div class="rw-addr">
+          <div class="rw-addr-top">
+            <input type="text" id="rwOrgZip" maxlength="10" placeholder="우편번호" readonly>
+            <button type="button" class="rw-find" data-addr-search data-zip="#rwOrgZip" data-addr1="#rwOrgAddr1" data-addr2="#rwOrgAddr2">주소검색</button>
+          </div>
+          <input type="text" id="rwOrgAddr1" maxlength="160" placeholder="주소검색을 누르시면 채워집니다">
+          <input type="text" id="rwOrgAddr2" maxlength="160" placeholder="나머지 주소를 적어 주십시오">
+        </div>
+      </div>
+    </div>
+
+    <h2 class="rv-group">자격요건</h2>
+    <div class="rw-grid">
+      <div class="rw-f rw-f--full"><span>성별</span><div id="rwGenderBox" class="rc-checks"></div></div>
+      <div class="rw-f rw-f--full"><span>나이</span>
+        <span class="rw-inline"><input type="text" id="rwAgeMin" maxlength="3" placeholder="00"><em>세 이상 ~</em>
+          <input type="text" id="rwAgeMax" maxlength="3" placeholder="00"><em>세 이하</em>
+          <label class="rc-check"><input type="checkbox" id="rwAgeAny" checked><span>무관</span></label></span></div>
+      <div class="rw-f rw-f--full"><span>학력</span>
+        <span class="rw-inline"><select id="rwEdu"></select>
+          <label class="rc-check"><input type="checkbox" id="rwEduAny" checked><span>무관</span></label></span></div>
+      <div class="rw-f rw-f--full"><span>우대조건</span><div id="rwPrefer" class="rc-checks"></div></div>
+    </div>
+
+    <h2 class="rv-group">상세모집내용</h2>
+    <label class="rw-f rw-f--full"><span class="rw-ghost">내용</span><textarea id="rwBody" rows="14" placeholder="내용을 적어 주십시오. 줄바꿈은 그대로 남습니다."></textarea></label>
+    <label class="rw-f rw-f--full"><span>검색 키워드</span><input type="text" id="rwKeywords" maxlength="200" placeholder="찾을 때 쓰일 낱말을 · 로 나누어 적어 주십시오"></label>
+
+    <h2 class="rv-group">지원 · 접수 / 담당자 <em class="rw-req">* 꼭 채워 주십시오</em></h2>
+    <div class="rw-grid">
+      <div class="rw-f rw-f--full"><span>접수기간 <b>*</b></span>
+        <span class="rw-inline"><input type="date" id="rwApplyFrom"><em>~</em><input type="date" id="rwApplyTo">
+          <label class="rc-check"><input type="checkbox" id="rwAlways"><span>상시모집</span></label>
+          <label class="rc-check"><input type="checkbox" id="rwUntilHired"><span>채용시까지</span></label></span></div>
+
+      <div class="rw-f rw-f--full"><span>지원 받는 방법</span>
+        <label class="rc-check"><input type="checkbox" id="rwAcceptSite" checked>
+          <span><b>오퍼스파인에서 지원 받기</b> — 지원자가 상세 화면에서 바로 지원하고, 받은 지원은 <b>마이페이지</b>에 쌓입니다.</span></label>
+        <p class="rw-hint" id="rwSiteHint">끄시면 지원하기 단추 대신 아래 접수방법 안내가 보입니다.</p></div>
+
+      <div class="rw-f rw-f--full"><span>접수방법 <em>(선택)</em></span><div id="rwMethods" class="rc-checks"></div></div>
+
+      <label class="rw-f"><span>담당자명 <b>*</b></span><input type="text" id="rwCName" maxlength="40"></label>
+      <label class="rw-f"><span>이메일</span><input type="email" id="rwCEmail" maxlength="120" placeholder="name@example.com"></label>
+      <label class="rw-f"><span>전화번호</span><input type="tel" id="rwCPhone" maxlength="20" placeholder="02-000-0000"></label>
+      <label class="rw-f"><span>팩스번호</span><input type="tel" id="rwCFax" maxlength="20" placeholder="02-000-0000"></label>
+    </div>
+
+    <div class="rw-agree">
+      <p>등록하신 내용이 게시판 성격에 맞지 않거나 다른 데 쓰인 것으로 판단되는 경우, 미리 알리지 않고 지워질 수 있습니다.
+        지원자의 이름과 연락처를 채용 목적 외로 쓰거나 다른 곳에 옮기는 것은 개인정보보호법으로 금지되어 있습니다.</p>
+      <label class="rc-check"><input type="checkbox" id="rwAgree"><span><b>위 내용에 동의합니다 *</b></span></label>
+    </div>
+
+    <div class="rv-btns">
+      <button type="button" class="rv-btn rv-btn--go" id="rwPreview">미리보기</button>
+      <button type="button" class="rv-btn rv-btn--off" id="rwDraft" style="cursor:pointer;color:inherit">임시저장</button>
+      <a class="rv-btn rv-btn--list" href="/recruit/job.html">취소</a>
+    </div>
+
+  </div></div>
+
+  <aside class="rw-aside" id="rwAside">
+    <div class="rw-aside-box">
+      <h2 class="rv-aside-h">작성 도우미</h2>
+      <div class="rw-prog-bar"><i id="rwProgBar"></i></div>
+      <div class="rw-prog-txt" id="rwProgTxt">꼭 채울 것 0 / 6</div>
+      <ul class="rw-check" id="rwCheck"></ul>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button type="button" class="rv-btn rv-btn--go rv-btn--sm" id="rwPreview2">미리보기</button>
+        <button type="button" class="rv-btn rv-btn--list rv-btn--sm" id="rwDraft2">임시저장</button>
+      </div>
+      <div class="rw-draft-at" id="rwDraftAt" hidden></div>
+    </div>
+    <div class="rw-aside-box" id="rwMineBox" hidden>
+      <h2 class="rv-aside-h">내가 등록한 채용정보</h2>
+      <div id="rwMine" class="rw-mine"></div>
+    </div>
+  </aside>
+ </div>
+
+ <div class="rw-pv" id="rwPv" hidden>
+   <div class="rw-pv-dim" id="rwPvDim"></div>
+   <div class="rw-pv-win" role="dialog" aria-modal="true" aria-label="미리보기">
+     <div class="rw-pv-head"><b>미리보기</b><span>구직자에게 이렇게 보입니다</span>
+       <button type="button" class="rw-pv-x" id="rwPvClose" aria-label="닫기">✕</button></div>
+     <div class="rw-pv-body rv-doc" id="rwPvBody"></div>
+     <div class="rw-pv-foot">
+       <button type="button" class="rv-btn rv-btn--list" id="rwPvPrint">인쇄 / PDF 저장</button>
+       <button type="button" class="rv-btn rv-btn--list" id="rwPvEdit">고치기</button>
+       <button type="button" class="rv-btn rv-btn--go" id="rwPublish">게시하기</button>
+     </div>
+   </div>
+ </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/addr.js"></script>
+<script src="/assets/recruit.js"></script>
+<script src="/assets/recruit-view.js"></script>
+<script src="/assets/recruit-write.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  OFRecruitWrite.initJob({ listPage: '/recruit/job.html', viewPage: '/recruit/job-view.html' });
+});
+</script>
+</body>
+</html>
