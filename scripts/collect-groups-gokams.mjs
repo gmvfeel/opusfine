@@ -52,14 +52,22 @@ const KEEP_CATS = ALL_CATS ? null : new Set(['협회/단체']);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+var DEBUG_LEFT = PEEK ? 15 : 0;
+
 async function get(idx) {
   for (let i = 0; i < 4; i++) {
-    let res;
+    let res, errMsg = '';
     try {
       res = await fetch(BASE + '?idx=' + idx, { headers: { 'User-Agent': UA } });
     } catch (e) {
+      errMsg = e.message;
+      if (DEBUG_LEFT > 0) { console.log('  [디버그 idx=' + idx + '] 연결 실패: ' + errMsg); DEBUG_LEFT--; }
       await sleep(3000 * (i + 1));
       continue;
+    }
+    if (DEBUG_LEFT > 0) {
+      console.log('  [디버그 idx=' + idx + '] status ' + res.status);
+      DEBUG_LEFT--;
     }
     if (res.status === 500) return null;            /* 그 번호는 없는 것 */
     if (res.status === 429) { await sleep(8000 * (i + 1)); continue; }
