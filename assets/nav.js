@@ -21,7 +21,9 @@
   var TABLE = { artists: 'artists', artworks: 'artworks',
                 exhibitions: 'exhibitions', schools: 'schools',
                 /* ★ 2026-10-01 · venues 를 더했습니다. 전시공간. */
-                venues: 'venues' };
+                venues: 'venues',
+                /* ★ 2026-10-01 · institutions 를 더했습니다. 기관·재단. */
+                foundations: 'institutions' };
   var done = false;
 
   function esc(s) {

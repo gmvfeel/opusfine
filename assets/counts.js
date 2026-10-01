@@ -28,7 +28,10 @@
     schools:     'schools',
     /* ★ 2026-10-01 · 전시공간 목록·상세 화면이 생기면서 더했습니다 —
          exhibitions.venue 글자칸에서 뽑아 만든 venues 표입니다. */
-    venues:      'venues'
+    venues:      'venues',
+    /* ★ 2026-10-01 · 기관·재단 목록·상세 화면이 생기면서 더했습니다 —
+         exhibitions.organizer 글자칸에서 뽑아 만든 institutions 표입니다. */
+    foundations: 'institutions'
     /* groups: 'groups', … */
   };
 
