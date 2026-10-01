@@ -116,4 +116,22 @@ async function get(url, opts) {
     console.log('status', rr.status, 'len', rr.len);
     console.log(rr.body.slice(0, 1000));
   }
+
+  // ★ POST 검색으로 idx 최댓값 가늠하기 — 「회」(협회·학회·연구회 등에
+  //   흔함)·「미술」·「연구」로 넓게 찾아 idx 범위를 봅니다.
+  console.log('\n════ main/search.asp (POST 넓은 낱말로 idx 범위 가늠) ════');
+  for (const word of ['회', '미술', '연구', '협회']) {
+    const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
+    const rr = await get(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      body: 'category=group&s2=' + encodeURIComponent(word)
+    });
+    const idxes = Array.from(new Set((rr.body.match(/idx=(\d+)/g) || [])
+      .map((s) => Number(s.split('=')[1]))));
+    const cntMatch = rr.body.match(/총\s*[\d,]+\s*건/);
+    console.log('"' + word + '" · status ' + rr.status + ' · idx 수 ' + idxes.length
+      + ' · 최댓값 ' + (idxes.length ? Math.max(...idxes) : '-')
+      + ' · ' + (cntMatch ? cntMatch[0] : '건수 표시 없음'));
+  }
 })();
