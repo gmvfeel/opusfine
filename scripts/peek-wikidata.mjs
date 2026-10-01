@@ -28,4 +28,21 @@ async function run(label, q) {
       OPTIONAL { ?item wdt:P31 ?instance }
       SERVICE wikibase:label { bd:serviceParam wikibase:language "ko,en". }
     } LIMIT 10`);
+
+  // 3) Q20897549(art institution) 로 못박고 한국(Q884) 전체를 셉니다
+  await run('P31=art institution(Q20897549) · 한국 전체 개수', `
+    SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE {
+      ?item wdt:P31 wd:Q20897549 .
+      ?item wdt:P17 wd:Q884 .
+    }`);
+
+  // 4) 같은 조건으로 목록까지 (최대 100)
+  await run('P31=art institution(Q20897549) · 한국 전체 목록', `
+    SELECT ?item ?itemLabel ?inception ?website WHERE {
+      ?item wdt:P31 wd:Q20897549 .
+      ?item wdt:P17 wd:Q884 .
+      OPTIONAL { ?item wdt:P571 ?inception }
+      OPTIONAL { ?item wdt:P856 ?website }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "ko,en". }
+    } LIMIT 100`);
 })();
