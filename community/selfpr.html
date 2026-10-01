@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SELF PR — OPUSFINE</title>
+<meta name="description" content="오퍼스파인이 매일 소개하는 작가 — 프로필과 작품을 한곳에서.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   SELF PR · 2026-10-01
+   ------------------------------------------------------------------
+   오퍼스클램 community/selfpr.html 의 「매일 한 명」 틀을 그대로
+   가져왔습니다. daily_self_pr 표(scripts/pick-daily.mjs 가 매일 채움)
+   에서 그날의 작가를 읽어, artists 표의 실제 자료로 화면을 짭니다.
+   회원 시스템이 아직 없어 지금은 <b>아카이브 작가</b>만 다룹니다 —
+   회원 체계가 생기면 회원 작가를 먼저 보이도록 바꿀 자리입니다.
+   ══════════════════════════════════════════════════════════════════ */
+.bc{font-size:11.5px;color:var(--ink-3);padding:26px 0 0}
+.bc a:hover{color:var(--ink)}
+
+.sp-kind{display:flex;gap:0;border-bottom:1px solid var(--rule);margin-top:22px}
+.sp-kind a{font-size:13px;color:var(--ink-3);padding:11px 18px 13px;border-bottom:2px solid transparent;
+  margin-bottom:-1px}
+.sp-kind a.on,.sp-kind a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+
+.sp-head{display:flex;gap:30px;align-items:flex-start;border:1px solid var(--rule-2);
+  padding:28px;margin-top:26px}
+.sp-photo{flex:0 0 auto;width:220px;height:280px;border:1px solid var(--rule-2);
+  background:var(--rule-2);overflow:hidden;display:grid;place-items:center}
+.sp-photo img{width:100%;height:100%;object-fit:cover}
+.sp-info{flex:1;min-width:0}
+.sp-role{font-family:var(--serif);font-size:12px;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
+.sp-name{font-family:var(--serif);font-weight:200;font-size:clamp(26px,3.2vw,38px);
+  letter-spacing:-.02em;margin:0 0 4px;line-height:1.2}
+.sp-name-en{font-size:13.5px;color:var(--ink-3);margin:0 0 14px}
+.sp-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px;line-height:1.6;margin-top:14px}
+.sp-meta dt{color:var(--ink-3);white-space:nowrap}
+.sp-meta dd{margin:0;color:var(--ink-2)}
+.sp-daybox{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end;margin-left:auto}
+.sp-badge{font-family:var(--serif);font-size:12px;color:#fff;background:var(--accent);padding:5px 13px}
+.sp-daysel{font-size:12.5px;padding:7px 10px;border:1px solid var(--rule);background:var(--paper);
+  color:var(--ink);cursor:pointer}
+
+.sp-sec{border-top:1px solid var(--rule-2);padding:26px 0}
+.sp-sec h2{font-family:var(--serif);font-size:16px;font-weight:500;margin:0 0 12px}
+.sp-body{font-size:15px;line-height:1.95;color:var(--ink-2);max-width:52em}
+.sp-body p{margin:0 0 12px}
+.sp-tags{display:flex;flex-wrap:wrap;gap:8px}
+.sp-tag{font-size:12.5px;color:var(--ink-2);border:1px solid var(--rule-2);padding:4px 11px}
+
+.sp-list{margin:0;padding:0;list-style:none;display:grid;gap:9px;max-width:52em}
+.sp-list li{display:flex;gap:12px;align-items:baseline;font-size:14px;line-height:1.6;
+  padding-bottom:9px;border-bottom:1px solid var(--rule-2)}
+.sp-list li:last-child{border-bottom:0}
+.sp-li-y{flex:0 0 auto;min-width:56px;color:var(--ink-3);font-size:12.5px}
+.sp-li-t{color:var(--ink)}
+.sp-li-s{color:var(--ink-3);font-size:12.5px}
+
+.sp-go{display:flex;gap:14px;align-items:center;border:1px solid var(--rule);
+  padding:17px 20px;background:var(--rule-2);margin-top:4px}
+.sp-go-t{flex:1;min-width:0}
+.sp-go-t b{display:block;font-size:14.5px;color:var(--ink)}
+.sp-go-t span{font-size:12.5px;color:var(--ink-3)}
+.sp-go a{flex:0 0 auto;font-size:12.5px;font-weight:600;color:#fff;background:var(--ink);
+  padding:10px 18px;text-decoration:none;white-space:nowrap}
+
+.sp-past{border-top:1px solid var(--ink);margin-top:36px;padding-top:24px}
+.sp-past h2{font-family:var(--serif);font-size:15px;font-weight:500;margin:0 0 16px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
+.sp-card{display:block;text-decoration:none;border:1px solid var(--rule-2);overflow:hidden;
+  transition:border-color .15s}
+.sp-card:hover{border-color:var(--ink)}
+.sp-card-img{display:block;aspect-ratio:3/4;background:var(--rule-2);overflow:hidden}
+.sp-card-img img{width:100%;height:100%;object-fit:cover}
+.sp-card-body{padding:9px 10px 11px}
+.sp-card-day{font-size:10.5px;color:var(--accent);display:block;margin-bottom:3px}
+.sp-card-name{font-size:13px;font-weight:600;color:var(--ink);display:block;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.sp-card-sub{font-size:11px;color:var(--ink-3);display:block;margin-top:2px}
+
+.sp-note{font-size:12.5px;color:var(--ink-3);line-height:1.8;margin-top:28px;
+  padding:16px 18px;border:1px solid var(--rule-2)}
+.sp-empty{padding:70px 20px;text-align:center;color:var(--ink-3);font-size:14.5px;line-height:1.8}
+.sp-skel{height:240px;background:var(--rule-2)}
+
+@media(max-width:720px){
+  .sp-head{flex-wrap:wrap;gap:16px;padding:20px}
+  .sp-photo{width:140px;height:176px}
+  .sp-daybox{order:-1;width:100%;flex-direction:row;justify-content:space-between;align-items:center;margin-left:0}
+}
+</style>
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap">
+  <div class="bc"><a href="/">홈</a> / 커뮤니티 / SELF PR</div>
+  <div class="label" style="margin-top:14px">Community · SELF PR</div>
+  <h1 style="font-family:var(--serif);font-weight:200;font-size:clamp(28px,3.6vw,40px);letter-spacing:-.03em;margin:10px 0 0">
+    SELF PR</h1>
+  <p style="margin:12px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9">
+    매일 한 명의 작가를 소개합니다. 지금은 아카이브에 쌓인 작가 중에서 고릅니다 —
+    회원 작가 체계가 생기면 작가회원을 먼저 소개할 예정입니다.
+  </p>
+
+  <nav class="sp-kind" aria-label="SELF PR 갈래">
+    <a href="/community/selfpr.html" class="on">SELF PR</a>
+    <a href="/community/play.html">내 작업 어때요</a>
+  </nav>
+</div>
+
+<main class="wrap">
+  <div id="spMain"><div class="sp-skel"></div></div>
+  <div id="spPast"></div>
+
+  <div class="sp-note">
+    이 코너는 <strong>작가DB</strong>에 정리된 내용을 바탕으로 매일 자동으로 구성됩니다.
+    소개·대표작이 충실한 작가를 먼저 소개합니다. 작가 정보는 공개된 자료를 취합해
+    정리한 것이므로 빠진 내용이나 잘못된 정보가 있을 수 있습니다.
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/selfpr.js"></script>
+</body>
+</html>

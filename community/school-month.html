@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이달의 미술학교 — OPUSFINE</title>
+<meta name="description" content="오퍼스파인이 매달 소개하는 미술학교 — 학교 정보를 한곳에서.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   이달의 미술학교 · 2026-10-01
+   ------------------------------------------------------------------
+   오퍼스클램 community/school-month.html 의 「매달 한 곳」 틀을
+   가져왔습니다. monthly_school 표(scripts/pick-daily.mjs 가 매달 채움)
+   에서 이번 달 학교를 읽어 schools 표의 실제 자료로 화면을 짭니다.
+   ══════════════════════════════════════════════════════════════════ */
+.bc{font-size:11.5px;color:var(--ink-3);padding:26px 0 0}
+.bc a:hover{color:var(--ink)}
+
+.sm-head{display:flex;gap:30px;align-items:flex-start;border:1px solid var(--rule-2);
+  padding:28px;margin-top:26px}
+.sm-logo{flex:0 0 auto;width:104px;height:104px;border:1px solid var(--rule-2);
+  background:var(--rule-2);display:grid;place-items:center;overflow:hidden}
+.sm-logo img{max-width:100%;max-height:100%;object-fit:contain;padding:8px}
+.sm-logo .sm-initial{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--accent)}
+.sm-info{flex:1;min-width:0}
+.sm-name{font-family:var(--serif);font-weight:200;font-size:clamp(24px,3vw,34px);
+  letter-spacing:-.02em;margin:0 0 4px;line-height:1.25}
+.sm-name-en{font-size:13.5px;color:var(--ink-3);margin:0 0 14px}
+.sm-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px;line-height:1.6}
+.sm-meta dt{color:var(--ink-3);white-space:nowrap}
+.sm-meta dd{margin:0;color:var(--ink-2)}
+.sm-meta a{color:var(--accent)}
+.sm-monthbox{flex:0 0 auto;margin-left:auto}
+.sm-badge{font-family:var(--serif);font-size:12px;color:#fff;background:var(--accent);padding:5px 13px}
+
+.sm-sec{border-top:1px solid var(--rule-2);padding:26px 0}
+.sm-sec h2{font-family:var(--serif);font-size:16px;font-weight:500;margin:0 0 12px}
+.sm-body{font-size:15px;line-height:1.95;color:var(--ink-2);max-width:52em}
+.sm-body p{margin:0 0 12px}
+.sm-tags{display:flex;flex-wrap:wrap;gap:8px}
+.sm-tag{font-size:12.5px;color:var(--ink-2);border:1px solid var(--rule-2);padding:4px 11px}
+
+.sm-go{display:flex;gap:14px;align-items:center;border:1px solid var(--rule);
+  padding:17px 20px;background:var(--rule-2);margin-top:4px}
+.sm-go-t{flex:1;min-width:0}
+.sm-go-t b{display:block;font-size:14.5px;color:var(--ink)}
+.sm-go-t span{font-size:12.5px;color:var(--ink-3)}
+.sm-go a{flex:0 0 auto;font-size:12.5px;font-weight:600;color:#fff;background:var(--ink);
+  padding:10px 18px;text-decoration:none;white-space:nowrap}
+
+.sm-note{font-size:12.5px;color:var(--ink-3);line-height:1.8;margin-top:28px;
+  padding:16px 18px;border:1px solid var(--rule-2)}
+.sm-empty{padding:70px 20px;text-align:center;color:var(--ink-3);font-size:14.5px;line-height:1.8}
+.sm-skel{height:160px;background:var(--rule-2)}
+
+@media(max-width:720px){
+  .sm-head{flex-wrap:wrap;gap:16px;padding:20px}
+  .sm-monthbox{order:-1;width:100%;margin-left:0}
+}
+</style>
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap">
+  <div class="bc"><a href="/">홈</a> / 커뮤니티 / 이달의 미술학교</div>
+  <div class="label" style="margin-top:14px">Community · School of the Month</div>
+  <h1 style="font-family:var(--serif);font-weight:200;font-size:clamp(28px,3.6vw,40px);letter-spacing:-.03em;margin:10px 0 0">
+    이달의 미술학교</h1>
+  <p style="margin:12px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9">
+    매달 한 곳의 미술학교를 소개합니다. 소개문·학과·동문 정보가 충실히 채워진 곳을
+    아카이브에서 자동으로 고릅니다.
+  </p>
+</div>
+
+<main class="wrap">
+  <div id="smMain"><div class="sm-skel"></div></div>
+
+  <div class="sm-note">
+    이 코너는 <strong>미술학교DB</strong>에 정리된 내용을 바탕으로 매달 자동으로 구성됩니다.
+    학교 정보는 공개된 자료를 취합해 정리한 것이므로 빠진 내용이나 잘못된 정보가 있을 수
+    있습니다.
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/school-month.js"></script>
+</body>
+</html>
