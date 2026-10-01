@@ -141,6 +141,54 @@ async function get(url, opts) {
     if (withRef.status === 200) console.log(withRef.body.slice(0, 500));
   }
 
+  // ★★ 가설: group_view.asp 는 그 세션에서 <b>검색을 거쳐 나온 idx</b>
+  //   만 열어 줍니다(옛 ASP 게시판에 흔한 방식). 쿠키를 들고 다니며
+  //   목록→검색→상세 순서를 그대로 밟아 봅니다.
+  console.log('\n════ 쿠키를 들고 다니며 목록→검색→상세 순서로 ════');
+  {
+    const jar = {};
+    const setJar = (res) => {
+      const raw = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie')].filter(Boolean);
+      for (const c of raw) {
+        const kv = c.split(';')[0];
+        const eq = kv.indexOf('=');
+        if (eq > 0) jar[kv.slice(0, eq)] = kv.slice(eq + 1);
+      }
+    };
+    const cookieHeader = () => Object.entries(jar).map(([k, v]) => k + '=' + v).join('; ');
+
+    const r1 = await fetch('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_list.asp',
+      { headers: { 'User-Agent': UA } });
+    setJar(r1);
+    console.log('1) group_list.asp · status ' + r1.status + ' · 쿠키 ' + JSON.stringify(jar));
+
+    const r2 = await fetch('https://www.gokams.or.kr/visual-art/art-terms/main/search.asp', {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Cookie: cookieHeader(), Referer: 'https://www.gokams.or.kr/visual-art/art-terms/glossary/group_list.asp'
+      },
+      body: 'category=group&s2=' + encodeURIComponent('미')
+    });
+    setJar(r2);
+    const body2 = await r2.text();
+    const idxes = Array.from(new Set((body2.match(/idx=(\d+)/g) || []).map((s) => s.split('=')[1])));
+    console.log('2) search POST · status ' + r2.status + ' · idx 들: ' + idxes.join(',') + ' · 쿠키 ' + JSON.stringify(jar));
+
+    if (idxes.length) {
+      const target = idxes[0];
+      const r3 = await fetch('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_view.asp?idx=' + target, {
+        headers: {
+          'User-Agent': UA, Cookie: cookieHeader(),
+          Referer: 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp'
+        }
+      });
+      const body3 = await r3.text();
+      console.log('3) group_view.asp?idx=' + target + ' · status ' + r3.status + ' · len ' + body3.length);
+      if (r3.status === 200) console.log(body3.slice(0, 1500));
+    }
+  }
+
   // ★ POST 검색으로 idx 최댓값 가늠하기 — 「회」(협회·학회·연구회 등에
   //   흔함)·「미술」·「연구」로 넓게 찾아 idx 범위를 봅니다.
   console.log('\n════ main/search.asp (POST 넓은 낱말로 idx 범위 가늠) ════');
