@@ -36,4 +36,17 @@ async function get(url, opts) {
   console.log('--- "serviceKey" 또는 "openapi" 언급 ---');
   console.log('serviceKey 포함: ' + r.body.includes('serviceKey'));
   console.log('openapi.do 포함: ' + r.body.includes('openapi.do'));
+
+  // ★ 2026-10-01 · raw HTML 에서 찾은 실제 다운로드 주소로 CSV 를 받아
+  //   봅니다. 파일데이터는 로그인 없이 받을 수 있다고 적혀 있었습니다.
+  console.log('\n════ CSV 실제로 받아보기 ════');
+  const dlUrl = 'https://www.data.go.kr/cmm/cmm/fileDownload.do'
+    + '?atchFileId=FILE_000000003570540&fileDetailSn=1&insertDataPrcus=N';
+  const r2 = await get(dlUrl, { headers: { 'User-Agent': UA, Referer: 'https://www.data.go.kr/data/15156828/fileData.do' } });
+  console.log('status', r2.status, 'content-type', r2.headers.get('content-type'));
+  console.log('바이트 수(대략, utf8 기준)', Buffer.byteLength(r2.body, 'utf8'));
+  const lines = r2.body.split(/\r?\n/).filter(Boolean);
+  console.log('줄 수', lines.length);
+  console.log('--- 처음 3줄 ---');
+  console.log(lines.slice(0, 3).join('\n'));
 })();
