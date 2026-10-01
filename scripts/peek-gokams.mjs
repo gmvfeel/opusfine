@@ -186,6 +186,32 @@ async function get(url, opts) {
       const body3 = await r3.text();
       console.log('3) group_view.asp?idx=' + target + ' · status ' + r3.status + ' · len ' + body3.length);
       if (r3.status === 200) console.log(body3.slice(0, 1500));
+
+      // ★ 브라우저 흉내를 완전히 내 봅니다(크롬 UA·흔한 Accept 묶음·
+      //   sec-fetch-* 묶음) — WAF 가 자동화 클라이언트만 가려내는지 시험.
+      const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+        + '(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
+      const r4 = await fetch('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_view.asp?idx=' + target, {
+        headers: {
+          'User-Agent': BROWSER_UA,
+          Cookie: cookieHeader(),
+          Referer: 'https://www.gokams.or.kr/visual-art/art-terms/glossary/group_list.asp',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'sec-ch-ua': '"Chromium";v="129", "Not=A?Brand";v="8"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1'
+        }
+      });
+      const body4 = await r4.text();
+      console.log('4) 브라우저 흉내 · status ' + r4.status + ' · len ' + body4.length);
+      if (r4.status === 200) console.log(body4.slice(0, 800));
     }
   }
 
