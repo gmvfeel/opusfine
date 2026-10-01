@@ -64,6 +64,24 @@ async function get(url, opts) {
     console.log(rr.body.slice(0, 1500));
   }
 
+  // ★ group_list.asp 안에서 category 값을 실제로 무엇으로 바꾸는지
+  //   (script 로 쓰는 진짜 category 값) 찾아봅니다.
+  console.log('\n════ group_list.asp 안의 category 관련 글자 ════');
+  {
+    const idxs = [];
+    let from = 0;
+    while (true) {
+      const i = r.body.indexOf('category', from);
+      if (i < 0) break;
+      idxs.push(i);
+      from = i + 1;
+    }
+    console.log('"category" 나온 자리 수: ' + idxs.length);
+    idxs.slice(0, 15).forEach((i) => {
+      console.log('  ...' + r.body.slice(Math.max(0, i - 60), i + 80).replace(/\s+/g, ' ') + '...');
+    });
+  }
+
   // ★ main/search.asp 자체도 POST 로 불러 봅니다 (category=group, s2=빈값)
   console.log('\n════ main/search.asp (POST category=group, s2=빈값) ════');
   {
