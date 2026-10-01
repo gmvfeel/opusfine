@@ -117,6 +117,30 @@ async function get(url, opts) {
     console.log(rr.body.slice(0, 1000));
   }
 
+  // ★ group_view.asp 가 맨몸 요청(직접 fetch)에 500 을 주는 것을 확인 —
+  //   referer·쿠키를 갖추면 되는지 시험해 봅니다.
+  console.log('\n════ group_view.asp?idx=526 · 맨몸 vs referer·쿠키 ════');
+  {
+    const bare = await get('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_view.asp?idx=526');
+    console.log('맨몸 fetch · status ' + bare.status + ' · len ' + bare.len);
+
+    const listResp = await fetch('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_list.asp',
+      { headers: { 'User-Agent': UA } });
+    const setCookie = listResp.headers.get('set-cookie') || '';
+    console.log('group_list.asp set-cookie: ' + (setCookie ? setCookie.slice(0, 200) : '(없음)'));
+
+    const withRef = await get('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_view.asp?idx=526', {
+      headers: {
+        'User-Agent': UA,
+        Referer: 'https://www.gokams.or.kr/visual-art/art-terms/glossary/group_list.asp',
+        Cookie: setCookie.split(';')[0] || '',
+        'Accept-Language': 'ko-KR,ko;q=0.9'
+      }
+    });
+    console.log('referer+쿠키 fetch · status ' + withRef.status + ' · len ' + withRef.len);
+    if (withRef.status === 200) console.log(withRef.body.slice(0, 500));
+  }
+
   // ★ POST 검색으로 idx 최댓값 가늠하기 — 「회」(협회·학회·연구회 등에
   //   흔함)·「미술」·「연구」로 넓게 찾아 idx 범위를 봅니다.
   console.log('\n════ main/search.asp (POST 넓은 낱말로 idx 범위 가늠) ════');
