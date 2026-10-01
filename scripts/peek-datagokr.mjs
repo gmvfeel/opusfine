@@ -67,4 +67,25 @@ async function get(url, opts) {
   const header = lines2[0].split(',').map((s) => s.replace(/"/g, '').trim());
   console.log('--- 헤더 칸 이름 목록 ---');
   header.forEach((h, i) => console.log('  [' + i + '] ' + h));
+
+  // ★ 활동분야에 "미술"이 들어간 줄만 세어 봅니다(쉼표 안에 따옴표
+  //   처리가 필요해 아주 단순한 csv 쪼개기를 씁니다).
+  function splitCsvLine(line) {
+    const out = []; let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { out.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    out.push(cur);
+    return out;
+  }
+  let artCount = 0;
+  const body = lines2.slice(1);
+  for (const ln of body) {
+    const cols = splitCsvLine(ln);
+    if ((cols[5] || '').includes('미술')) artCount++;
+  }
+  console.log('\n전체 ' + body.length + '건 중 활동분야에 "미술" 포함: ' + artCount + '건');
 })();
