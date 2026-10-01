@@ -21,7 +21,11 @@
   var TABLE = {
     artists:     'artists',
     artworks:    'artworks',
-    exhibitions: 'exhibitions'
+    exhibitions: 'exhibitions',
+    /* ★ 2026-10-01 · 미술학교 상세·목록 화면이 다 돌아가는데 대문
+         카드만 「준비 중」으로 남아 있던 것을 파트너가 지적 — schools
+         표를 더해 다른 셋과 같은 방식으로 세게 합니다. */
+    schools:     'schools'
     /* venues: 'venues', … */
   };
 
