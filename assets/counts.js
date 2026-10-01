@@ -34,7 +34,10 @@
     foundations: 'institutions',
     /* ★ 2026-10-01 · 학술 목록·상세 화면이 생기면서 더했습니다 —
          OpenAlex 에서 받은 papers 표입니다. */
-    papers:      'papers'
+    papers:      'papers',
+    /* ★ 2026-10-01 · 현대미술 목록이 생기면서 더했습니다 — 2015년 이후
+         한국 전시 참여 작가를 모은 contemporary_artists 표입니다. */
+    contemporary: 'contemporary_artists'
     /* groups: 'groups', … */
   };
 

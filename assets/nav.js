@@ -25,7 +25,9 @@
                 /* ★ 2026-10-01 · institutions 를 더했습니다. 기관·재단. */
                 foundations: 'institutions',
                 /* ★ 2026-10-01 · papers 를 더했습니다. 학술. */
-                papers: 'papers' };
+                papers: 'papers',
+                /* ★ 2026-10-01 · contemporary_artists 를 더했습니다. 현대미술. */
+                contemporary: 'contemporary_artists' };
   var done = false;
 
   function esc(s) {

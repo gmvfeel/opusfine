@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>현대미술 — OPUSFINE</title>
+<meta name="description" content="최근 한국 전시에 참여한 지금의 작가들.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   현대미술 목록 · 2026-10-01
+   ------------------------------------------------------------------
+   ★★ 「작품 연도」·「작가 출생연도」로 현대미술을 가르려 해 봤지만 자료가
+     못 버텨 줍니다 — 소장 작품 211,700건 중 1945년 이후로 연도가 찍힌
+     것은 146건뿐이고, 1945년 이후 출생 작가 16,755명 중 작품·전시로
+     이어진 사람은 7명·59명뿐입니다(대부분 해외 학교 동문 이름만).
+   ★ 대신 <b>최근(2015년 이후) 한국 전시에 참여한 작가</b>를 현대미술로
+     봅니다 — 서울시립미술관·국립현대미술관·예술의전당 등 최근 몇 년 치
+     전시 자료가 실제로 「지금의 한국 미술」을 보여 줍니다. 4,312명이
+     걸렸고, 그중 2,838명은 작가 상세로도 이어집니다.
+   ★ 전시(exhibition.html)와는 다릅니다 — 전시는 「자리」 중심이고,
+     여기는 그 자리에서 활동하는 <b>사람</b> 중심입니다.
+   ★ 클래스 접두사 <b>sl-</b> 를 그대로 씁니다(학술·미술학교 목록과 같은 모양).
+   ══════════════════════════════════════════════════════════════════ */
+
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+.sl-top{padding:30px 0 26px}
+.sl-top h1{font-family:var(--serif);font-weight:200;font-size:clamp(30px,3.8vw,44px);
+  letter-spacing:-.03em;margin:12px 0 0}
+.sl-top h1 b{font-weight:400}
+.sl-top p{margin:14px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9}
+.sl-cnt{margin-top:18px;font-size:13px;color:var(--ink-2)}
+.sl-cnt b{font-family:var(--serif);font-size:19px;color:var(--accent);font-weight:500;
+  font-variant-numeric:tabular-nums}
+
+.sl-filters{padding:18px 0;border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);position:sticky;top:66px;z-index:40;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px)}
+.sl-frow{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.sl-fgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sl-fgrp .sl-fl{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase;margin-right:2px}
+.sl-chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule-2);
+  background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
+.sl-chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.sl-chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.sl-fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.sl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
+.sl-srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
+  color:var(--ink);width:100%;min-width:0;outline:none}
+.sl-srch input::placeholder{color:var(--ink-3)}
+
+.sl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;padding:34px 0 20px}
+.sl-item{border-top:1px solid var(--rule-2);padding:20px 0;display:block;
+  transition:padding-left .2s}
+.sl-item:hover{padding-left:8px}
+.sl-nm{display:block;font-family:var(--serif);font-size:17px;font-weight:500;
+  line-height:1.5;letter-spacing:-.01em}
+.sl-item:hover .sl-nm{color:var(--accent)}
+.sl-meta{display:block;font-size:12px;color:var(--ink-2);margin-top:7px;line-height:1.6}
+.sl-meta i{font-style:normal;color:var(--ink-3);margin:0 6px}
+.sl-ex{display:block;font-size:11.5px;color:var(--ink-3);margin-top:5px}
+
+.sl-more{display:flex;justify-content:center;padding:10px 0 24px}
+.sl-more button{font-family:inherit;font-size:13.5px;font-weight:600;padding:14px 40px;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.sl-more button:hover{background:var(--ink);color:#fff}
+
+.sl-skel{border-top:1px solid var(--rule-2);padding:20px 0}
+.sl-skel span{display:block;height:12px;background:repeating-linear-gradient(135deg,#FBFAF8,#FBFAF8 8px,#F3F2EE 8px,#F3F2EE 16px);margin-bottom:8px}
+
+html[data-theme="dark"] .sl-filters{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .sl-more button:hover{background:var(--ink);color:var(--paper)}
+
+@media(max-width:860px){
+  .sl-grid{grid-template-columns:1fr}
+  .sl-filters{position:static}
+  .sl-fright{margin-left:0;width:100%}
+}
+</style>
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap sl-top">
+  <div class="bc" style="padding:0"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / 현대미술</div>
+  <div class="label" style="margin-top:14px">Contemporary</div>
+  <h1>현대미술 <b>아카이브</b></h1>
+  <p>
+    소장 작품은 대부분 고미술·근대 중심이라 작품 연도로 현대미술을 가를 수 없었습니다.
+    대신 2015년 이후 한국 전시에 실제로 참여한 작가들을 모았습니다 — 지금 한국에서
+    활동하는 미술을 보여 주는 가장 실질적인 자료입니다.
+  </p>
+  <div class="sl-cnt" id="slCnt">불러오는 중…</div>
+</div>
+
+<div class="sl-filters">
+  <div class="wrap sl-frow">
+    <div class="sl-fgrp" id="slFSort">
+      <span class="sl-fl">차례</span>
+      <button class="sl-chip on" data-s="active">활동 많은순</button>
+      <button class="sl-chip" data-s="recent">최신순</button>
+    </div>
+    <div class="sl-fgrp" id="slFMin">
+      <span class="sl-fl">자료</span>
+      <button class="sl-chip on" data-m="0">전체</button>
+      <button class="sl-chip" data-m="3">3회 이상 참여</button>
+    </div>
+    <div class="sl-fright">
+      <div class="sl-srch">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
+        </svg>
+        <input type="search" placeholder="작가 이름으로 찾기" id="slQ">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note" style="margin-top:22px">
+    2015년 이후 서울시립미술관·국립현대미술관·예술의전당·한눈에보는문화정보(전국) 전시에
+    참여한 작가 <b>4,312명</b>입니다 · 이름 뒤 숫자는 그 기간의 전시 참여 건수 ·
+    작가 상세로 이어지는 이름은 <b>2,838명</b>이고, 나머지는 가장 최근 전시로 이어집니다
+  </p>
+
+  <div class="sl-grid" id="slGrid"></div>
+  <div class="sl-more" id="slMore" hidden><button>더 보기</button></div>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/contemporary-list.js"></script>
+</body>
+</html>
