@@ -25,8 +25,11 @@
     /* ★ 2026-10-01 · 미술학교 상세·목록 화면이 다 돌아가는데 대문
          카드만 「준비 중」으로 남아 있던 것을 파트너가 지적 — schools
          표를 더해 다른 셋과 같은 방식으로 세게 합니다. */
-    schools:     'schools'
-    /* venues: 'venues', … */
+    schools:     'schools',
+    /* ★ 2026-10-01 · 전시공간 목록·상세 화면이 생기면서 더했습니다 —
+         exhibitions.venue 글자칸에서 뽑아 만든 venues 표입니다. */
+    venues:      'venues'
+    /* groups: 'groups', … */
   };
 
   /* ★★ 2026-09-29 · statement timeout 의 진짜 원인은 RLS 조건과

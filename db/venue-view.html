@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전시공간 — OPUSFINE</title>
+<meta name="description" content="전시공간 한 곳과 그곳에서 열린 전시들.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   전시공간 상세 · 2026-10-01 · school-view.html 을 본떴습니다
+   ------------------------------------------------------------------
+   ★ 미술학교 상세의 두 칸(소개문 · 자료) 틀을 그대로 가져오되,
+     여기서는 왼쪽에 「열린 전시」 목록을 둡니다 — 전시공간은
+     소개문이 아니라 <b>무엇이 열렸는가</b>로 설명되는 곳입니다.
+   ══════════════════════════════════════════════════════════════════ */
+
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+.sv-top{padding:26px 0 0}
+.sv-hd{display:flex;align-items:flex-start;gap:26px;padding:22px 0 30px;
+  border-bottom:1px solid var(--rule-2)}
+.sv-logo{flex:0 0 92px;width:92px;height:92px;display:flex;align-items:center;
+  justify-content:center;border:1px solid var(--rule-2);background:#FCFBF9;overflow:hidden;
+  font-family:var(--serif);font-size:38px;color:var(--accent)}
+.sv-hb{min-width:0;flex:1}
+.sv-nm{font-family:var(--serif);font-weight:300;font-size:clamp(25px,3.2vw,37px);
+  letter-spacing:-.025em;margin:0;line-height:1.25}
+.sv-sub{margin-top:14px;font-size:12.5px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.sv-sub i{font-style:normal;color:var(--ink-3);margin:0 8px}
+
+.sv-sec{padding:34px 0;border-bottom:1px solid var(--rule-2)}
+.sv-sk{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
+  text-transform:uppercase;margin-bottom:16px}
+
+.sv-cols{display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:0 54px;
+  padding:34px 0;border-bottom:1px solid var(--rule-2)}
+.sv-main{min-width:0}
+.sv-side{min-width:0}
+.sv-sidein{position:sticky;top:88px}
+
+.vw-list{display:flex;flex-direction:column}
+.vw-row{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--rule-2)}
+.vw-row:first-child{border-top:0;padding-top:0}
+.vw-th{flex:0 0 56px;width:56px;height:72px;background:#FCFBF9;border:1px solid var(--rule-2);overflow:hidden}
+.vw-th img{width:100%;height:100%;object-fit:cover;display:block}
+.vw-b{min-width:0;flex:1}
+.vw-t{display:block;font-family:var(--serif);font-size:14.5px;font-weight:500;line-height:1.5}
+.vw-row:hover .vw-t{color:var(--accent)}
+.vw-w{display:block;font-size:11.5px;color:var(--ink-3);margin-top:4px}
+
+.sv-facts{border:1px solid var(--rule-2);padding:20px}
+.sv-fk{font-size:9.5px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
+  text-transform:uppercase;margin-bottom:14px}
+.sv-frow{padding:10px 0;border-top:1px solid var(--rule-2);display:block}
+.sv-frow:first-of-type{border-top:0;padding-top:0}
+.sv-frow .k{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.04em}
+.sv-frow .v{display:block;font-size:13px;color:var(--ink);margin-top:4px;
+  line-height:1.6;font-variant-numeric:tabular-nums}
+
+.sv-none{font-size:12.5px;color:var(--ink-3);line-height:1.85}
+.sv-back{padding:26px 0 40px}
+.sv-back a{font-size:13px;color:var(--ink-2)}
+.sv-back a:hover{color:var(--accent)}
+
+html[data-theme="dark"] .sv-logo{background:#1A1A1D}
+html[data-theme="dark"] .vw-th{background:#1A1A1D}
+
+@media(max-width:960px){
+  .sv-cols{grid-template-columns:1fr;gap:30px 0}
+  .sv-sidein{position:static}
+  .sv-side{order:-1}
+}
+@media(max-width:640px){
+  .sv-hd{flex-direction:column;gap:18px}
+  .sv-logo{flex:0 0 68px;width:68px;height:68px;font-size:28px}
+}
+</style>
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap sv-top">
+  <div class="bc" style="padding:0">
+    <a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> /
+    <a href="/db/venue.html">전시공간</a> / <span id="svBc">…</span>
+  </div>
+</div>
+
+<div class="wrap" id="svMain">
+  <div class="sv-sec" style="border:0">
+    <div class="sv-none">불러오는 중…</div>
+  </div>
+</div>
+
+<div class="wrap sv-back">
+  <a href="/db/venue.html">← 전시공간 목록으로</a>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/venue-view.js"></script>
+</body>
+</html>

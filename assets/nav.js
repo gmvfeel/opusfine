@@ -19,7 +19,9 @@
      ★ 2026-08-31 · <b>schools</b> 를 더했습니다. 미술대학 250곳.
        오퍼스클램에서 음악학교를 넓게 받다가 딸려 온 자료입니다. */
   var TABLE = { artists: 'artists', artworks: 'artworks',
-                exhibitions: 'exhibitions', schools: 'schools' };
+                exhibitions: 'exhibitions', schools: 'schools',
+                /* ★ 2026-10-01 · venues 를 더했습니다. 전시공간. */
+                venues: 'venues' };
   var done = false;
 
   function esc(s) {
