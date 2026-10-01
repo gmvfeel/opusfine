@@ -41,4 +41,42 @@ async function get(url, opts) {
     console.log('--- <form> ---');
     console.log(r.body.slice(fi, fi + 600));
   }
+
+  // ★ 2번째 정찰 · search_json.asp 를 category=group · 빈 keyword 로 불러 봅니다
+  console.log('\n════ search_json.asp (category=group, keyword=빈값) ════');
+  const base = 'https://www.gokams.or.kr/visual-art/art-terms/inc/search_json.asp';
+  for (const cat of ['group', 'all', '']) {
+    const u = base + '?keyword=&category=' + encodeURIComponent(cat);
+    try {
+      const rr = await get(u);
+      console.log('category=' + JSON.stringify(cat), 'status', rr.status, 'len', rr.len);
+      console.log(rr.body.slice(0, 1500));
+      console.log('...');
+    } catch (e) { console.log('category=' + cat + ' 실패: ' + e.message); }
+  }
+
+  // ★ 「ㄱ」한 글자로도 불러 봅니다 — 초성검색이 이 끝점을 쓸 수도 있습니다
+  console.log('\n════ search_json.asp (keyword=ㄱ, category=group) ════');
+  {
+    const u = base + '?keyword=' + encodeURIComponent('ㄱ') + '&category=group';
+    const rr = await get(u);
+    console.log('status', rr.status, 'len', rr.len);
+    console.log(rr.body.slice(0, 1500));
+  }
+
+  // ★ main/search.asp 자체도 POST 로 불러 봅니다 (category=group, s2=빈값)
+  console.log('\n════ main/search.asp (POST category=group) ════');
+  {
+    const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
+    const rr = await get(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'category=group&s2='
+    });
+    console.log('status', rr.status, 'len', rr.len);
+    // .asp 링크와 idx= 패턴을 찾아봅니다
+    const idxes = Array.from(new Set((rr.body.match(/idx=\d+/g) || [])));
+    console.log('idx= 패턴 수: ' + idxes.length);
+    console.log(idxes.slice(0, 40).join(', '));
+  }
 })();
