@@ -65,7 +65,7 @@ async function get(url, opts) {
   }
 
   // ★ main/search.asp 자체도 POST 로 불러 봅니다 (category=group, s2=빈값)
-  console.log('\n════ main/search.asp (POST category=group) ════');
+  console.log('\n════ main/search.asp (POST category=group, s2=빈값) ════');
   {
     const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
     const rr = await get(u, {
@@ -74,9 +74,46 @@ async function get(url, opts) {
       body: 'category=group&s2='
     });
     console.log('status', rr.status, 'len', rr.len);
-    // .asp 링크와 idx= 패턴을 찾아봅니다
     const idxes = Array.from(new Set((rr.body.match(/idx=\d+/g) || [])));
     console.log('idx= 패턴 수: ' + idxes.length);
     console.log(idxes.slice(0, 40).join(', '));
+  }
+
+  // ★ 「미」 한 글자로 POST — 실제 결과가 나오는지 봅니다
+  console.log('\n════ main/search.asp (POST category=group, s2=미) ════');
+  {
+    const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
+    const rr = await get(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      body: 'category=group&s2=' + encodeURIComponent('미')
+    });
+    console.log('status', rr.status, 'len', rr.len);
+    const idxes = Array.from(new Set((rr.body.match(/idx=\d+/g) || [])));
+    console.log('idx= 패턴 수: ' + idxes.length);
+    console.log(idxes.slice(0, 40).join(', '));
+    const cntMatch = rr.body.match(/총\s*[\d,]+\s*건/);
+    if (cntMatch) console.log('건수 표시: ' + cntMatch[0]);
+    if (!idxes.length) console.log(rr.body.slice(0, 1200));
+  }
+
+  // ★ category 선택지(select option) 찾아보기
+  console.log('\n════ group_list.asp 의 <select>/<option> ════');
+  {
+    const si = r.body.indexOf('<select');
+    if (si >= 0) console.log(r.body.slice(si, si + 1000));
+    const opts = Array.from(new Set((r.body.match(/<option[^>]*>[^<]*<\/option>/g) || [])));
+    console.log('--- option 전체 ---');
+    console.log(opts.slice(0, 40).join('\n'));
+  }
+
+  // ★ search_json.asp 를 legacy escape() 식 %uXXXX 인코딩으로 다시 시도
+  console.log('\n════ search_json.asp (escape() 식 %u3131, category=group) ════');
+  {
+    const u = 'https://www.gokams.or.kr/visual-art/art-terms/inc/search_json.asp'
+      + '?keyword=%u3131&category=group';
+    const rr = await get(u);
+    console.log('status', rr.status, 'len', rr.len);
+    console.log(rr.body.slice(0, 1000));
   }
 })();
