@@ -27,7 +27,9 @@
                 /* ★ 2026-10-01 · papers 를 더했습니다. 학술. */
                 papers: 'papers',
                 /* ★ 2026-10-01 · contemporary_artists 를 더했습니다. 현대미술. */
-                contemporary: 'contemporary_artists' };
+                contemporary: 'contemporary_artists',
+                /* ★ 2026-10-01 · glossary 를 더했습니다. 용어사전. */
+                glossary: 'glossary' };
   var done = false;
 
   function esc(s) {

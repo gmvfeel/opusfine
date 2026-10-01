@@ -37,7 +37,10 @@
     papers:      'papers',
     /* ★ 2026-10-01 · 현대미술 목록이 생기면서 더했습니다 — 2015년 이후
          한국 전시 참여 작가를 모은 contemporary_artists 표입니다. */
-    contemporary: 'contemporary_artists'
+    contemporary: 'contemporary_artists',
+    /* ★ 2026-10-01 · 용어사전 목록이 생기면서 더했습니다 — GOKAMS 미술
+         용어 616개를 담은 glossary 표입니다. */
+    glossary: 'glossary'
     /* groups: 'groups', … */
   };
 
