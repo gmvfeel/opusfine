@@ -175,6 +175,13 @@ async function get(url, opts) {
     const idxes = Array.from(new Set((body2.match(/idx=(\d+)/g) || []).map((s) => s.split('=')[1])));
     console.log('2) search POST · status ' + r2.status + ' · idx 들: ' + idxes.join(',') + ' · 쿠키 ' + JSON.stringify(jar));
 
+    // ★ idx= 가 들어간 실제 href 전체를 그대로 봅니다 — 우리가 숫자만
+    //   뽑으며 다른 꼭 필요한 글자를 놓쳤을 수 있습니다.
+    const hrefs = Array.from(new Set((body2.match(/href=['"][^'"]*idx=\d+[^'"]*['"]/g) || [])));
+    console.log('   href 그대로: ' + hrefs.slice(0, 5).join(' | '));
+    const onclicks = Array.from(new Set((body2.match(/onclick=['"][^'"]*idx[^'"]*['"]/g) || [])));
+    console.log('   onclick 그대로: ' + onclicks.slice(0, 5).join(' | '));
+
     if (idxes.length) {
       const target = idxes[0];
       const r3 = await fetch('https://www.gokams.or.kr/visual-art/art-terms/glossary/group_view.asp?idx=' + target, {
