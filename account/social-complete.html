@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>회원 정보 입력 — OPUSFINE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/account.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="ac-bc"><a href="/">홈</a> / 이용 / 회원 정보 입력</div>
+
+<main class="ac-wrap">
+  <div class="ac-tag">ONE MORE STEP</div>
+  <h1 class="ac-h1">회원 정보를 완성해 주세요</h1>
+  <p class="ac-sub">소셜 계정으로 처음 오셨습니다. 아이디와 회원 종류만 정해 주시면 가입이 끝납니다.</p>
+
+  <div class="ac-box">
+    <div class="ac-row">
+      <div class="ac-fg full">
+        <label class="ac-fl">아이디 <span class="req">*</span></label>
+        <div class="ac-inrow">
+          <input class="ac-inp" type="text" id="sc-username" placeholder="영문·숫자 조합">
+          <button type="button" class="ac-mini" id="sc-chk">중복확인</button>
+        </div>
+        <div class="ac-hint" id="sc-id-msg"></div>
+      </div>
+      <div class="ac-fg full"><label class="ac-fl">이름 <span class="req">*</span></label><input class="ac-inp" type="text" id="sc-name"></div>
+      <div class="ac-fg full">
+        <label class="ac-fl">회원 종류 <span class="req">*</span></label>
+        <select class="ac-sel" id="sc-type">
+          <option value="general">일반 회원 (가입 즉시 이용)</option>
+          <option value="artist">작가 회원 (승인 필요)</option>
+          <option value="org">미술관계자 및 단체·기관 회원 (승인 필요)</option>
+          <option value="school">미술학교 회원 (승인 필요)</option>
+        </select>
+      </div>
+    </div>
+    <div class="ac-err" id="sc-err"></div>
+    <div class="ac-actions"><button class="btn" id="sc-btn" type="button">가입 완료</button></div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script>
+(function(){
+  function boot(){
+    if (!window.OF || !OF.sb) return setTimeout(boot, 60);
+    OF.sb().then(function(sb){
+      sb.auth.getUser().then(function(u){
+        var user = u && u.data && u.data.user;
+        if (!user) { location.href = '/account/login.html'; return; }
+        sb.from('community_members').select('id').eq('id', user.id).maybeSingle().then(function(r){
+          if (r.data) { location.href = (window.CM ? CM.nextUrl() : '/'); return; }
+          var meta = user.user_metadata || {};
+          document.getElementById('sc-name').value = meta.full_name || meta.name || '';
+
+          document.getElementById('sc-chk').addEventListener('click', function(){
+            var uEl = document.getElementById('sc-username'), msg = document.getElementById('sc-id-msg');
+            var uv = (uEl.value||'').trim();
+            if (!uv) { msg.textContent='아이디를 입력하세요'; return; }
+            CM.usernameAvailable(uv).then(function(ok){
+              msg.textContent = ok ? '사용 가능한 아이디입니다.' : '이미 사용 중인 아이디입니다.';
+              msg.style.color = ok ? '' : '#8C3A2E';
+            });
+          });
+
+          document.getElementById('sc-btn').addEventListener('click', function(){
+            var err = document.getElementById('sc-err'); err.textContent='';
+            var username = document.getElementById('sc-username').value.trim();
+            var name = document.getElementById('sc-name').value.trim();
+            var type = document.getElementById('sc-type').value;
+            if (!username || !name) { err.textContent = '아이디와 이름을 입력해 주세요.'; return; }
+            CM.usernameAvailable(username).then(function(ok){
+              if (!ok) { err.textContent = '이미 사용 중인 아이디입니다.'; return; }
+              var row = {
+                id: user.id, username: username, member_type: type,
+                name: name, email: user.email || null, extra: {}
+              };
+              sb.from('community_members').insert(row).then(function(ins){
+                if (ins.error) { err.textContent = '저장 중 오류가 발생했습니다 — ' + ins.error.message; return; }
+                location.href = '/account/join-complete.html?type=' + type;
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

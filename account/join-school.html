@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>미술학교 회원가입 — OPUSFINE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/account.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="ac-bc"><a href="/">홈</a> / 이용 / 회원가입 / 미술학교 회원</div>
+
+<main class="ac-wrap">
+  <div class="ac-steps"><span>약관동의</span><span class="sep">···</span><span class="on">정보입력</span><span class="sep">···</span><span>가입완료</span></div>
+  <div class="ac-tag">MEMBER · 03</div>
+  <h1 class="ac-h1">미술학교 회원가입</h1>
+  <p class="ac-sub">관리자 확인 후 게시판 글쓰기 등 회원 전용 기능이 열립니다.</p>
+
+  <div class="ac-box">
+    <div class="ac-row">
+      <div class="ac-fg full">
+        <label class="ac-fl">아이디 <span class="req">*</span></label>
+        <div class="ac-inrow">
+          <input class="ac-inp" type="text" data-k="username" data-req placeholder="영문·숫자 조합">
+          <button type="button" class="ac-mini" id="chk-id">중복확인</button>
+        </div>
+        <div class="ac-hint" id="id-msg"></div>
+      </div>
+      <div class="ac-fg"><label class="ac-fl">비밀번호 <span class="req">*</span></label><input class="ac-inp" type="password" data-k="password" data-req placeholder="8자 이상"></div>
+      <div class="ac-fg"><label class="ac-fl">비밀번호 확인 <span class="req">*</span></label><input class="ac-inp" type="password" data-k="password2" data-req placeholder="비밀번호 재입력"></div>
+      <div class="ac-fg"><label class="ac-fl">담당자 이름 <span class="req">*</span></label><input class="ac-inp" type="text" data-k="name" data-req></div>
+      <div class="ac-fg"><label class="ac-fl">이메일 <span class="req">*</span></label><input class="ac-inp" type="email" data-k="email" data-req placeholder="name@example.com"></div>
+      <div class="ac-fg full"><label class="ac-fl">학교명 <span class="req">*</span></label><input class="ac-inp" type="text" data-k="school_name" data-req placeholder=""></div>
+      <div class="ac-fg"><label class="ac-fl">휴대폰</label><input class="ac-inp" type="text" data-k="phone" placeholder=""></div>
+      <div class="ac-fg"><label class="ac-fl">설립유형</label>
+        <select class="ac-sel" data-k="founder_type">
+          <option value="">선택 안 함</option>
+          <option value="국공립">국공립</option>
+          <option value="사립">사립</option>
+        </select>
+      </div>
+      <div class="ac-fg"><label class="ac-fl">설립연도</label><input class="ac-inp" type="text" data-k="founded" placeholder="예: 1953"></div>
+      <div class="ac-fg"><label class="ac-fl">학과</label><input class="ac-inp" type="text" data-k="depts" placeholder="예: 회화·조소·디자인"></div>
+      <div class="ac-fg full"><label class="ac-fl">주소</label><input class="ac-inp" type="text" data-k="address" placeholder=""></div>
+      <div class="ac-fg full"><label class="ac-fl">소개</label><textarea class="ac-inp" data-k="description" placeholder=""></textarea></div>
+      <div class="ac-fg full"><label class="ac-fl">홈페이지</label><input class="ac-inp" type="text" data-k="link_home" placeholder="https://"></div>
+    </div>
+
+    <div class="ac-divider">또는 간편 가입</div>
+    <div class="ac-soc">
+      <button type="button" class="kakao" onclick="window.CM&&CM.social('kakao')"><span class="ic">K</span>카카오로 계속하기</button>
+      <button type="button" class="google" onclick="window.CM&&CM.social('google')"><span class="ic">G</span>Google로 계속하기</button>
+    </div>
+
+    <div class="ac-err" id="form-err"></div>
+    <div class="ac-actions">
+      <a class="btn ghost" href="/account/join.html" style="justify-content:center">취소</a>
+      <button class="btn" id="submit-btn" type="button">회원가입 완료</button>
+    </div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script>
+(function(){
+  var idBtn=document.getElementById('chk-id');
+  idBtn.addEventListener('click', function(){
+    var el=document.querySelector('[data-k="username"]'); var msg=document.getElementById('id-msg');
+    var u=(el.value||'').trim();
+    if(!u){ msg.textContent='아이디를 입력하세요'; msg.className='ac-hint'; return; }
+    if(!window.CM){ msg.textContent='준비 중입니다.'; return; }
+    CM.usernameAvailable(u).then(function(ok){
+      msg.textContent = ok ? '사용 가능한 아이디입니다.' : '이미 사용 중인 아이디입니다.';
+      msg.className = 'ac-hint ' + (ok ? 'ac-ok' : '');
+      msg.style.color = ok ? '' : '#8C3A2E';
+    });
+  });
+
+  document.getElementById('submit-btn').addEventListener('click', function(){
+    var err=document.getElementById('form-err'); err.textContent='';
+    if(!window.CM){ err.textContent='초기화 중입니다. 잠시 후 다시 시도해 주세요.'; return; }
+    CM.formSignup(document, 'school').then(function(r){
+      if(!r||!r.ok){ err.textContent=(r&&r.msg)||'가입 처리 중 오류가 발생했습니다.'; return; }
+      location.href='/account/join-complete.html?type=school';
+    });
+  });
+})();
+</script>
+</body>
+</html>

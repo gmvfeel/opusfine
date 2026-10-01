@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>마이페이지 — OPUSFINE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/account.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="ac-bc"><a href="/">홈</a> / 이용 / 마이페이지</div>
+
+<main class="ac-wrap">
+  <div class="ac-tag">MY PAGE</div>
+  <h1 class="ac-h1">마이페이지</h1>
+
+  <div id="mp-guard" class="ac-sub" style="display:none">
+    로그인이 필요합니다. <a href="/account/login.html?next=/account/mypage.html">로그인하기 →</a>
+  </div>
+
+  <div id="mp-body" style="display:none">
+    <div class="ac-mp-head">
+      <div class="ac-mp-ava" id="mp-ava">-</div>
+      <div style="flex:1;min-width:0">
+        <h2 class="ac-mp-name" id="mp-name">-</h2>
+        <span class="ac-mp-badge" id="mp-type">-</span>
+        <span class="ac-mp-badge" id="mp-status">-</span>
+      </div>
+    </div>
+
+    <div class="ac-box">
+      <div class="ac-mp-sec" style="border-top:0;padding-top:0">
+        <h2>내 정보</h2>
+        <div class="ac-row">
+          <div class="ac-fg"><label class="ac-fl">이름</label><input class="ac-inp" type="text" id="mp-f-name"></div>
+          <div class="ac-fg"><label class="ac-fl">휴대폰</label><input class="ac-inp" type="text" id="mp-f-phone" placeholder="010-0000-0000"></div>
+          <div class="ac-fg full"><label class="ac-fl">이메일</label><input class="ac-inp" type="email" id="mp-f-email" disabled></div>
+          <div class="ac-fg full"><label class="ac-fl">주소</label><input class="ac-inp" type="text" id="mp-f-address"></div>
+        </div>
+        <div class="ac-err" id="mp-save-msg"></div>
+        <div class="ac-actions"><button class="btn" id="mp-save-btn" type="button">저장</button></div>
+      </div>
+
+      <div class="ac-mp-sec">
+        <h2>비밀번호 변경</h2>
+        <div class="ac-row">
+          <div class="ac-fg"><label class="ac-fl">새 비밀번호</label><input class="ac-inp" type="password" id="mp-pw"></div>
+          <div class="ac-fg"><label class="ac-fl">새 비밀번호 확인</label><input class="ac-inp" type="password" id="mp-pw2"></div>
+        </div>
+        <div class="ac-err" id="mp-pw-msg"></div>
+        <div class="ac-actions"><button class="btn ghost" id="mp-pw-btn" type="button">비밀번호 변경</button></div>
+      </div>
+
+      <div class="ac-mp-sec">
+        <h2>회원 탈퇴</h2>
+        <p style="font-size:12.5px;color:var(--ink-3);line-height:1.8;margin:0 0 14px">
+          탈퇴 시 로그인 및 게시판 글쓰기가 더 이상 되지 않습니다.
+        </p>
+        <div class="ac-actions"><button class="btn ghost" id="mp-wd-btn" type="button" style="color:#8C3A2E;border-color:#8C3A2E">회원 탈퇴</button></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script>
+(function(){
+  var STATUS_LABEL = { pending: '승인 대기', approved: '승인됨', rejected: '승인 거부', withdrawn: '탈퇴' };
+
+  function esc(v){ return String(v==null?'':v); }
+
+  function load(){
+    if (!window.CM) return setTimeout(load, 60);
+    CM.me().then(function(row){
+      if (!row || row.status === 'withdrawn') {
+        document.getElementById('mp-guard').style.display = '';
+        return;
+      }
+      document.getElementById('mp-body').style.display = '';
+      document.getElementById('mp-ava').textContent = (row.name||row.username||'?').trim().slice(0,1);
+      document.getElementById('mp-name').textContent = row.name || row.username;
+      document.getElementById('mp-type').textContent = (CM.TYPE_LABEL[row.member_type]||row.member_type);
+      var st = document.getElementById('mp-status');
+      st.textContent = STATUS_LABEL[row.status] || row.status;
+      st.className = 'ac-mp-badge ' + row.status;
+      document.getElementById('mp-f-name').value = row.name || '';
+      document.getElementById('mp-f-phone').value = row.phone || '';
+      document.getElementById('mp-f-email').value = row.email || '';
+      document.getElementById('mp-f-address').value = row.address || '';
+    });
+  }
+  load();
+
+  document.getElementById('mp-save-btn').addEventListener('click', function(){
+    var msg = document.getElementById('mp-save-msg'); msg.textContent='';
+    CM.updateMe({
+      name: document.getElementById('mp-f-name').value.trim(),
+      phone: document.getElementById('mp-f-phone').value.trim(),
+      address: document.getElementById('mp-f-address').value.trim()
+    }).then(function(r){
+      msg.textContent = r.ok ? '저장되었습니다.' : (r.msg||'저장 중 오류가 발생했습니다.');
+      msg.className = 'ac-err' + (r.ok ? ' ac-ok' : '');
+    });
+  });
+
+  document.getElementById('mp-pw-btn').addEventListener('click', function(){
+    var pw=document.getElementById('mp-pw').value, pw2=document.getElementById('mp-pw2').value;
+    var msg=document.getElementById('mp-pw-msg'); msg.textContent='';
+    if(!pw||pw.length<8){ msg.textContent='비밀번호는 8자 이상이어야 합니다.'; return; }
+    if(pw!==pw2){ msg.textContent='비밀번호가 서로 다릅니다.'; return; }
+    CM.updatePassword(pw).then(function(r){
+      msg.textContent = r.ok ? '비밀번호가 변경되었습니다.' : (r.msg||'변경 중 오류가 발생했습니다.');
+      msg.className = 'ac-err' + (r.ok ? ' ac-ok' : '');
+      if (r.ok) { document.getElementById('mp-pw').value=''; document.getElementById('mp-pw2').value=''; }
+    });
+  });
+
+  document.getElementById('mp-wd-btn').addEventListener('click', function(){
+    if (!confirm('정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    CM.withdraw().then(function(r){
+      if (r.ok) { alert('탈퇴 처리되었습니다.'); location.href = '/'; }
+      else alert(r.msg || '탈퇴 처리 중 오류가 발생했습니다.');
+    });
+  });
+})();
+</script>
+</body>
+</html>

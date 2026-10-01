@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>가입 완료 — OPUSFINE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/account.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<main class="ac-wrap">
+  <div class="ac-complete">
+    <div class="ico">&#10003;</div>
+    <h1 class="ac-h1">회원가입이 완료되었습니다</h1>
+    <p class="ac-sub" id="cm-msg">잠시 후 안내해 드리겠습니다.</p>
+    <div class="ac-actions" style="max-width:320px;margin:26px auto 0">
+      <a class="btn ghost" href="/account/login.html" style="justify-content:center">로그인하기</a>
+      <a class="btn" href="/" style="justify-content:center">홈으로</a>
+    </div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script>
+(function(){
+  var t = new URLSearchParams(location.search).get('type');
+  var el = document.getElementById('cm-msg');
+  if (!el) return;
+  if (t === 'general') {
+    el.textContent = '일반 회원은 가입 즉시 이용하실 수 있습니다. 바로 로그인해 보세요.';
+  } else {
+    el.textContent = '작가·미술관계자/단체·미술학교 회원은 관리자 확인 후 게시판 글쓰기 등 회원 전용 기능이 열립니다. 확인에는 다소 시간이 걸릴 수 있습니다.';
+  }
+})();
+</script>
+</body>
+</html>

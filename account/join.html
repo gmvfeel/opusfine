@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>회원가입 — OPUSFINE</title>
+<meta name="description" content="오퍼스파인 회원가입 — 회원 종류를 선택해 주세요.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/account.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="ac-bc"><a href="/">홈</a> / 이용 / 회원가입</div>
+
+<main class="ac-wrap wide">
+  <div class="ac-tag">MEMBERSHIP</div>
+  <h1 class="ac-h1">오퍼스파인 회원가입</h1>
+  <p class="ac-sub">해당하는 회원 종류를 선택해 주세요. 종류에 따라 입력 항목과<br>이용 가능한 범위에 차이가 있습니다.</p>
+
+  <div class="ac-types">
+    <div class="ac-type">
+      <div class="ac-type-label">MEMBER<br>01</div>
+      <div class="ac-type-body">
+        <h3>작가 회원</h3>
+        <p>순수미술을 전공했거나 작가로 활동·작업하시는 분, 유학·학위 과정 중이신 분</p>
+        <div class="ac-type-meta">자격 회원 · 관리자 승인 후 이용</div>
+      </div>
+      <a class="sel" href="/account/join-artist.html">선택하기</a>
+    </div>
+    <div class="ac-type">
+      <div class="ac-type-label">MEMBER<br>02</div>
+      <div class="ac-type-body">
+        <h3>미술관계자 및 단체·기관 회원</h3>
+        <p>갤러리·미술관·재단·미술단체·기업 등에 종사하시는 분</p>
+        <div class="ac-type-meta">자격 회원 · 관리자 승인 후 이용</div>
+      </div>
+      <a class="sel" href="/account/join-org.html">선택하기</a>
+    </div>
+    <div class="ac-type">
+      <div class="ac-type-label">MEMBER<br>03</div>
+      <div class="ac-type-body">
+        <h3>미술학교 회원</h3>
+        <p>미술학교(예중·예고·미대·미술원) 관계자·근무자, 학교 홍보를 원하시는 분</p>
+        <div class="ac-type-meta">자격 회원 · 관리자 승인 후 이용</div>
+      </div>
+      <a class="sel" href="/account/join-school.html">선택하기</a>
+    </div>
+    <div class="ac-type">
+      <div class="ac-type-label">MEMBER<br>04</div>
+      <div class="ac-type-body">
+        <h3>일반 회원</h3>
+        <p>미술 전공 중·고등학생, 전공생 학부모, 미술 애호가 및 그 외</p>
+        <div class="ac-type-meta">일반 회원 · 가입 즉시 이용</div>
+      </div>
+      <a class="sel" href="/account/join-general.html">선택하기</a>
+    </div>
+  </div>
+
+  <div class="ac-note-box">
+    작가·미술관계자/단체·미술학교 회원은 관리자 확인 후 게시판 글쓰기 등 회원 전용 기능이
+    열립니다. 확인에는 다소 시간이 걸릴 수 있습니다.
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+</body>
+</html>

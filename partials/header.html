@@ -11,8 +11,7 @@
       <a href="#">이용안내</a>
       <a href="#">고객지원</a>
       <span class="u-sep"></span>
-      <a class="act" href="#">로그인</a>
-      <a class="act" href="#">회원가입</a>
+      <span data-cm-auth style="display:inline-flex;align-items:center;gap:14px"><a class="act" href="/account/login.html">로그인</a><a class="act" href="/account/join.html">회원가입</a></span>
       <span class="u-sep"></span>
       <!-- ★ 언어 고르개는 <b>assets/i18n.js 가 스스로 붙입니다.</b>
            예전에는 여기에 <select> 가 있었는데 눌러도 아무 일이
@@ -216,7 +215,7 @@
         </div>
         <div class="fm-col">
           <h4>이용</h4>
-          <a href="#">로그인</a><a href="#">회원가입</a><a href="#">마이페이지</a>
+          <span data-cm-auth="wide" style="display:flex;flex-direction:column"><a href="/account/login.html">로그인</a><a href="/account/join.html">회원가입</a><a href="/account/mypage.html">마이페이지</a></span>
           <a href="#">이용안내·고객지원</a><a href="#">약관·정책</a>
           <a href="#">제휴문의</a><a href="#">광고안내</a>
         </div>
