@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>미술시장 발행 · 작업실 · OPUSFINE</title>
+<link rel="icon" href="/assets/ph-logo.svg">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE · 미술시장 발행 도구 · admin/market-write.html · 2026-10-01
+   ------------------------------------------------------------------
+   경매 결과·아트페어 결과·시장 리포트 3종을 운영자가 직접 쓰고
+   고치는 곳입니다. admin/index.html 과 같은 꾸밈(뇌록·금·Noto Serif
+   KR·Pretendard)을 그대로 쓰되, of.css 는 부르지 않습니다(그 화면과
+   같은 규칙).
+
+   ★ 글쓰기는 공개 회원 체계(community_members)가 아니라 이 작업실의
+     운영자 로그인(public.members·is_admin)으로만 됩니다 — DB 쪽
+     market_posts RLS(mp_insert/mp_update/mp_delete)가 그것만 받습니다.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FBFAF7; --ink:#17171A; --ink-2:#5F5F64; --ink-3:#95949A;
+  --rule:#E5E3DC; --nok:#1F4B47; --nok-pale:#E9F0EE;
+  --gold:#A8863C; --warn:#8C3A2B;
+  --serif:'Noto Serif KR',serif;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.75 var(--sans);
+  word-break:keep-all;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--nok);outline-offset:3px;border-radius:3px}
+
+.band{background:var(--nok);color:#F3F6F5}
+.band .in{max-width:760px;margin:0 auto;padding:26px 22px 24px}
+.band h1{margin:0;font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:.02em}
+.band p{margin:6px 0 0;font-size:13.5px;color:#B9CCC8;line-height:1.7}
+.band .back{display:inline-block;margin-top:10px;font-size:12.5px;color:#B9CCC8;text-decoration:none}
+.band .back:hover{color:#fff}
+
+.wrap{max-width:760px;margin:0 auto;padding:30px 22px 90px}
+
+.cattabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+.cattabs button{font-size:13px;color:var(--ink-2);border:1px solid var(--rule);background:#fff;
+  padding:8px 16px;border-radius:20px;cursor:pointer}
+.cattabs button.on{color:#fff;background:var(--nok);border-color:var(--nok)}
+
+.recent{margin:0 0 28px}
+.recent h2{margin:0 0 8px;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink-2)}
+.recent ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.recent li{border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px;
+  padding:9px 2px;font-size:13px}
+.recent a{color:var(--ink);text-decoration:none}
+.recent a:hover{color:var(--nok)}
+.recent .d{color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.recent .new{display:inline-block;margin-top:4px;font-size:12.5px;color:var(--nok);font-weight:600;text-decoration:none}
+
+.form-box{border:1px solid var(--rule);border-radius:10px;padding:24px;background:#fff}
+.fg{margin:0 0 16px}
+.fg label{display:block;margin:0 0 6px;font-size:12.5px;color:var(--ink-2)}
+.fg .req{color:var(--warn)}
+.fg input[type=text],.fg input[type=date],.fg input[type=url],.fg textarea,.fg select{
+  width:100%;padding:10px 12px;border:1px solid var(--rule);border-radius:6px;
+  font:14px/1.6 var(--sans);background:#fff;color:var(--ink)}
+.fg textarea{resize:vertical}
+.fg input:focus,.fg textarea:focus,.fg select:focus{outline:2px solid var(--nok);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.row2{grid-template-columns:1fr}}
+.chk{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.chk input{width:auto}
+
+.actions{display:flex;gap:10px;align-items:center;margin-top:6px}
+.actions button{padding:11px 22px;border-radius:6px;font:600 14px/1 var(--sans);cursor:pointer}
+.btn-primary{border:1px solid var(--nok);background:var(--nok);color:#fff}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.btn-del{margin-left:auto;border:1px solid var(--warn);background:#fff;color:var(--warn)}
+.err{margin:10px 0 0;font-size:12.5px;color:var(--warn);min-height:1.6em}
+.ok{margin:10px 0 0;font-size:12.5px;color:var(--nok)}
+
+.guard{text-align:center;padding:80px 20px;color:var(--ink-3);font-size:14px;line-height:1.9}
+.guard a{color:var(--nok)}
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="in">
+    <h1>미술시장 발행</h1>
+    <p>경매 결과·아트페어 결과·시장 리포트를 씁니다. 여기서 한 일은 곧바로 사이트에 나타납니다.</p>
+    <p id="who" style="margin-top:10px;font-size:12.5px;color:#B9CCC8">
+      <a href="/admin/login.html?next=/admin/market-write.html" style="color:#F3F6F5;text-decoration:underline">로그인</a>
+    </p>
+    <a class="back" href="/admin/">← 작업실</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="guardBox" class="guard" style="display:none"></div>
+
+  <div id="mainBox" style="display:none">
+    <div class="cattabs" id="catTabs"></div>
+
+    <div class="recent">
+      <h2>최근 글</h2>
+      <ul id="recentList"></ul>
+      <a class="new" id="newLink" href="#">+ 새 글 쓰기</a>
+    </div>
+
+    <div class="form-box">
+      <h2 id="formTitle" style="margin:0 0 18px;font-family:var(--serif);font-size:17px;font-weight:600">새 글 쓰기</h2>
+
+      <div class="fg">
+        <label>분류</label>
+        <select id="f-category">
+          <option value="auction-result">경매 결과</option>
+          <option value="art-fair-result">아트페어 결과</option>
+          <option value="market-report">시장 리포트</option>
+        </select>
+      </div>
+      <div class="fg"><label>제목 <span class="req">*</span></label><input type="text" id="f-title"></div>
+      <div class="row2">
+        <div class="fg"><label>주최·출처</label><input type="text" id="f-organizer"></div>
+        <div class="fg"><label>장소</label><input type="text" id="f-location"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label id="f-event_date-label">날짜</label><input type="date" id="f-event_date"></div>
+        <div class="fg"><label>관련 링크</label><input type="text" id="f-link" placeholder="https:// (선택)"></div>
+      </div>
+      <div class="fg"><label>대표 이미지 URL</label><input type="text" id="f-thumb" placeholder="https:// (선택)"></div>
+      <div class="fg"><label>내용 <span class="req">*</span></label><textarea id="f-body" rows="10" placeholder="본문을 입력하세요"></textarea></div>
+      <div class="row2">
+        <div class="chk"><input type="checkbox" id="f-pinned"><label for="f-pinned">목록 맨 위 고정</label></div>
+        <div class="chk"><input type="checkbox" id="f-hidden"><label for="f-hidden">숨김(비공개)</label></div>
+      </div>
+
+      <p class="err" id="formErr"></p>
+      <p class="ok" id="formOk"></p>
+      <div class="actions">
+        <button class="btn-primary" id="saveBtn" type="button">저장</button>
+        <button class="btn-del" id="delBtn" type="button" style="display:none">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/admin-guard.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var CATS = [
+    { v: 'auction-result', label: '경매 결과', dateLabel: '경매일' },
+    { v: 'art-fair-result', label: '아트페어 결과', dateLabel: '개최일' },
+    { v: 'market-report', label: '시장 리포트', dateLabel: '' }
+  ];
+  var cur = CATS[0].v;
+  var editId = null;
+  var sbRef = null;
+
+  function esc(v) { var d = document.createElement('div'); d.textContent = (v == null ? '' : String(v)); return d.innerHTML; }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso); if (isNaN(d)) return String(iso).slice(0, 10);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate());
+  }
+  function catInfo(v) { return CATS.filter(function (c) { return c.v === v; })[0] || CATS[0]; }
+
+  function paintTabs() {
+    var el = document.getElementById('catTabs');
+    el.innerHTML = CATS.map(function (c) {
+      return '<button type="button" class="' + (c.v === cur ? 'on' : '') + '" data-cat="' + c.v + '">' + esc(c.label) + '</button>';
+    }).join('');
+    el.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        cur = b.getAttribute('data-cat');
+        paintTabs();
+        resetForm();
+        loadRecent();
+      });
+    });
+  }
+
+  function resetForm() {
+    editId = null;
+    document.getElementById('formTitle').textContent = '새 글 쓰기';
+    document.getElementById('f-category').value = cur;
+    ['title', 'organizer', 'location', 'event_date', 'link', 'thumb', 'body'].forEach(function (k) {
+      var el = document.getElementById('f-' + k); if (el) el.value = '';
+    });
+    document.getElementById('f-pinned').checked = false;
+    document.getElementById('f-hidden').checked = false;
+    document.getElementById('delBtn').style.display = 'none';
+    document.getElementById('formErr').textContent = '';
+    document.getElementById('formOk').textContent = '';
+    var ci = catInfo(cur);
+    document.getElementById('f-event_date-label').textContent = ci.dateLabel || '날짜';
+  }
+
+  function loadRecent() {
+    var ul = document.getElementById('recentList');
+    ul.innerHTML = '<li>불러오는 중…</li>';
+    sbRef.from('market_posts').select('id,title,created_at,hidden')
+      .eq('category', cur).order('created_at', { ascending: false }).limit(10)
+      .then(function (r) {
+        if (r.error) { ul.innerHTML = '<li>' + esc(r.error.message) + '</li>'; return; }
+        if (!r.data.length) { ul.innerHTML = '<li style="color:var(--ink-3)">아직 글이 없습니다.</li>'; return; }
+        ul.innerHTML = r.data.map(function (p) {
+          return '<li><a href="#" data-id="' + p.id + '">' + esc(p.title) + (p.hidden ? ' (숨김)' : '') + '</a>'
+            + '<span class="d">' + fmtDate(p.created_at) + '</span></li>';
+        }).join('');
+        ul.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function (e) { e.preventDefault(); loadForEdit(Number(a.getAttribute('data-id'))); });
+        });
+      });
+  }
+
+  function loadForEdit(id) {
+    sbRef.from('market_posts').select('*').eq('id', id).maybeSingle().then(function (r) {
+      if (r.error || !r.data) { document.getElementById('formErr').textContent = '글을 불러오지 못했습니다.'; return; }
+      var o = r.data;
+      editId = o.id;
+      cur = o.category;
+      paintTabs();
+      document.getElementById('formTitle').textContent = '글 수정';
+      document.getElementById('f-category').value = o.category;
+      document.getElementById('f-title').value = o.title || '';
+      document.getElementById('f-organizer').value = o.organizer || '';
+      document.getElementById('f-location').value = o.location || '';
+      document.getElementById('f-event_date').value = o.event_date || '';
+      document.getElementById('f-link').value = o.link_url || '';
+      document.getElementById('f-thumb').value = o.thumb_url || '';
+      document.getElementById('f-body').value = o.body || '';
+      document.getElementById('f-pinned').checked = !!o.is_pinned;
+      document.getElementById('f-hidden').checked = !!o.hidden;
+      document.getElementById('delBtn').style.display = '';
+      var ci = catInfo(o.category);
+      document.getElementById('f-event_date-label').textContent = ci.dateLabel || '날짜';
+      window.scrollTo({ top: document.querySelector('.form-box').offsetTop - 20, behavior: 'smooth' });
+    });
+  }
+
+  function save() {
+    var errEl = document.getElementById('formErr'), okEl = document.getElementById('formOk');
+    errEl.textContent = ''; okEl.textContent = '';
+    var title = document.getElementById('f-title').value.trim();
+    var body = document.getElementById('f-body').value.trim();
+    if (!title) { errEl.textContent = '제목을 입력해 주세요.'; document.getElementById('f-title').focus(); return; }
+    if (!body) { errEl.textContent = '내용을 입력해 주세요.'; document.getElementById('f-body').focus(); return; }
+
+    var payload = {
+      category: document.getElementById('f-category').value,
+      title: title,
+      body: body,
+      organizer: document.getElementById('f-organizer').value.trim() || null,
+      location: document.getElementById('f-location').value.trim() || null,
+      event_date: document.getElementById('f-event_date').value || null,
+      link_url: document.getElementById('f-link').value.trim() || null,
+      thumb_url: document.getElementById('f-thumb').value.trim() || null,
+      is_pinned: document.getElementById('f-pinned').checked,
+      hidden: document.getElementById('f-hidden').checked
+    };
+
+    var saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true; saveBtn.textContent = '저장 중…';
+
+    var q = editId
+      ? sbRef.from('market_posts').update(payload).eq('id', editId).select('id').maybeSingle()
+      : sbRef.from('market_posts').insert(payload).select('id').maybeSingle();
+
+    q.then(function (r) {
+      saveBtn.disabled = false; saveBtn.textContent = '저장';
+      if (r.error) { errEl.textContent = '저장 중 오류가 발생했습니다 — ' + r.error.message; return; }
+      editId = r.data && r.data.id;
+      okEl.textContent = '저장했습니다.';
+      document.getElementById('delBtn').style.display = '';
+      cur = payload.category;
+      paintTabs();
+      loadRecent();
+    });
+  }
+
+  function del() {
+    if (!editId) return;
+    if (!confirm('이 글을 삭제하시겠습니까?')) return;
+    sbRef.from('market_posts').delete().eq('id', editId).then(function (r) {
+      if (r.error) { document.getElementById('formErr').textContent = '삭제 중 오류가 발생했습니다 — ' + r.error.message; return; }
+      resetForm();
+      loadRecent();
+    });
+  }
+
+  function boot(sb) {
+    sbRef = sb;
+    document.getElementById('guardBox').style.display = 'none';
+    document.getElementById('mainBox').style.display = '';
+    paintTabs();
+    resetForm();
+    loadRecent();
+    document.getElementById('newLink').addEventListener('click', function (e) { e.preventDefault(); resetForm(); });
+    document.getElementById('f-category').addEventListener('change', function () {
+      var ci = catInfo(this.value);
+      document.getElementById('f-event_date-label').textContent = ci.dateLabel || '날짜';
+    });
+    document.getElementById('saveBtn').addEventListener('click', save);
+    document.getElementById('delBtn').addEventListener('click', del);
+  }
+
+  function showGuard(msg) {
+    document.getElementById('mainBox').style.display = 'none';
+    var g = document.getElementById('guardBox');
+    g.style.display = '';
+    g.innerHTML = esc(msg) + ' <a href="/admin/login.html?next=/admin/market-write.html">로그인하기 →</a>';
+  }
+
+  (function wait() {
+    if (!window.OF || !OF.sb) return setTimeout(wait, 50);
+    OF.sb().then(function (sb) {
+      if (!sb) { showGuard('접속 객체를 만들지 못했습니다.'); return; }
+      OFAdminGuard.check(sb).then(function (r) {
+        if (!r.ok) { showGuard(r.msg || '관리자만 쓸 수 있습니다.'); return; }
+        boot(sb);
+      });
+    });
+  })();
+})();
+</script>
+</body>
+</html>
