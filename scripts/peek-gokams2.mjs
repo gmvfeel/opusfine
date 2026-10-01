@@ -24,6 +24,17 @@ async function get(url) {
     await new Promise((res) => setTimeout(res, 300));
   }
 
+  console.log('\n── art_view.asp?idx=30 라벨 구조 확인 ──');
+  {
+    const r3 = await get('https://www.gokams.or.kr/visual-art/art-terms/glossary/art_view.asp?idx=30&page=1');
+    for (const label of ['국문', '영문', '중문', '일문', '한문', '소개', '관련용어', '비고', '구분']) {
+      const i = r3.body.indexOf(label);
+      if (i >= 0) {
+        console.log('  "' + label + '" 주변: ' + r3.body.slice(i, i + 200).replace(/\s+/g, ' '));
+      }
+    }
+  }
+
   console.log('\n── art_list.asp 전체 건수(초기 상태) ──');
   const r2 = await get('https://www.gokams.or.kr/visual-art/art-terms/glossary/art_list.asp');
   console.log('status', r2.status, 'len', r2.len);
