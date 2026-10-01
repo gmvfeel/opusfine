@@ -31,7 +31,10 @@
     venues:      'venues',
     /* ★ 2026-10-01 · 기관·재단 목록·상세 화면이 생기면서 더했습니다 —
          exhibitions.organizer 글자칸에서 뽑아 만든 institutions 표입니다. */
-    foundations: 'institutions'
+    foundations: 'institutions',
+    /* ★ 2026-10-01 · 학술 목록·상세 화면이 생기면서 더했습니다 —
+         OpenAlex 에서 받은 papers 표입니다. */
+    papers:      'papers'
     /* groups: 'groups', … */
   };
 

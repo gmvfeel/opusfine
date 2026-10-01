@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>학술 — OPUSFINE</title>
+<meta name="description" content="한국 소속 저자의 미술 관련 학술 논문을 모읍니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   학술 논문 목록 · 2026-10-01
+   ------------------------------------------------------------------
+   ★ school.html/venue.html 을 본떴습니다 — 글자가 주인공인 카드.
+   ★ 자료원: OpenAlex(api.openalex.org) · 저자 소속 기관 중 하나라도
+     한국(KR)인 논문만, 미술 관련 subfield(시각·공연예술/박물관학/보존학)로
+     걸러 받았습니다. 오퍼스파인은 한국 미술 아카이브이므로 처음엔
+     이 범위로 좁혀 받았습니다.
+   ★★ subfield 로 거르면 패션·의류, 미술치료, 만화교육처럼 순수미술과
+     거리가 있는 주제도 함께 들어옵니다. <b>걸러내지 않고</b> 주제(topic)
+     글자를 그대로 보여 줍니다 — 화면에서 사람이 직접 가를 수 있고,
+     스크립트가 섣불리 잘라내는 것보다 투명합니다. 주제 추리개로
+     원하는 범위를 좁혀 볼 수 있습니다.
+   ★ 클래스 접두사 <b>sl-</b> 를 그대로 씁니다(미술학교 목록과 같은 모양).
+   ══════════════════════════════════════════════════════════════════ */
+
+.bc{font-size:11.5px;color:var(--ink-3)}
+.bc a:hover{color:var(--ink)}
+.demo-note{font-size:11.5px;color:var(--ink-3);border:1px solid var(--rule-2);
+  padding:11px 14px;line-height:1.75}
+.demo-note b{color:var(--accent-2);font-weight:600}
+
+.sl-top{padding:30px 0 26px}
+.sl-top h1{font-family:var(--serif);font-weight:200;font-size:clamp(30px,3.8vw,44px);
+  letter-spacing:-.03em;margin:12px 0 0}
+.sl-top h1 b{font-weight:400}
+.sl-top p{margin:14px 0 0;font-size:14px;color:var(--ink-2);max-width:44em;line-height:1.9}
+.sl-cnt{margin-top:18px;font-size:13px;color:var(--ink-2)}
+.sl-cnt b{font-family:var(--serif);font-size:19px;color:var(--accent);font-weight:500;
+  font-variant-numeric:tabular-nums}
+
+.sl-filters{padding:18px 0;border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);position:sticky;top:66px;z-index:40;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px)}
+.sl-frow{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.sl-fgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sl-fgrp .sl-fl{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);
+  text-transform:uppercase;margin-right:2px}
+.sl-chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule-2);
+  background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.16s}
+.sl-chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.sl-chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.sl-fright{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.sl-srch{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rule);
+  padding-bottom:5px;min-width:0;flex:1 1 120px}
+.sl-srch input{border:0;background:transparent;font-family:inherit;font-size:13px;
+  color:var(--ink);width:100%;min-width:0;outline:none}
+.sl-srch input::placeholder{color:var(--ink-3)}
+
+.sl-grid{display:grid;grid-template-columns:1fr;gap:0;padding:34px 0 20px}
+.sl-item{border-top:1px solid var(--rule-2);padding:20px 0;display:block;
+  transition:padding-left .2s}
+.sl-item:first-child{border-top:0}
+.sl-item:hover{padding-left:8px}
+.sl-nm{display:block;font-family:var(--serif);font-size:16.5px;font-weight:500;
+  line-height:1.55;letter-spacing:-.01em}
+.sl-item:hover .sl-nm{color:var(--accent)}
+.sl-au{display:block;font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.6}
+.sl-meta{display:block;font-size:11.5px;color:var(--ink-3);margin-top:7px;
+  font-variant-numeric:tabular-nums}
+.sl-meta i{font-style:normal;margin:0 6px}
+.sl-meta .oa{color:var(--accent-2);font-weight:600}
+
+.sl-more{display:flex;justify-content:center;padding:10px 0 24px}
+.sl-more button{font-family:inherit;font-size:13.5px;font-weight:600;padding:14px 40px;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.sl-more button:hover{background:var(--ink);color:#fff}
+
+.sl-skel{border-top:1px solid var(--rule-2);padding:20px 0}
+.sl-skel span{display:block;height:12px;background:repeating-linear-gradient(135deg,#FBFAF8,#FBFAF8 8px,#F3F2EE 8px,#F3F2EE 16px);margin-bottom:8px}
+
+html[data-theme="dark"] .sl-filters{background:rgba(20,20,22,.94)}
+html[data-theme="dark"] .sl-more button:hover{background:var(--ink);color:var(--paper)}
+
+@media(max-width:860px){
+  .sl-filters{position:static}
+  .sl-fright{margin-left:0;width:100%}
+}
+</style>
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="wrap sl-top">
+  <div class="bc" style="padding:0"><a href="/">홈</a> / <a href="/db/artist.html">아카이브</a> / 학술</div>
+  <div class="label" style="margin-top:14px">Papers</div>
+  <h1>학술 <b>아카이브</b></h1>
+  <p>
+    미술을 다룬 학술 논문입니다. 한국 소속 저자가 쓴 글 가운데, 시각예술·박물관학·보존학
+    분야로 걸러 받았습니다. 패션·미술치료처럼 순수미술과는 결이 다른 주제도 함께
+    섞여 있어, 아래 주제 추리개로 범위를 좁혀 볼 수 있습니다.
+  </p>
+  <div class="sl-cnt" id="slCnt">불러오는 중…</div>
+</div>
+
+<div class="sl-filters">
+  <div class="wrap sl-frow">
+    <div class="sl-fgrp" id="slFSort">
+      <span class="sl-fl">차례</span>
+      <button class="sl-chip on" data-s="cited">많이 인용된순</button>
+      <button class="sl-chip" data-s="year">최신순</button>
+    </div>
+    <div class="sl-fgrp" id="slFTopic">
+      <span class="sl-fl">주제</span>
+      <button class="sl-chip on" data-t="">전체</button>
+    </div>
+    <div class="sl-fright">
+      <div class="sl-srch">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B9B9E" stroke-width="1.6">
+          <circle cx="7" cy="7" r="5"/><path d="M11 11 L14.5 14.5"/>
+        </svg>
+        <input type="search" placeholder="제목·저자로 찾기" id="slQ">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="demo-note" style="margin-top:22px">
+    자료원: <b>OpenAlex</b> · 저자 소속 기관 중 하나라도 한국인 논문만 ·
+    시각·공연예술/박물관학/보존학 subfield 로 걸렀습니다 — 공연예술·패션·미술치료 등
+    인접 분야도 섞여 있으며, 아직 더 정밀하게 가르지 않았습니다
+  </p>
+
+  <div class="sl-grid" id="slGrid"></div>
+  <div class="sl-more" id="slMore" hidden><button>더 보기</button></div>
+</div>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/paper-list.js"></script>
+</body>
+</html>

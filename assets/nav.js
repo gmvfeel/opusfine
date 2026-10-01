@@ -23,7 +23,9 @@
                 /* ★ 2026-10-01 · venues 를 더했습니다. 전시공간. */
                 venues: 'venues',
                 /* ★ 2026-10-01 · institutions 를 더했습니다. 기관·재단. */
-                foundations: 'institutions' };
+                foundations: 'institutions',
+                /* ★ 2026-10-01 · papers 를 더했습니다. 학술. */
+                papers: 'papers' };
   var done = false;
 
   function esc(s) {
