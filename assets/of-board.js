@@ -133,7 +133,7 @@ window.OFBoard = (function () {
 
     function query() {
       var p = [];
-      p.push('select=id,title,category,thumb_url,file_name,link_url,author_id,view_count,is_pinned,created_at,body');
+      p.push('select=id,title,category,thumb_url,file_name,link_url,author_id,view_count,is_pinned,created_at,body,event_date,location,organizer');
       p.push('board=eq.' + encodeURIComponent(cfg.board));
       p.push('hidden=eq.false');
       if (cat) p.push('category=eq.' + encodeURIComponent(cat));
@@ -164,17 +164,21 @@ window.OFBoard = (function () {
       var au = authors[p.author_id];
       var auName = au ? au.display_name : '탈퇴회원';
       var th = p.thumb_url ? '<span class="bb-row-thumb"><img src="' + esc(p.thumb_url) + '" alt="" loading="lazy" onerror="this.closest(\'.bb-row-thumb\').remove()"></span>' : '';
+      var dateLabel = cfg.dateLabel || '';
+      var evt = (p.event_date && dateLabel) ? '<span class="bb-tag evt">' + esc(dateLabel) + ' ' + fmtDate(p.event_date) + '</span>' : '';
+      var orgLoc = [p.organizer, p.location].filter(Boolean).map(esc).join(' · ');
       return '<a class="bb-row' + (p.is_pinned ? ' pin' : '') + (th ? ' has-thumb' : '') + '" href="' + vp + '">'
         + th
         + '<span class="bb-row-main">'
         +   '<span class="bb-row-head">'
         +     (p.is_pinned ? '<span class="bb-tag pin">고정</span>' : '')
         +     (p.category ? '<span class="bb-tag">' + esc(p.category) + '</span>' : '')
+        +     evt
         +     '<span class="bb-row-by">' + esc(auName) + '</span>'
         +     '<span class="bb-row-date">' + fmtDate(p.created_at) + '</span>'
         +   '</span>'
         +   '<span class="bb-row-title">' + esc(p.title || '') + (p.link_url ? ' <i class="bb-ext">↗</i>' : '') + (p.file_name ? ' <i class="bb-file">📎</i>' : '') + '</span>'
-        +   (p.body ? '<span class="bb-row-prev">' + previewText(p.body) + '</span>' : '')
+        +   (orgLoc ? '<span class="bb-row-prev">' + orgLoc + '</span>' : (p.body ? '<span class="bb-row-prev">' + previewText(p.body) + '</span>' : ''))
         + '</span>'
         + '<span class="bb-row-views">조회 ' + (p.view_count || 0) + '</span>'
         + '</a>';
@@ -232,10 +236,18 @@ window.OFBoard = (function () {
           var link = o.link_url ? '<a class="bb-extlink" href="' + esc(o.link_url) + '" target="_blank" rel="noopener">관련 링크 바로가기 ↗</a>' : '';
           var body = o.body ? '<div class="bb-body">' + nl2br(o.body) + '</div>' : '';
 
+          var dateLabel = cfg.dateLabel || '';
+          var infoLine = [];
+          if (o.organizer) infoLine.push('주최 ' + esc(o.organizer));
+          if (o.location) infoLine.push('장소 ' + esc(o.location));
+          if (o.event_date && dateLabel) infoLine.push(esc(dateLabel) + ' ' + fmtDate(o.event_date));
+          var infoBox = infoLine.length ? '<div class="bb-info">' + infoLine.join('<i>·</i>') + '</div>' : '';
+
           box.innerHTML =
             '<div class="bb-head">'
             + (o.category ? '<span class="bb-tag">' + esc(o.category) + '</span>' : '')
             + '<h1 class="bb-title">' + esc(o.title || '') + '</h1>'
+            + infoBox
             + '<div class="bb-meta"><span>' + esc(auName) + '</span><span>' + fmtDate(o.created_at) + '</span><span>조회 ' + (o.view_count || 0) + '</span></div>'
             + '</div>'
             + file + thumb + body + link

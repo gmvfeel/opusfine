@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<title>아트페어 — 글쓰기 — OPUSFINE</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="/assets/account.css">
+<link rel="stylesheet" href="/assets/board.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="bb-bc"><a href="/">홈</a> / 정보SPOT / <a href="/spot/art-fair.html">아트페어</a> / 글쓰기</div>
+
+<main class="ac-wrap">
+  <h1 class="ac-h1" id="bwPageTitle">아트페어 정보 올리기</h1>
+
+  <div id="bwGuard" class="bb-guard" style="display:none"></div>
+
+  <div id="bwForm" class="bb-write-box">
+    <div class="ac-fg"><label class="ac-fl">아트페어명 <span class="req">*</span></label><input class="ac-inp" type="text" id="bw-title"></div>
+    <div class="ac-fg"><label class="ac-fl">주최</label><input class="ac-inp" type="text" id="bw-organizer"></div>
+    <div class="ac-fg"><label class="ac-fl">개최지</label><input class="ac-inp" type="text" id="bw-location"></div>
+    <div class="ac-fg"><label class="ac-fl">개최일</label><input class="ac-inp" type="date" id="bw-event_date"></div>
+    <div class="ac-fg"><label class="ac-fl">내용 <span class="req">*</span></label><textarea class="ac-inp" id="bw-body" rows="8" placeholder="참여 갤러리·부스 정보·관람 안내 등"></textarea></div>
+    <div class="ac-fg"><label class="ac-fl">공식 안내 링크</label><input class="ac-inp" type="text" id="bw-link" placeholder="https:// (선택)"></div>
+    <div class="ac-err" id="bwErr"></div>
+    <div class="ac-actions">
+      <a class="btn ghost" href="/spot/art-fair.html" style="justify-content:center">취소</a>
+      <button class="btn" id="bwSubmit" type="button">등록</button>
+    </div>
+  </div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script>
+window.__bwCfg = {
+  board: 'art-fair',
+  listPage: '/spot/art-fair.html',
+  viewPage: '/spot/art-fair-view.html',
+  fields: [
+    { id: 'bw-title', col: 'title', required: true, label: '아트페어명' },
+    { id: 'bw-organizer', col: 'organizer' },
+    { id: 'bw-location', col: 'location' },
+    { id: 'bw-event_date', col: 'event_date' },
+    { id: 'bw-body', col: 'body', required: true, label: '내용' },
+    { id: 'bw-link', col: 'link_url' }
+  ]
+};
+</script>
+<script src="/assets/of-board-write.js"></script>
+</body>
+</html>
