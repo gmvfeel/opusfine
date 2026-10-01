@@ -40,8 +40,11 @@
     contemporary: 'contemporary_artists',
     /* ★ 2026-10-01 · 용어사전 목록이 생기면서 더했습니다 — GOKAMS 미술
          용어 616개를 담은 glossary 표입니다. */
-    glossary: 'glossary'
-    /* groups: 'groups', … */
+    glossary: 'glossary',
+    /* ★ 2026-10-01 · 미술단체 목록이 생기면서 더했습니다 — 공공데이터
+         포털 문화예술교육 단체 목록에서 활동분야에 "미술"이 들어간
+         573건을 담은 groups 표입니다. */
+    groups: 'groups'
   };
 
   /* ★★ 2026-09-29 · statement timeout 의 진짜 원인은 RLS 조건과

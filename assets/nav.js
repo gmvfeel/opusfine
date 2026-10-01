@@ -29,7 +29,9 @@
                 /* ★ 2026-10-01 · contemporary_artists 를 더했습니다. 현대미술. */
                 contemporary: 'contemporary_artists',
                 /* ★ 2026-10-01 · glossary 를 더했습니다. 용어사전. */
-                glossary: 'glossary' };
+                glossary: 'glossary',
+                /* ★ 2026-10-01 · groups 를 더했습니다. 미술단체. */
+                groups: 'groups' };
   var done = false;
 
   function esc(s) {
