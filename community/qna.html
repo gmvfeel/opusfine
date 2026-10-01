@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>지식나눔 Q&amp;A — OPUSFINE</title>
+<meta name="description" content="미술에 관해 궁금한 것을 묻고 답하는 회원 전용 게시판입니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=&apos;http://www.w3.org/2000/svg&apos; viewBox=&apos;0 0 32 32&apos;%3E%3Crect width=&apos;32&apos; height=&apos;32&apos; fill=&apos;%23fff&apos;/%3E%3Cpath d=&apos;M5 26 C 11 9, 22 3, 28 9&apos; fill=&apos;none&apos; stroke=&apos;%2317171A&apos; stroke-width=&apos;5.5&apos; stroke-linecap=&apos;round&apos;/%3E%3Ccircle cx=&apos;26&apos; cy=&apos;25&apos; r=&apos;3.2&apos; fill=&apos;%231F4B47&apos;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="/assets/of.css">
+<link rel="stylesheet" href="/assets/board.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+
+<div data-include="/partials/header.html"></div>
+
+<div class="bb-bc"><a href="/">홈</a> / 커뮤니티 / 지식나눔 Q&amp;A</div>
+
+<main class="bb-wrap">
+  <div class="bb-tag-lab">COMMUNITY</div>
+  <h1 class="bb-h1">지식나눔 Q&amp;A</h1>
+  <p class="bb-sub">미술에 관해 궁금한 것을 묻고 답하는 회원 전용 게시판입니다. 댓글로 답변을 남겨 주세요.</p>
+
+  <div class="bb-toolbar">
+    <div class="bb-cats"></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <input class="bb-q" type="text" placeholder="검색">
+      <span class="bb-cnt"></span>
+    </div>
+    <div class="bb-writegate"></div>
+  </div>
+
+  <div class="bb-list"></div>
+  <div class="bb-more" hidden><button type="button">더 보기</button></div>
+</main>
+
+<div data-include="/partials/footer.html"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/include.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/cm-auth.js"></script>
+<script src="/assets/nav.js"></script>
+<script src="/assets/of-board.js"></script>
+<script>
+OFBoard.list({
+  board: 'qna',
+  viewPage: '/community/qna-view.html',
+  writePage: '/community/qna-write.html',
+  categories: ['전체', '재료/기법', '전시/활동', '진로/입시', '기타']
+});
+</script>
+</body>
+</html>

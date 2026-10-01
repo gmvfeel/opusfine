@@ -1,0 +1,90 @@
+/* ══════════════════════════════════════════════════════════════════
+   OPUSFINE 회원 게시판 공용 꾸밈 · assets/board.css · 2026-10-01
+   ------------------------------------------------------------------
+   핫토픽·전시기록·내 작업 어때요·Q&A·미술입시·뉴스·자료실 7개 게시판이
+   모두 이 한 파일을 씁니다(of.css 토큰 위에 얹습니다). account.css 와
+   같은 이유로 공용 파일로 뺐습니다 — 같은 목록/상세/글쓰기 뼈대를
+   일곱 화면이 나눠 쓰기 때문입니다.
+   ══════════════════════════════════════════════════════════════════ */
+.bb-wrap{max-width:860px;margin:0 auto;padding:46px 20px 90px}
+.bb-bc{font-size:11.5px;color:var(--ink-3);max-width:var(--wrap);margin:0 auto;padding:26px 20px 0}
+.bb-bc a:hover{color:var(--ink)}
+
+.bb-tag-lab{display:block;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:10px}
+.bb-h1{font-family:var(--serif);font-weight:200;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em;text-align:center;margin:0 0 10px}
+.bb-sub{font-size:13.5px;color:var(--ink-2);text-align:center;line-height:1.8;margin:0 0 30px;max-width:46em;margin-left:auto;margin-right:auto}
+
+.bb-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.bb-cats{display:flex;flex-wrap:wrap;gap:8px}
+.bb-chip{font-size:12px;color:var(--ink-2);border:1px solid var(--rule-2);background:var(--paper);padding:6px 13px;cursor:pointer}
+.bb-chip.on{color:#fff;background:var(--ink);border-color:var(--ink)}
+.bb-q{padding:9px 12px;border:1px solid var(--rule-2);font-size:13px;min-width:200px;font-family:var(--sans)}
+.bb-cnt{font-size:12px;color:var(--ink-3)}
+.bb-writegate{font-size:12.5px}
+.bb-writegate .btn{padding:9px 18px;font-size:12.5px}
+.bb-pending{color:var(--ink-3)}
+
+.bb-list{border-top:1px solid var(--rule)}
+.bb-row{display:flex;gap:14px;align-items:flex-start;padding:17px 4px;border-bottom:1px solid var(--rule-2);text-decoration:none;color:inherit}
+.bb-row:hover .bb-row-title{color:var(--accent)}
+.bb-row.pin{background:var(--rule-2)}
+.bb-row-thumb{flex:0 0 auto;width:64px;height:64px;overflow:hidden;background:var(--rule-2)}
+.bb-row-thumb img{width:100%;height:100%;object-fit:cover}
+.bb-row-main{flex:1;min-width:0}
+.bb-row-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);margin-bottom:4px}
+.bb-tag{font-size:10.5px;color:var(--accent);border:1px solid var(--accent);padding:1px 7px}
+.bb-tag.pin{color:#fff;background:var(--accent-2);border-color:var(--accent-2)}
+.bb-row-by{color:var(--ink-2)}
+.bb-row-title{display:block;font-size:15px;color:var(--ink);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bb-ext,.bb-file{font-style:normal;font-size:11px;color:var(--ink-3)}
+.bb-row-prev{display:block;font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bb-row-views{flex:0 0 auto;font-size:11.5px;color:var(--ink-3);padding-top:2px}
+
+.bb-empty{padding:70px 20px;text-align:center;color:var(--ink-3);font-size:14px;line-height:1.8}
+.bb-skel{height:58px;background:var(--rule-2);margin-bottom:8px}
+
+.bb-more{text-align:center;margin-top:22px}
+.bb-more button{padding:10px 26px;font-size:12.5px;border:1px solid var(--rule-2);background:var(--paper);cursor:pointer;color:var(--ink-2)}
+.bb-more button:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ── 상세 ── */
+.bb-head{border-bottom:1px solid var(--rule-2);padding-bottom:18px;margin-bottom:22px}
+.bb-title{font-family:var(--serif);font-weight:300;font-size:clamp(20px,2.6vw,27px);margin:8px 0 12px;line-height:1.4}
+.bb-meta{display:flex;gap:12px;font-size:12px;color:var(--ink-3)}
+.bb-thumb{display:block;max-width:100%;margin:0 auto 22px}
+.bb-body{font-size:15px;line-height:2;color:var(--ink-2);margin-bottom:22px;white-space:pre-wrap}
+.bb-filedl{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule-2);padding:11px 16px;font-size:13px;color:var(--ink);text-decoration:none;margin-bottom:20px}
+.bb-filedl:hover{border-color:var(--ink)}
+.bb-extlink{display:inline-block;font-size:13px;color:var(--accent);margin-bottom:22px}
+.bb-ownbar{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-bottom:18px}
+.bb-ownbar a{color:var(--ink-3)}
+.bb-ownbar a:hover{color:var(--accent-2)}
+.bb-foot{border-top:1px solid var(--rule-2);padding-top:18px;font-size:13px}
+.bb-foot a{color:var(--ink-2)}
+.bb-foot a:hover{color:var(--ink)}
+
+.bb-comments{border-top:1px solid var(--rule);margin-top:34px;padding-top:26px}
+.bb-comments h2{font-family:var(--serif);font-size:16px;font-weight:500;margin:0 0 16px}
+.bb-citem{border-bottom:1px solid var(--rule-2);padding:14px 0}
+.bb-chead{display:flex;gap:10px;font-size:12.5px;margin-bottom:6px}
+.bb-chead b{color:var(--ink)}
+.bb-chead span{color:var(--ink-3)}
+.bb-citem p{margin:0;font-size:13.5px;line-height:1.8;color:var(--ink-2);white-space:pre-wrap}
+.bb-cempty{color:var(--ink-3);font-size:13px;padding:14px 0}
+.bb-cgate{color:var(--ink-3);font-size:13px;padding:14px 0}
+.bb-cgate a{color:var(--accent)}
+.bb-cform{margin-top:14px}
+.bb-cform textarea{width:100%;margin-bottom:10px}
+.bb-cerr{min-height:16px;font-size:12.5px;color:var(--accent-2);margin-bottom:8px}
+
+/* ── 글쓰기 ── */
+.bb-write-box{border:1px solid var(--rule-2);padding:28px}
+.bb-write-box .ac-fg{margin-bottom:16px}
+.bb-guard{text-align:center;padding:70px 20px;color:var(--ink-3);font-size:14px;line-height:1.9}
+.bb-guard a{color:var(--accent)}
+
+@media(max-width:620px){
+  .bb-toolbar{flex-direction:column;align-items:stretch}
+  .bb-q{width:100%}
+  .bb-row-thumb{display:none}
+}
