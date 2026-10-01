@@ -97,8 +97,8 @@ async function get(url, opts) {
     console.log(idxes.slice(0, 40).join(', '));
   }
 
-  // ★ 「미」 한 글자로 POST — 실제 결과가 나오는지 봅니다
-  console.log('\n════ main/search.asp (POST category=group, s2=미) ════');
+  // ★ 「미」 한 글자로 POST — view 종류별로 나눠 세어 봅니다
+  console.log('\n════ main/search.asp (POST category=group, s2=미) — view 종류별 ════');
   {
     const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
     const rr = await get(u, {
@@ -107,12 +107,27 @@ async function get(url, opts) {
       body: 'category=group&s2=' + encodeURIComponent('미')
     });
     console.log('status', rr.status, 'len', rr.len);
-    const idxes = Array.from(new Set((rr.body.match(/idx=\d+/g) || [])));
-    console.log('idx= 패턴 수: ' + idxes.length);
-    console.log(idxes.slice(0, 40).join(', '));
-    const cntMatch = rr.body.match(/총\s*[\d,]+\s*건/);
-    if (cntMatch) console.log('건수 표시: ' + cntMatch[0]);
-    if (!idxes.length) console.log(rr.body.slice(0, 1200));
+    for (const kind of ['art_view', 'person_view', 'group_view']) {
+      const hrefs = Array.from(new Set((rr.body.match(
+        new RegExp('href=[\'"][^\'"]*' + kind + '\\.asp\\?idx=\\d+[^\'"]*[\'"]', 'g')) || [])));
+      console.log('  ' + kind + ' · ' + hrefs.length + '개 · ' + hrefs.slice(0, 4).join(' | '));
+    }
+    const cntMatch = rr.body.match(/총\s*[\d,]+\s*건/g);
+    if (cntMatch) console.log('건수 표시(전체): ' + cntMatch.join(' / '));
+  }
+
+  // ★ category 를 아예 「groups」(복수)나 한글 라벨로도 시험
+  console.log('\n════ main/search.asp — category 다른 값들 시험 (s2=미) ════');
+  for (const cat of ['groups', '단체', '협회/단체', '3', 'word']) {
+    const u = 'https://www.gokams.or.kr/visual-art/art-terms/main/search.asp';
+    const rr = await get(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      body: 'category=' + encodeURIComponent(cat) + '&s2=' + encodeURIComponent('미')
+    });
+    const gv = Array.from(new Set((rr.body.match(/group_view\.asp\?idx=\d+/g) || [])));
+    console.log('category=' + JSON.stringify(cat) + ' · status ' + rr.status
+      + ' · group_view 링크 수 ' + gv.length + ' · ' + gv.slice(0, 3).join(', '));
   }
 
   // ★ category 선택지(select option) 찾아보기
