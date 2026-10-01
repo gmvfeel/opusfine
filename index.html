@@ -106,17 +106,16 @@
       <!-- ★ 견본 다섯을 지웠습니다. home-exh.js 가 채웁니다. -->
       <div class="lst"><ul></ul></div>
 
-      <div class="sec-hd" style="margin-top:30px">
-        <div><div class="label">This Month</div><div class="sec-t">이달의 미술학교</div></div>
-      </div>
-      <a class="schl" href="#">
-        <div class="em">弘</div>
-        <div>
-          <div class="sn">홍익대학교 미술대학</div>
-          <div class="sm">회화 · 판화 · 조소 · 예술학</div>
-          <div class="ss">동문 작가 <b style="color:var(--accent)">1,842</b>명 · 소장 자료 <b style="color:var(--accent)">96</b>건</div>
+      <!-- ★ 2026-10-01 · 손으로 적은 견본(홍익대 1,842명·96건 — 없는 숫자)을
+           지웠습니다. 이제 assets/home-school.js 가 entity_links 의 실제
+           동문 연결 수로 채웁니다. 동문이 이어진 학교가 없으면 구역째
+           감춥니다(제목줄까지 함께). -->
+      <div id="home-school-wrap" style="display:none">
+        <div class="sec-hd" style="margin-top:30px">
+          <div><div class="label">This Month</div><div class="sec-t">이달의 미술학교</div></div>
         </div>
-      </a>
+        <div id="home-school"></div>
+      </div>
 
       <a class="adwrap adtall" href="#" style="margin-top:20px">
         <span class="am" data-art="ad" data-q="flowers">
@@ -524,6 +523,7 @@
 <script src="/assets/hero.js"></script>
 <script src="/assets/counts.js"></script>
 <script src="/assets/home-exh.js"></script>
+<script src="/assets/home-school.js"></script>
 <script src="/assets/home-work.js"></script>
 <script src="/assets/misigam.js"></script>
 <script src="/assets/home-pr.js"></script>
