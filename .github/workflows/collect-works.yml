@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut, exh-aic-artists, exh-aic-artists-peek, papers-openalex-peek, papers-openalex-kr-peek, papers-openalex, papers-openalex-kr, gokams-peek, groups-gokams-peek-small, groups-gokams-peek-full, groups-gokams, datagokr-peek, wikidata-peek, gokams2-peek]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut, exh-aic-artists, exh-aic-artists-peek, papers-openalex-peek, papers-openalex-kr-peek, papers-openalex, papers-openalex-kr, gokams-peek, groups-gokams-peek-small, groups-gokams-peek-full, groups-gokams, datagokr-peek, wikidata-peek, gokams2-peek, terms-gokams-peek, terms-gokams]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -298,6 +298,16 @@ jobs:
               echo "▶ data.go.kr 문화예술교육 단체 목록 다운로드 주소를 봅니다 (담지 않습니다)"
               node scripts/peek-datagokr.mjs
               ;;
+            terms-gokams-peek)
+              echo "▶ GOKAMS 미술 용어 1~1400번을 훑어 뽑는 글자가 맞는지 봅니다 (담지 않습니다)"
+              node scripts/collect-terms-gokams.mjs --peek --start 1 --end 1400
+              ;;
+            terms-gokams)
+              ARGS="--start 1 --end 1400"
+              if [ "${IN_DRY}" = "true" ]; then ARGS="$ARGS --dry"; fi
+              echo "▶ node scripts/collect-terms-gokams.mjs $ARGS"
+              eval node scripts/collect-terms-gokams.mjs $ARGS
+              ;;
             gokams2-peek)
               echo "▶ GOKAMS art_view.asp(용어)가 group_view.asp 처럼 막혀 있는지 봅니다"
               node scripts/peek-gokams2.mjs
@@ -334,7 +344,7 @@ jobs:
         # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
         #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek·nga/nga-peek 일
         #   때만, 늘(성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
-        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut","exh-aic-artists","exh-aic-artists-peek","papers-openalex-peek","papers-openalex-kr-peek","papers-openalex","papers-openalex-kr","gokams-peek","groups-gokams-peek-small","groups-gokams-peek-full","groups-gokams","datagokr-peek","wikidata-peek","gokams2-peek"]'), github.event.inputs.src)
+        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut","exh-aic-artists","exh-aic-artists-peek","papers-openalex-peek","papers-openalex-kr-peek","papers-openalex","papers-openalex-kr","gokams-peek","groups-gokams-peek-small","groups-gokams-peek-full","groups-gokams","datagokr-peek","wikidata-peek","gokams2-peek","terms-gokams-peek","terms-gokams"]'), github.event.inputs.src)
         uses: actions/github-script@v7
         with:
           script: |
