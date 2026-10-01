@@ -14,7 +14,7 @@ async function get(url) {
 }
 
 (async () => {
-  for (const idx of [30, 103, 104, 1, 500, 1000]) {
+  for (const idx of [30, 103, 104, 1, 500, 1000, 1500, 1800, 2000, 2500, 3000]) {
     const r = await get('https://www.gokams.or.kr/visual-art/art-terms/glossary/art_view.asp?idx=' + idx + '&page=1');
     console.log('art_view idx=' + idx + ' · status ' + r.status + ' · len ' + r.len);
     if (r.status === 200) {
@@ -31,7 +31,8 @@ async function get(url) {
   console.log(cntM ? cntM[0] : '건수 표시 못 찾음');
 
   console.log('\n── art_list.asp 와 group_list.asp 의 POST 로 넓게 검색해 idx 최댓값 ──');
-  for (const [cat, word] of [['word', '미술'], ['word', '회'], ['word', '시대']]) {
+  for (const [cat, word] of [['word', '미술'], ['word', '회'], ['word', '시대'],
+    ['word', '작품'], ['word', '전'], ['word', '화'], ['word', '조각'], ['word', '예술']]) {
     const rr = await (async () => {
       const r = await fetch('https://www.gokams.or.kr/visual-art/art-terms/main/search.asp', {
         method: 'POST',
