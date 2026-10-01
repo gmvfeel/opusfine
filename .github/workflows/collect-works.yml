@@ -20,7 +20,7 @@ on:
         description: '어디서 받을까요'
         type: choice
         default: cma
-        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut, exh-aic-artists, exh-aic-artists-peek, papers-openalex-peek, papers-openalex-kr-peek, papers-openalex, papers-openalex-kr]
+        options: [seoul-peek, gongu-fill, gongu, gongu-peek, commons-cat, commons-catpeek, commons, commons-peek, cma, cma-peek, emuseum-peek, emuseum, met, aic, aic-peek, si, si-peek, nga, nga-peek, school-wiki, school-wiki-peek, school-wiki-redo-cut, exh-aic-artists, exh-aic-artists-peek, papers-openalex-peek, papers-openalex-kr-peek, papers-openalex, papers-openalex-kr, gokams-peek]
       q:
         description: '무엇으로 찾을까요 (예: Korea, landscape)'
         default: 'Korea'
@@ -282,6 +282,10 @@ jobs:
               echo "▶ node scripts/collect-papers-openalex.mjs $ARGS"
               eval node scripts/collect-papers-openalex.mjs $ARGS
               ;;
+            gokams-peek)
+              echo "▶ GOKAMS 미술단체 용어사전 목록 페이지 구조를 봅니다 (담지 않습니다)"
+              node scripts/peek-gokams.mjs
+              ;;
             met)
               ARGS="--q \"${IN_Q:-Korea}\" --limit ${IN_LIMIT:-300}"
               if [ -n "${IN_DEPT}" ]; then ARGS="$ARGS --dept ${IN_DEPT}"; fi
@@ -301,7 +305,7 @@ jobs:
         # ★ 2026-09-29 · blob storage(actions log)가 사방넷에서 막혀
         #   있어 이슈 댓글로 결과를 옮깁니다. si/si-peek·nga/nga-peek 일
         #   때만, 늘(성공·실패 상관없이) 답니다. 확인 끝나면 지워도 됩니다.
-        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut","exh-aic-artists","exh-aic-artists-peek","papers-openalex-peek","papers-openalex-kr-peek","papers-openalex","papers-openalex-kr"]'), github.event.inputs.src)
+        if: always() && contains(fromJSON('["si","si-peek","nga","nga-peek","school-wiki","school-wiki-peek","school-wiki-redo-cut","exh-aic-artists","exh-aic-artists-peek","papers-openalex-peek","papers-openalex-kr-peek","papers-openalex","papers-openalex-kr","gokams-peek"]'), github.event.inputs.src)
         uses: actions/github-script@v7
         with:
           script: |
