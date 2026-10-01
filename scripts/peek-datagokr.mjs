@@ -47,6 +47,24 @@ async function get(url, opts) {
   console.log('바이트 수(대략, utf8 기준)', Buffer.byteLength(r2.body, 'utf8'));
   const lines = r2.body.split(/\r?\n/).filter(Boolean);
   console.log('줄 수', lines.length);
-  console.log('--- 처음 3줄 ---');
+  console.log('--- 처음 3줄 (글자 깨짐, 인코딩 확인 전) ---');
   console.log(lines.slice(0, 3).join('\n'));
+
+  // ★ 2026-10-01 · 안내문에 인코딩이 안 적혀 있어, 받은 그대로를
+  //   EUC-KR 로 다시 읽어 봅니다(공공데이터포털 CSV 는 흔히 이 글자셋).
+  console.log('\n════ EUC-KR 로 다시 읽기 ════');
+  const r3 = await fetch(dlUrl, { headers: { 'User-Agent': UA, Referer: 'https://www.data.go.kr/data/15156828/fileData.do' } });
+  const buf = Buffer.from(await r3.arrayBuffer());
+  const text = new TextDecoder('euc-kr').decode(buf);
+  const lines2 = text.split(/\r?\n/).filter(Boolean);
+  console.log('줄 수(헤더 포함)', lines2.length);
+  console.log('--- 헤더 ---');
+  console.log(lines2[0]);
+  console.log('--- 처음 5줄 ---');
+  console.log(lines2.slice(0, 6).join('\n'));
+
+  // 활동분야 칸 값 분포(대략 5번째 칸으로 짐작, 헤더 보고 맞출 것)
+  const header = lines2[0].split(',').map((s) => s.replace(/"/g, '').trim());
+  console.log('--- 헤더 칸 이름 목록 ---');
+  header.forEach((h, i) => console.log('  [' + i + '] ' + h));
 })();
